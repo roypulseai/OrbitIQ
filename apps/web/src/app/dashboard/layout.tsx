@@ -9,6 +9,8 @@ const navigation = [
   { name: "Connections", href: "/dashboard/connections", icon: "🔌" },
   { name: "Explore", href: "/dashboard/explore", icon: "🔍" },
   { name: "Models", href: "/dashboard/models", icon: "📐" },
+  { name: "Relationships", href: "/dashboard/relationships", icon: "🔗" },
+  { name: "Data Prep", href: "/dashboard/data-prep", icon: "🛠️" },
   { name: "Settings", href: "/dashboard/settings", icon: "⚙️" },
 ];
 

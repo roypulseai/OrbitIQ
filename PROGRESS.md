@@ -1,6 +1,6 @@
 # OrbitIQ — Project Progress Tracker
 
-> Last Updated: Sprint 4 — Complete
+> Last Updated: Sprint 5 — Complete
 
 ---
 
@@ -13,6 +13,7 @@
 | 2 | Semantic Model + Charts | ✅ Complete | - | - | 100% |
 | 3 | OQL Compiler v1 | ✅ Complete | - | - | 100% |
 | 4 | Multi-Connector Support | ✅ Complete | - | - | 100% |
+| 5 | Relationship Modeling | ✅ Complete | - | - | 100% |
 
 ---
 
@@ -105,7 +106,7 @@
 ### Release 1 — Core BI MVP (Sprints 3-7)
 - [x] OQL compiler v1 (Sprint 3)
 - [x] Snowflake, BigQuery, MySQL connectors (Sprint 4)
-- [ ] Relationship modeling
+- [x] Relationship modeling + Data Prep (Sprint 5)
 - [ ] Dashboard canvas
 - [ ] Caching + sharing
 
@@ -145,6 +146,18 @@
 ---
 
 ## Completed Work
+
+### Sprint 5 — Relationship Modeling (Complete)
+- ✅ GraphQL types for Relationship, RelationshipSuggestion, CreateRelationshipInput, UpdateRelationshipInput
+- ✅ GraphQL types for DataPipeline, TransformStep, TransformStepType enum (12 types)
+- ✅ GraphQL types for CreateDataPipelineInput, UpdateDataPipelineInput, AddTransformStepInput, UpdateTransformStepInput
+- ✅ RelationshipsService with full CRUD + suggestRelationships + buildJoinSQL
+- ✅ DataPrepService with full Pipeline CRUD + Transform Step CRUD + SQL compilation for 12 step types
+- ✅ RelationshipsResolver with all queries and mutations + audit logging
+- ✅ Registered RelationshipsService, DataPrepService, RelationshipsResolver in AppModule
+- ✅ Relationship Canvas UI with list view, canvas view, create/edit modal, suggestion banner
+- ✅ Data Prep Canvas UI with pipeline list, step canvas, create pipeline modal, add/edit step modal, SQL preview
+- ✅ Updated dashboard sidebar navigation with Relationships and Data Prep links
 
 ### Sprint 4 — Multi-Connector Support (Complete)
 - ✅ Snowflake connector with full implementation
@@ -237,6 +250,8 @@
 | BigQuery via @google-cloud/bigquery | Official Google SDK | Sprint 4 |
 | MySQL via mysql2/promise | Promise-based, fast, supports SSL | Sprint 4 |
 | Dynamic connection forms | Different fields per connector type, better UX | Sprint 4 |
+| Column name analysis for join suggestions | FK patterns, exact matches, similarity scoring | Sprint 5 |
+| 12 transform step types | Full SQL compilation pipeline for data prep | Sprint 5 |
 
 ---
 
@@ -250,11 +265,11 @@
 
 ## Next Sprint Preview
 
-### Sprint 5 — Relationship Modeling
-- Relationship modeling UI (define joins, cardinality)
-- Data Prep canvas v1 (filter, join, pivot, type-cast steps compiled to SQL)
-- Visual relationship canvas
-- Join recommendation engine
+### Sprint 6 — Dashboard Canvas v1
+- Dashboard canvas with grid layout
+- Cross-filtering between tiles
+- Drill-down capability
+- Dashboard sharing and embedding
 
 ---
 

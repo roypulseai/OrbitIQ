@@ -846,3 +846,269 @@ export class CheckPermissionInput {
   @Field()
   permission: string;
 }
+
+// Sprint 5: Relationship Types
+
+export enum Cardinality {
+  ONE_TO_ONE = "1:1",
+  ONE_TO_MANY = "1:N",
+  MANY_TO_ONE = "N:1",
+  MANY_TO_MANY = "N:N",
+}
+
+registerEnumType(Cardinality, { name: "Cardinality" });
+
+@ObjectType()
+export class Relationship {
+  @Field(() => ID)
+  id: string;
+
+  @Field()
+  modelId: string;
+
+  @Field()
+  name: string;
+
+  @Field()
+  fromTableId: string;
+
+  @Field()
+  fromColumnId: string;
+
+  @Field()
+  toTableId: string;
+
+  @Field()
+  toColumnId: string;
+
+  @Field(() => Cardinality)
+  cardinality: Cardinality;
+
+  @Field({ nullable: true })
+  joinType?: string;
+
+  @Field()
+  isActive: boolean;
+
+  @Field({ nullable: true })
+  description?: string;
+
+  @Field()
+  createdAt: Date;
+
+  @Field()
+  updatedAt: Date;
+}
+
+@ObjectType()
+export class RelationshipSuggestion {
+  @Field()
+  fromTable: string;
+
+  @Field()
+  fromColumn: string;
+
+  @Field()
+  toTable: string;
+
+  @Field()
+  toColumn: string;
+
+  @Field(() => Cardinality)
+  suggestedCardinality: Cardinality;
+
+  @Field()
+  confidence: number;
+
+  @Field()
+  reason: string;
+}
+
+// Sprint 5: Data Prep Types
+
+export enum TransformStepType {
+  FILTER = "filter",
+  JOIN = "join",
+  PIVOT = "pivot",
+  UNPIVOT = "unpivot",
+  GROUP = "group",
+  RENAME = "rename",
+  CAST = "cast",
+  ADD_COLUMN = "add_column",
+  REMOVE_COLUMN = "remove_column",
+  SORT = "sort",
+  DEDUPLICATE = "deduplicate",
+  SAMPLE = "sample",
+}
+
+registerEnumType(TransformStepType, { name: "TransformStepType" });
+
+@ObjectType()
+export class TransformStep {
+  @Field(() => ID)
+  id: string;
+
+  @Field()
+  pipelineId: string;
+
+  @Field(() => TransformStepType)
+  type: TransformStepType;
+
+  @Field()
+  order: number;
+
+  @Field(() => JSON)
+  config: Record<string, unknown>;
+
+  @Field()
+  isActive: boolean;
+
+  @Field({ nullable: true })
+  sqlOutput?: string;
+
+  @Field()
+  createdAt: Date;
+
+  @Field()
+  updatedAt: Date;
+}
+
+@ObjectType()
+export class DataPipeline {
+  @Field(() => ID)
+  id: string;
+
+  @Field()
+  workspaceId: string;
+
+  @Field()
+  name: string;
+
+  @Field({ nullable: true })
+  description?: string;
+
+  @Field()
+  sourceConnectionId: string;
+
+  @Field()
+  sourceSchema: string;
+
+  @Field()
+  sourceTable: string;
+
+  @Field(() => [TransformStep])
+  steps: TransformStep[];
+
+  @Field()
+  createdAt: Date;
+
+  @Field()
+  updatedAt: Date;
+}
+
+// Sprint 5: Input Types
+
+@InputType()
+export class CreateRelationshipInput {
+  @Field()
+  modelId: string;
+
+  @Field()
+  name: string;
+
+  @Field()
+  fromTableId: string;
+
+  @Field()
+  fromColumnId: string;
+
+  @Field()
+  toTableId: string;
+
+  @Field()
+  toColumnId: string;
+
+  @Field(() => Cardinality)
+  cardinality: Cardinality;
+
+  @Field({ nullable: true })
+  joinType?: string;
+
+  @Field({ nullable: true })
+  description?: string;
+}
+
+@InputType()
+export class UpdateRelationshipInput {
+  @Field({ nullable: true })
+  name?: string;
+
+  @Field(() => Cardinality, { nullable: true })
+  cardinality?: Cardinality;
+
+  @Field({ nullable: true })
+  joinType?: string;
+
+  @Field({ nullable: true })
+  isActive?: boolean;
+
+  @Field({ nullable: true })
+  description?: string;
+}
+
+@InputType()
+export class CreateDataPipelineInput {
+  @Field()
+  workspaceId: string;
+
+  @Field()
+  name: string;
+
+  @Field({ nullable: true })
+  description?: string;
+
+  @Field()
+  sourceConnectionId: string;
+
+  @Field()
+  sourceSchema: string;
+
+  @Field()
+  sourceTable: string;
+}
+
+@InputType()
+export class UpdateDataPipelineInput {
+  @Field({ nullable: true })
+  name?: string;
+
+  @Field({ nullable: true })
+  description?: string;
+}
+
+@InputType()
+export class AddTransformStepInput {
+  @Field()
+  pipelineId: string;
+
+  @Field(() => TransformStepType)
+  type: TransformStepType;
+
+  @Field(() => JSON)
+  config: Record<string, unknown>;
+
+  @Field({ nullable: true })
+  order?: number;
+}
+
+@InputType()
+export class UpdateTransformStepInput {
+  @Field(() => JSON, { nullable: true })
+  config?: Record<string, unknown>;
+
+  @Field({ nullable: true })
+  isActive?: boolean;
+
+  @Field({ nullable: true })
+  order?: number;
+}

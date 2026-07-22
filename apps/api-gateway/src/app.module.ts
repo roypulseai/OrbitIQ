@@ -7,6 +7,7 @@ import { SchemaResolver } from "./resolvers/schema.resolver";
 import { SemanticModelsResolver } from "./resolvers/semantic-models.resolver";
 import { OQLResolver } from "./resolvers/oql.resolver";
 import { ExportResolver } from "./resolvers/export.resolver";
+import { RelationshipsResolver } from "./resolvers/relationships.resolver";
 import { OrganizationsService } from "./services/organizations.service";
 import { WorkspacesService } from "./services/workspaces.service";
 import { UsersService } from "./services/users.service";
@@ -19,6 +20,8 @@ import { RBACService } from "./services/rbac.service";
 import { ChartRecommenderService } from "./services/chart-recommender.service";
 import { OQLService } from "./services/oql.service";
 import { ExportService } from "./services/export.service";
+import { RelationshipsService } from "./services/relationships.service";
+import { DataPrepService } from "./services/data-prep.service";
 
 @Module({
   imports: [
@@ -38,6 +41,7 @@ import { ExportService } from "./services/export.service";
     SemanticModelsResolver,
     OQLResolver,
     ExportResolver,
+    RelationshipsResolver,
     OrganizationsService,
     WorkspacesService,
     UsersService,
@@ -50,6 +54,8 @@ import { ExportService } from "./services/export.service";
     ChartRecommenderService,
     OQLService,
     ExportService,
+    RelationshipsService,
+    DataPrepService,
   ],
 })
 export class AppModule {}
