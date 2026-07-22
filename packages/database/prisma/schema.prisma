@@ -76,9 +76,12 @@ model Connection {
   workspaceId   String
   workspace     Workspace @relation(fields: [workspaceId], references: [id])
   connectorType String
-  config        Json
+  config        Json      // Encrypted at application level
   regionPin     String?
   createdBy     String
+  status        String    @default("inactive")
+  lastTestedAt  DateTime?
+  lastTestResult String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   discoveryRuns DiscoveryRun[]

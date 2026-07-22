@@ -3,9 +3,13 @@ import { GraphQLModule } from "@nestjs/graphql";
 import { ApolloDriver, ApolloDriverConfig } from "@nestjs/apollo";
 import { ConfigModule } from "@nestjs/config";
 import { join } from "path";
-import { WorkspacesModule } from "./workspaces/workspaces.module";
-import { UsersModule } from "./users/users.module";
-import { ConnectionsModule } from "./connections/connections.module";
+import { SchemaResolver } from "./resolvers/schema.resolver";
+import { OrganizationsService } from "./services/organizations.service";
+import { WorkspacesService } from "./services/workspaces.service";
+import { UsersService } from "./services/users.service";
+import { ConnectionsService } from "./services/connections.service";
+import { QueryEngineService } from "./services/query-engine.service";
+import { AuditService } from "./services/audit.service";
 
 @Module({
   imports: [
@@ -19,9 +23,15 @@ import { ConnectionsModule } from "./connections/connections.module";
       playground: true,
       context: ({ req }) => ({ req }),
     }),
-    WorkspacesModule,
-    UsersModule,
-    ConnectionsModule,
+  ],
+  providers: [
+    SchemaResolver,
+    OrganizationsService,
+    WorkspacesService,
+    UsersService,
+    ConnectionsService,
+    QueryEngineService,
+    AuditService,
   ],
 })
 export class AppModule {}

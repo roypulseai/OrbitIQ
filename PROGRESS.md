@@ -1,6 +1,6 @@
 # OrbitIQ — Project Progress Tracker
 
-> Last Updated: Sprint 0 — Complete
+> Last Updated: Sprint 1 — Complete
 
 ---
 
@@ -9,26 +9,28 @@
 | Sprint | Name | Status | Start Date | End Date | % Complete |
 |--------|------|--------|------------|----------|------------|
 | 0 | Setup & Foundations | ✅ Complete | - | - | 100% |
-| 1 | API Gateway + First Connector | ⏳ Pending | - | - | 0% |
+| 1 | API Gateway + First Connector | ✅ Complete | - | - | 100% |
 | 2 | Semantic Model + Charts | ⏳ Pending | - | - | 0% |
 
 ---
 
-## Sprint 0 — Setup & Foundations
+## Sprint 1 — API Gateway + First Connector
 
 ### Tasks
 
 | Task | Status | Owner | Notes |
 |------|--------|-------|-------|
-| Monorepo structure created | ✅ Done | - | Turborepo monorepo with packages/ and apps/ |
-| CI/CD pipeline (GitHub Actions) | ✅ Done | - | Lint, typecheck, test, build workflows |
-| Design system foundations | ✅ Done | - | Tailwind tokens, Button, Card, Input, Badge, Avatar, Modal, Spinner, Toast, Tooltip, Dropdown |
-| Postgres data model (Prisma) | ✅ Done | - | Full schema with all entities from spec §13 |
-| Basic OIDC login (Keycloak) | ✅ Done | - | NextAuth.js with Keycloak provider |
-| Architecture Decision Records | ✅ Done | - | ADR-001 through ADR-004 |
-| Docker Compose | ✅ Done | - | Postgres 16, Redis 7, Keycloak 23 |
-| Kubernetes manifests | ✅ Done | - | Namespace, API Gateway, Web, Ingress, HPA |
-| Terraform infrastructure | ✅ Done | - | VPC, RDS, Redis, EKS, S3 |
+| Connector SDK interface | ✅ Done | - | Full interface: testConnection, listSchemas, listTables, listColumns, sampleData, executeQuery |
+| PostgreSQL native connector | ✅ Done | - | End-to-end: connect, list schemas/tables, sample data, execute pushdown SQL |
+| Connector Registry | ✅ Done | - | Plugin system for registering/connecting multiple connector types |
+| GraphQL schema expansion | ✅ Done | - | Full types for Organization, Workspace, User, Connection, SchemaInfo, TableInfo, ColumnInfo |
+| Schema resolver | ✅ Done | - | Queries: organizations, workspaces, users, connections, schemas, tables, columns, sampleData |
+| Connection service | ✅ Done | - | CRUD + test + schema discovery + query execution |
+| Audit service | ✅ Done | - | Event logging for queries and connection tests |
+| Credential encryption | ✅ Done | - | AES-256-GCM encryption for sensitive config fields |
+| Prisma schema updates | ✅ Done | - | Added status, lastTestedAt, lastTestResult to Connection |
+| Connection config UI | ✅ Done | - | Dashboard pages: connections, explore, models, settings |
+| Dashboard layout | ✅ Done | - | Sidebar navigation with links to all sections |
 
 ---
 
@@ -38,8 +40,8 @@
 - [x] Monorepo + CI/CD
 - [x] Design system
 - [x] Org/Auth data model
-- [ ] API Gateway skeleton (Sprint 1)
-- [ ] PostgreSQL connector (Sprint 1)
+- [x] API Gateway skeleton
+- [x] PostgreSQL connector
 - [ ] Basic chart rendering (Sprint 2)
 
 ### Release 1 — Core BI MVP (Sprints 3-7)
@@ -86,10 +88,26 @@
 
 ## Completed Work
 
+### Sprint 1 — API Gateway + First Connector (Complete)
+- ✅ Connector SDK with full interface definition
+- ✅ PostgreSQL connector (test, listSchemas, listTables, listColumns, sampleData, executeQuery)
+- ✅ Connector Registry for plugin management
+- ✅ Expanded GraphQL schema with all entity types
+- ✅ Schema resolver with queries/mutations for all resources
+- ✅ Connection service with test and discovery
+- ✅ Query engine service for executing SQL
+- ✅ Audit service for event logging
+- ✅ AES-256-GCM credential encryption
+- ✅ Connection config UI (add/test/browse connections)
+- ✅ Dashboard layout with sidebar navigation
+- ✅ Explore page (NL query input)
+- ✅ Models page (semantic model management)
+- ✅ Settings page (AI providers, compliance)
+
 ### Sprint 0 — Foundations (Complete)
 - ✅ Monorepo structure with Turborepo
 - ✅ CI/CD pipeline (GitHub Actions)
-- ✅ Design system package with 10 base components
+- ✅ Design system with 10 base components
 - ✅ Shared types, schemas, constants, utilities
 - ✅ Prisma schema with all core entities
 - ✅ Next.js web app with auth pages
@@ -112,10 +130,8 @@
 | PostgreSQL 16 for metadata | Supports relational + pgvector for embeddings | Sprint 0 |
 | Prisma 6 for ORM | Type-safe, migration-friendly, good DX | Sprint 0 |
 | Keycloak for auth | Self-host-friendly, OIDC/SAML/SCIM support | Sprint 0 |
-| Tailwind CSS for styling | Utility-first, consistent design system | Sprint 0 |
-| Apollo Server for GraphQL | Industry standard, excellent tooling | Sprint 0 |
-| AWS EKS for orchestration | Managed Kubernetes, cloud-native | Sprint 0 |
-| Docker Compose for local dev | Simple local development environment | Sprint 0 |
+| AES-256-GCM for credential encryption | Industry standard, authenticated encryption | Sprint 1 |
+| Plugin-based Connector Registry | Extensible architecture for future connectors | Sprint 1 |
 
 ---
 
@@ -129,11 +145,12 @@
 
 ## Next Sprint Preview
 
-### Sprint 1 — API Gateway + First Connector
-- API Gateway BFF skeleton with full GraphQL schema
-- Connector SDK interface definition
-- PostgreSQL native connector end-to-end
-- Connection config UI with credential encryption
+### Sprint 2 — Semantic Model + Charts
+- Minimal Semantic Model object (tables + basic measures)
+- Dashboard object CRUD
+- First chart rendering (bar + line) using Vega-Lite
+- RBAC v0 (Admin/Editor/Viewer roles)
+- Audit log table + basic event logging
 
 ---
 
