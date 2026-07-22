@@ -1,5 +1,26 @@
 import { ObjectType, Field, ID, InputType, registerEnumType, Float } from "@nestjs/graphql";
 
+// Enums for Sprint 2
+export enum ModelStatus {
+  DRAFT = "draft",
+  PUBLISHED = "published",
+}
+
+registerEnumType(ModelStatus, { name: "ModelStatus" });
+
+export enum ChartType {
+  BAR = "bar",
+  LINE = "line",
+  AREA = "area",
+  SCATTER = "scatter",
+  PIE = "pie",
+  DONUT = "donut",
+  KPI = "kpi",
+  TABLE = "table",
+}
+
+registerEnumType(ChartType, { name: "ChartType" });
+
 export enum ConnectorType {
   POSTGRESQL = "postgresql",
   MYSQL = "mysql",
@@ -393,4 +414,435 @@ export class QueryExecutionInput {
 
   @Field(() => [JSON], { nullable: true })
   params?: unknown[];
+}
+
+// Sprint 2: Semantic Model Types
+
+@ObjectType()
+export class SemanticModel {
+  @Field(() => ID)
+  id: string;
+
+  @Field()
+  workspaceId: string;
+
+  @Field()
+  name: string;
+
+  @Field({ nullable: true })
+  description?: string;
+
+  @Field({ nullable: true })
+  gitRef?: string;
+
+  @Field(() => ModelStatus)
+  status: ModelStatus;
+
+  @Field()
+  createdAt: Date;
+
+  @Field()
+  updatedAt: Date;
+}
+
+@ObjectType()
+export class ModelTable {
+  @Field(() => ID)
+  id: string;
+
+  @Field()
+  modelId: string;
+
+  @Field()
+  connectionId: string;
+
+  @Field()
+  physicalName: string;
+
+  @Field()
+  logicalName: string;
+
+  @Field()
+  schema: string;
+
+  @Field()
+  createdAt: Date;
+
+  @Field()
+  updatedAt: Date;
+}
+
+@ObjectType()
+export class ModelColumn {
+  @Field(() => ID)
+  id: string;
+
+  @Field()
+  tableId: string;
+
+  @Field()
+  physicalName: string;
+
+  @Field()
+  logicalName: string;
+
+  @Field()
+  dataType: string;
+
+  @Field()
+  isDimension: boolean;
+
+  @Field()
+  isMeasure: boolean;
+
+  @Field()
+  isPii: boolean;
+
+  @Field(() => JSON, { nullable: true })
+  maskRule?: Record<string, unknown>;
+
+  @Field()
+  createdAt: Date;
+
+  @Field()
+  updatedAt: Date;
+}
+
+@ObjectType()
+export class ModelMeasure {
+  @Field(() => ID)
+  id: string;
+
+  @Field()
+  modelId: string;
+
+  @Field()
+  name: string;
+
+  @Field()
+  expression: string;
+
+  @Field({ nullable: true })
+  format?: string;
+
+  @Field({ nullable: true })
+  description?: string;
+
+  @Field()
+  createdAt: Date;
+
+  @Field()
+  updatedAt: Date;
+}
+
+// Sprint 2: Dashboard Types
+
+@ObjectType()
+export class TileConfig {
+  @Field(() => ID)
+  id: string;
+
+  @Field(() => String)
+  type: string;
+
+  @Field(() => JSON)
+  position: { x: number; y: number; w: number; h: number };
+
+  @Field(() => JSON)
+  config: Record<string, unknown>;
+}
+
+@ObjectType()
+export class DashboardLayout {
+  @Field()
+  columns: number;
+
+  @Field()
+  rowHeight: number;
+
+  @Field(() => [TileConfig])
+  tiles: TileConfig[];
+}
+
+@ObjectType()
+export class Dashboard {
+  @Field(() => ID)
+  id: string;
+
+  @Field()
+  workspaceId: string;
+
+  @Field()
+  name: string;
+
+  @Field({ nullable: true })
+  description?: string;
+
+  @Field(() => DashboardLayout)
+  layout: DashboardLayout;
+
+  @Field({ nullable: true })
+  gitRef?: string;
+
+  @Field()
+  createdAt: Date;
+
+  @Field()
+  updatedAt: Date;
+}
+
+@ObjectType()
+export class Tile {
+  @Field(() => ID)
+  id: string;
+
+  @Field()
+  dashboardId: string;
+
+  @Field(() => JSON)
+  chartSpec: Record<string, unknown>;
+
+  @Field(() => JSON)
+  oqlQuery: Record<string, unknown>;
+
+  @Field(() => JSON)
+  position: { x: number; y: number; w: number; h: number };
+
+  @Field()
+  createdAt: Date;
+
+  @Field()
+  updatedAt: Date;
+}
+
+// Sprint 2: RBAC Types
+
+@ObjectType()
+export class RoleDefinition {
+  @Field(() => ID)
+  id: string;
+
+  @Field()
+  name: string;
+
+  @Field(() => [String])
+  permissions: string[];
+
+  @Field()
+  createdAt: Date;
+
+  @Field()
+  updatedAt: Date;
+}
+
+@ObjectType()
+export class PermissionCheck {
+  @Field()
+  granted: boolean;
+
+  @Field()
+  permission: string;
+
+  @Field({ nullable: true })
+  reason?: string;
+}
+
+// Sprint 2: Input Types
+
+@InputType()
+export class CreateSemanticModelInput {
+  @Field()
+  workspaceId: string;
+
+  @Field()
+  name: string;
+
+  @Field({ nullable: true })
+  description?: string;
+}
+
+@InputType()
+export class UpdateSemanticModelInput {
+  @Field({ nullable: true })
+  name?: string;
+
+  @Field({ nullable: true })
+  description?: string;
+}
+
+@InputType()
+export class AddModelTableInput {
+  @Field()
+  modelId: string;
+
+  @Field()
+  connectionId: string;
+
+  @Field()
+  physicalName: string;
+
+  @Field()
+  logicalName: string;
+
+  @Field()
+  schema: string;
+}
+
+@InputType()
+export class AddModelColumnInput {
+  @Field()
+  tableId: string;
+
+  @Field()
+  physicalName: string;
+
+  @Field()
+  logicalName: string;
+
+  @Field()
+  dataType: string;
+
+  @Field({ nullable: true })
+  isDimension?: boolean;
+
+  @Field({ nullable: true })
+  isMeasure?: boolean;
+
+  @Field({ nullable: true })
+  isPii?: boolean;
+}
+
+@InputType()
+export class UpdateModelColumnInput {
+  @Field({ nullable: true })
+  logicalName?: string;
+
+  @Field({ nullable: true })
+  isDimension?: boolean;
+
+  @Field({ nullable: true })
+  isMeasure?: boolean;
+
+  @Field({ nullable: true })
+  isPii?: boolean;
+
+  @Field(() => JSON, { nullable: true })
+  maskRule?: Record<string, unknown>;
+}
+
+@InputType()
+export class AddModelMeasureInput {
+  @Field()
+  modelId: string;
+
+  @Field()
+  name: string;
+
+  @Field()
+  expression: string;
+
+  @Field({ nullable: true })
+  format?: string;
+
+  @Field({ nullable: true })
+  description?: string;
+}
+
+@InputType()
+export class UpdateModelMeasureInput {
+  @Field({ nullable: true })
+  name?: string;
+
+  @Field({ nullable: true })
+  expression?: string;
+
+  @Field({ nullable: true })
+  format?: string;
+
+  @Field({ nullable: true })
+  description?: string;
+}
+
+@InputType()
+export class CreateDashboardInput {
+  @Field()
+  workspaceId: string;
+
+  @Field()
+  name: string;
+
+  @Field({ nullable: true })
+  description?: string;
+}
+
+@InputType()
+export class UpdateDashboardInput {
+  @Field({ nullable: true })
+  name?: string;
+
+  @Field({ nullable: true })
+  description?: string;
+
+  @Field(() => DashboardLayout, { nullable: true })
+  layout?: DashboardLayout;
+}
+
+@InputType()
+export class AddTileInput {
+  @Field()
+  dashboardId: string;
+
+  @Field(() => JSON)
+  chartSpec: Record<string, unknown>;
+
+  @Field(() => JSON)
+  oqlQuery: Record<string, unknown>;
+
+  @Field(() => JSON)
+  position: { x: number; y: number; w: number; h: number };
+}
+
+@InputType()
+export class UpdateTileInput {
+  @Field(() => JSON, { nullable: true })
+  chartSpec?: Record<string, unknown>;
+
+  @Field(() => JSON, { nullable: true })
+  oqlQuery?: Record<string, unknown>;
+
+  @Field(() => JSON, { nullable: true })
+  position?: { x: number; y: number; w: number; h: number };
+}
+
+@InputType()
+export class BuildQueryInput {
+  @Field()
+  modelId: string;
+
+  @Field(() => [String])
+  selectedColumns: string[];
+
+  @Field(() => [String])
+  measures: string[];
+
+  @Field(() => [JSON])
+  filters: Record<string, unknown>[];
+
+  @Field(() => [String])
+  groupBy: string[];
+
+  @Field({ nullable: true })
+  orderBy?: string;
+
+  @Field({ nullable: true })
+  limit?: number;
+}
+
+@InputType()
+export class CheckPermissionInput {
+  @Field(() => [String])
+  roles: string[];
+
+  @Field()
+  permission: string;
 }

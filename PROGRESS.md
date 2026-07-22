@@ -1,6 +1,6 @@
 # OrbitIQ — Project Progress Tracker
 
-> Last Updated: Sprint 1 — Complete
+> Last Updated: Sprint 2 — Complete
 
 ---
 
@@ -10,7 +10,7 @@
 |--------|------|--------|------------|----------|------------|
 | 0 | Setup & Foundations | ✅ Complete | - | - | 100% |
 | 1 | API Gateway + First Connector | ✅ Complete | - | - | 100% |
-| 2 | Semantic Model + Charts | ⏳ Pending | - | - | 0% |
+| 2 | Semantic Model + Charts | ✅ Complete | - | - | 100% |
 
 ---
 
@@ -34,6 +34,27 @@
 
 ---
 
+## Sprint 2 — Semantic Model + Charts
+
+### Tasks
+
+| Task | Status | Owner | Notes |
+|------|--------|-------|-------|
+| Semantic Model types | ✅ Done | - | GraphQL types: SemanticModel, ModelTable, ModelColumn, ModelMeasure with enums |
+| Semantic Model service | ✅ Done | - | Full CRUD + publish/unpublish + SQL builder |
+| Dashboard types | ✅ Done | - | GraphQL types: Dashboard, DashboardLayout, Tile, TileConfig |
+| Dashboard service | ✅ Done | - | Full CRUD + tile management + layout updates |
+| RBAC service | ✅ Done | - | 5 roles: admin, editor, viewer, data_steward, security_admin with granular permissions |
+| Chart recommender service | ✅ Done | - | Data profiling + chart type recommendations + config generation |
+| GraphQL resolvers | ✅ Done | - | SemanticModelsResolver with all queries/mutations + audit logging |
+| AppModule update | ✅ Done | - | Registered all new services and resolver |
+| Models page UI | ✅ Done | - | Interactive page with create modal + model list |
+| Chart rendering (Vega-Lite) | ✅ Done | - | Chart component with bar, line, area, scatter, pie, donut support |
+| Explore page update | ✅ Done | - | Integrated Chart component for query results |
+| Dashboard detail page | ✅ Done | - | Integrated Chart component with demo tiles |
+
+---
+
 ## Release Milestones
 
 ### Release 0 — Foundations (Sprints 0-2)
@@ -42,7 +63,7 @@
 - [x] Org/Auth data model
 - [x] API Gateway skeleton
 - [x] PostgreSQL connector
-- [ ] Basic chart rendering (Sprint 2)
+- [x] Basic chart rendering (Sprint 2)
 
 ### Release 1 — Core BI MVP (Sprints 3-7)
 - [ ] OQL compiler v1
@@ -88,6 +109,21 @@
 
 ## Completed Work
 
+### Sprint 2 — Semantic Model + Charts (Complete)
+- ✅ GraphQL types for SemanticModel, ModelTable, ModelColumn, ModelMeasure
+- ✅ GraphQL types for Dashboard, DashboardLayout, Tile, TileConfig
+- ✅ Semantic Models service with full CRUD + publish/unpublish
+- ✅ SQL builder for semantic models (SELECT, FROM, WHERE, GROUP BY, ORDER BY, LIMIT)
+- ✅ Dashboards service with full CRUD + tile management
+- ✅ RBAC service with 5 roles and granular permissions
+- ✅ Chart recommender service for data profiling
+- ✅ SemanticModelsResolver with all queries and mutations
+- ✅ Audit logging for all operations
+- ✅ Models page UI with create modal
+- ✅ Chart component with Vega-Lite support (bar, line, area, scatter, pie, donut)
+- ✅ Updated Explore page with chart rendering
+- ✅ Dashboard detail page with chart tiles
+
 ### Sprint 1 — API Gateway + First Connector (Complete)
 - ✅ Connector SDK with full interface definition
 - ✅ PostgreSQL connector (test, listSchemas, listTables, listColumns, sampleData, executeQuery)
@@ -132,6 +168,9 @@
 | Keycloak for auth | Self-host-friendly, OIDC/SAML/SCIM support | Sprint 0 |
 | AES-256-GCM for credential encryption | Industry standard, authenticated encryption | Sprint 1 |
 | Plugin-based Connector Registry | Extensible architecture for future connectors | Sprint 1 |
+| Vega-Lite for chart rendering | Declarative grammar, wide chart type support | Sprint 2 |
+| In-memory stores for Sprint 2 | Fast iteration, replace with Prisma in Sprint 3 | Sprint 2 |
+| 5 RBAC roles | Granular permissions per spec §9.4 | Sprint 2 |
 
 ---
 
@@ -145,12 +184,13 @@
 
 ## Next Sprint Preview
 
-### Sprint 2 — Semantic Model + Charts
-- Minimal Semantic Model object (tables + basic measures)
-- Dashboard object CRUD
-- First chart rendering (bar + line) using Vega-Lite
-- RBAC v0 (Admin/Editor/Viewer roles)
-- Audit log table + basic event logging
+### Sprint 3 — OQL Compiler v1
+- OQL (OrbitIQ Query Language) parser and compiler
+- Aggregations, filters, time intelligence functions
+- Query optimization and caching
+- OQL playground UI
+- Query result visualization
+- Export to SQL, CSV, JSON
 
 ---
 
