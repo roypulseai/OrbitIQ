@@ -1,6 +1,6 @@
 # OrbitIQ — Project Progress Tracker
 
-> Last Updated: Sprint 3 — Complete
+> Last Updated: Sprint 4 — Complete
 
 ---
 
@@ -12,6 +12,7 @@
 | 1 | API Gateway + First Connector | ✅ Complete | - | - | 100% |
 | 2 | Semantic Model + Charts | ✅ Complete | - | - | 100% |
 | 3 | OQL Compiler v1 | ✅ Complete | - | - | 100% |
+| 4 | Multi-Connector Support | ✅ Complete | - | - | 100% |
 
 ---
 
@@ -74,6 +75,23 @@
 
 ---
 
+## Sprint 4 — Multi-Connector Support
+
+### Tasks
+
+| Task | Status | Owner | Notes |
+|------|--------|-------|-------|
+| Snowflake connector | ✅ Done | - | Full implementation: test, listSchemas, listTables, listColumns, sampleData, executeQuery |
+| BigQuery connector | ✅ Done | - | Full implementation: test, listSchemas, listTables, listColumns, sampleData, executeQuery |
+| MySQL connector | ✅ Done | - | Full implementation: test, listSchemas, listTables, listColumns, sampleData, executeQuery |
+| Connector package.json files | ✅ Done | - | Added package.json for snowflake, bigquery, mysql connectors |
+| Connector SDK index exports | ✅ Done | - | Updated to export all new connectors |
+| Connection Form UI | ✅ Done | - | Dynamic form fields per connector type, test connection functionality |
+| API Keys page | ✅ Done | - | Full UI for managing AI provider credentials with security notices |
+| Credential encryption | ✅ Done | - | AES-256-GCM encryption service already existed in shared package |
+
+---
+
 ## Release Milestones
 
 ### Release 0 — Foundations (Sprints 0-2)
@@ -86,7 +104,7 @@
 
 ### Release 1 — Core BI MVP (Sprints 3-7)
 - [x] OQL compiler v1 (Sprint 3)
-- [ ] Snowflake, BigQuery, MySQL connectors
+- [x] Snowflake, BigQuery, MySQL connectors (Sprint 4)
 - [ ] Relationship modeling
 - [ ] Dashboard canvas
 - [ ] Caching + sharing
@@ -127,6 +145,16 @@
 ---
 
 ## Completed Work
+
+### Sprint 4 — Multi-Connector Support (Complete)
+- ✅ Snowflake connector with full implementation
+- ✅ BigQuery connector with full implementation
+- ✅ MySQL connector with full implementation
+- ✅ Connector package.json files for all new connectors
+- ✅ Updated Connector SDK exports
+- ✅ Dynamic Connection Form UI per connector type
+- ✅ API Keys management page with security notices
+- ✅ Credential encryption (AES-256-GCM) in shared package
 
 ### Sprint 3 — OQL Compiler v1 (Complete)
 - ✅ OQL Lexer/Tokenizer with 60+ token types
@@ -205,6 +233,10 @@
 | Custom OQL language | Purpose-built for semantic layer, simpler than SQL | Sprint 3 |
 | Recursive descent parser | Easy to understand, extend, and debug | Sprint 3 |
 | Multi-dialect SQL compiler | Support PostgreSQL, MySQL, BigQuery, Snowflake | Sprint 3 |
+| Snowflake via snowflake-sdk | Official SDK, best support | Sprint 4 |
+| BigQuery via @google-cloud/bigquery | Official Google SDK | Sprint 4 |
+| MySQL via mysql2/promise | Promise-based, fast, supports SSL | Sprint 4 |
+| Dynamic connection forms | Different fields per connector type, better UX | Sprint 4 |
 
 ---
 
@@ -218,13 +250,11 @@
 
 ## Next Sprint Preview
 
-### Sprint 4 — Multi-Connector Support
-- Snowflake connector
-- BigQuery connector
-- MySQL connector
-- Connector configuration UI improvements
-- Connection pooling and management
-- Credential encryption UI
+### Sprint 5 — Relationship Modeling
+- Relationship modeling UI (define joins, cardinality)
+- Data Prep canvas v1 (filter, join, pivot, type-cast steps compiled to SQL)
+- Visual relationship canvas
+- Join recommendation engine
 
 ---
 
