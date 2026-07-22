@@ -18,7 +18,7 @@ async function bootstrap() {
     credentials: true,
   });
 
-  const port = process.env.PORT || 4000;
+  const port = process.env.PORT || 4001;
   await app.listen(port);
   console.log(`🚀 OrbitIQ API Gateway running on: http://localhost:${port}/graphql`);
 }

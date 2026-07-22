@@ -50,9 +50,9 @@ See [docs/adrs/](docs/adrs/) for Architecture Decision Records.
    ```
 
 This will start:
-- Web app at http://localhost:3000
-- API gateway at http://localhost:4000/graphql
-- Keycloak at http://localhost:8080
+- Web app at http://localhost:3001
+- API gateway at http://localhost:4001/graphql
+- Keycloak at http://localhost:8081
 
 ### Project Structure
 

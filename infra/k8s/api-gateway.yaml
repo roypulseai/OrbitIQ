@@ -21,7 +21,7 @@ spec:
         - name: api-gateway
           image: orbitiq/api-gateway:latest
           ports:
-            - containerPort: 4000
+            - containerPort: 4001
           env:
             - name: DATABASE_URL
               valueFrom:
@@ -48,13 +48,13 @@ spec:
           livenessProbe:
             httpGet:
               path: /graphql
-              port: 4000
+              port: 4001
             initialDelaySeconds: 30
             periodSeconds: 10
           readinessProbe:
             httpGet:
               path: /graphql
-              port: 4000
+              port: 4001
             initialDelaySeconds: 5
             periodSeconds: 5
 ---
@@ -68,7 +68,7 @@ spec:
     app: api-gateway
   ports:
     - port: 80
-      targetPort: 4000
+      targetPort: 4001
       protocol: TCP
   type: ClusterIP
 ---
