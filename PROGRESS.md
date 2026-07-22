@@ -1,6 +1,6 @@
 # OrbitIQ — Project Progress Tracker
 
-> Last Updated: Sprint 2 — Complete
+> Last Updated: Sprint 3 — Complete
 
 ---
 
@@ -11,6 +11,7 @@
 | 0 | Setup & Foundations | ✅ Complete | - | - | 100% |
 | 1 | API Gateway + First Connector | ✅ Complete | - | - | 100% |
 | 2 | Semantic Model + Charts | ✅ Complete | - | - | 100% |
+| 3 | OQL Compiler v1 | ✅ Complete | - | - | 100% |
 
 ---
 
@@ -55,6 +56,24 @@
 
 ---
 
+## Sprint 3 — OQL Compiler v1
+
+### Tasks
+
+| Task | Status | Owner | Notes |
+|------|--------|-------|-------|
+| OQL Lexer/Tokenizer | ✅ Done | - | Full tokenizer with 60+ token types, comments, strings, numbers |
+| OQL Parser | ✅ Done | - | Recursive descent parser generating full AST |
+| OQL to SQL Compiler | ✅ Done | - | Multi-dialect: PostgreSQL, MySQL, BigQuery, Snowflake |
+| OQL Service | ✅ Done | - | Compile, validate, explain, examples, keywords, functions |
+| OQL Resolver | ✅ Done | - | GraphQL mutations: compileOQL, validateOQL; queries: explainOQL, oqlExamples, oqlKeywords, oqlFunctions |
+| Export Service | ✅ Done | - | CSV and JSON export with configurable options |
+| Export Resolver | ✅ Done | - | GraphQL mutation: exportData, getSupportedExportFormats |
+| OQL Playground UI | ✅ Done | - | Interactive editor with examples, quick reference, export |
+| AppModule update | ✅ Done | - | Registered OQL and Export services and resolvers |
+
+---
+
 ## Release Milestones
 
 ### Release 0 — Foundations (Sprints 0-2)
@@ -66,7 +85,7 @@
 - [x] Basic chart rendering (Sprint 2)
 
 ### Release 1 — Core BI MVP (Sprints 3-7)
-- [ ] OQL compiler v1
+- [x] OQL compiler v1 (Sprint 3)
 - [ ] Snowflake, BigQuery, MySQL connectors
 - [ ] Relationship modeling
 - [ ] Dashboard canvas
@@ -108,6 +127,18 @@
 ---
 
 ## Completed Work
+
+### Sprint 3 — OQL Compiler v1 (Complete)
+- ✅ OQL Lexer/Tokenizer with 60+ token types
+- ✅ Recursive descent parser generating full AST
+- ✅ Multi-dialect SQL compiler (PostgreSQL, MySQL, BigQuery, Snowflake)
+- ✅ OQL Service: compile, validate, explain, examples, keywords, functions
+- ✅ GraphQL mutations: compileOQL, validateOQL
+- ✅ GraphQL queries: explainOQL, oqlExamples, oqlKeywords, oqlFunctions
+- ✅ Export Service: CSV and JSON export with configurable options
+- ✅ GraphQL mutation: exportData, getSupportedExportFormats
+- ✅ OQL Playground UI: interactive editor with examples, quick reference, export
+- ✅ Registered all new services and resolvers in AppModule
 
 ### Sprint 2 — Semantic Model + Charts (Complete)
 - ✅ GraphQL types for SemanticModel, ModelTable, ModelColumn, ModelMeasure
@@ -171,6 +202,9 @@
 | Vega-Lite for chart rendering | Declarative grammar, wide chart type support | Sprint 2 |
 | In-memory stores for Sprint 2 | Fast iteration, replace with Prisma in Sprint 3 | Sprint 2 |
 | 5 RBAC roles | Granular permissions per spec §9.4 | Sprint 2 |
+| Custom OQL language | Purpose-built for semantic layer, simpler than SQL | Sprint 3 |
+| Recursive descent parser | Easy to understand, extend, and debug | Sprint 3 |
+| Multi-dialect SQL compiler | Support PostgreSQL, MySQL, BigQuery, Snowflake | Sprint 3 |
 
 ---
 
@@ -184,13 +218,13 @@
 
 ## Next Sprint Preview
 
-### Sprint 3 — OQL Compiler v1
-- OQL (OrbitIQ Query Language) parser and compiler
-- Aggregations, filters, time intelligence functions
-- Query optimization and caching
-- OQL playground UI
-- Query result visualization
-- Export to SQL, CSV, JSON
+### Sprint 4 — Multi-Connector Support
+- Snowflake connector
+- BigQuery connector
+- MySQL connector
+- Connector configuration UI improvements
+- Connection pooling and management
+- Credential encryption UI
 
 ---
 
