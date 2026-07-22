@@ -1,0 +1,246 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id              String    @id @default(uuid())
+  name            String
+  region          String
+  compliancePackId String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  workspaces      Workspace[]
+  users           User[]
+  roles           Role[]
+  aiProviderConfigs AIProviderConfig[]
+  auditLogs       AuditLog[]
+}
+
+model Workspace {
+  id          String    @id @default(uuid())
+  orgId       String
+  org         Organization @relation(fields: [orgId], references: [id])
+  name        String
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  connections Connection[]
+  semanticModels SemanticModel[]
+  dashboards  Dashboard[]
+  analyticsJobs AnalyticsJob[]
+}
+
+model User {
+  id          String    @id @default(uuid())
+  orgId       String
+  org         Organization @relation(fields: [orgId], references: [id])
+  email       String    @unique
+  name        String
+  ssoSubject  String?
+  attributes  Json      @default("{}")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  userRoles   UserRole[]
+  auditLogs   AuditLog[]
+}
+
+model Role {
+  id          String    @id @default(uuid())
+  orgId       String
+  org         Organization @relation(fields: [orgId], references: [id])
+  name        String
+  permissions Json      @default("{}")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  userRoles   UserRole[]
+  rlsPolicies RLSPolicy[]
+}
+
+model UserRole {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  roleId    String
+  role      Role     @relation(fields: [roleId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@id([userId, roleId])
+}
+
+model Connection {
+  id            String    @id @default(uuid())
+  workspaceId   String
+  workspace     Workspace @relation(fields: [workspaceId], references: [id])
+  connectorType String
+  config        Json
+  regionPin     String?
+  createdBy     String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  discoveryRuns DiscoveryRun[]
+  tables        Table[]
+}
+
+model DiscoveryRun {
+  id            String    @id @default(uuid())
+  connectionId  String
+  connection    Connection @relation(fields: [connectionId], references: [id])
+  status        String    @default("pending")
+  startedAt     DateTime  @default(now())
+  finishedAt    DateTime?
+  findings      Json?
+  knowledgeGraphMatches KnowledgeGraphMatch[]
+}
+
+model KnowledgeGraphMatch {
+  id              String    @id @default(uuid())
+  discoveryRunId  String
+  discoveryRun    DiscoveryRun @relation(fields: [discoveryRunId], references: [id])
+  sourceColumn    String
+  matchedEntityId String
+  confidence      Float
+  createdAt       DateTime  @default(now())
+}
+
+model SemanticModel {
+  id          String    @id @default(uuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  name        String
+  gitRef      String?
+  status      String    @default("draft")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  tables      Table[]
+  relationships Relationship[]
+  measures    Measure[]
+  rlsPolicies RLSPolicy[]
+}
+
+model Table {
+  id            String    @id @default(uuid())
+  modelId       String?
+  model         SemanticModel? @relation(fields: [modelId], references: [id])
+  connectionId  String
+  connection    Connection @relation(fields: [connectionId], references: [id])
+  physicalName  String
+  logicalName   String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  columns       Column[]
+  relationshipsFrom Relationship[] @relation("FromTable")
+  relationshipsTo   Relationship[] @relation("ToTable")
+}
+
+model Column {
+  id          String    @id @default(uuid())
+  tableId     String
+  table       Table     @relation(fields: [tableId], references: [id])
+  physicalName String
+  logicalName String
+  dataType    String
+  isPii       Boolean   @default(false)
+  maskRule    Json?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Relationship {
+  id          String    @id @default(uuid())
+  modelId     String
+  model       SemanticModel @relation(fields: [modelId], references: [id])
+  fromTableId String
+  fromTable   Table     @relation("FromTable", fields: [fromTableId], references: [id])
+  toTableId   String
+  toTable     Table     @relation("ToTable", fields: [toTableId], references: [id])
+  cardinality String
+  joinExpr    String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Measure {
+  id            String    @id @default(uuid())
+  modelId       String
+  model         SemanticModel @relation(fields: [modelId], references: [id])
+  name          String
+  oqlExpression String
+  format        String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model RLSPolicy {
+  id              String    @id @default(uuid())
+  modelId         String
+  model           SemanticModel @relation(fields: [modelId], references: [id])
+  tableId         String
+  oqlExpression   String
+  appliesToRoleId String
+  role            Role     @relation(fields: [appliesToRoleId], references: [id])
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Dashboard {
+  id          String    @id @default(uuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  name        String
+  layout      Json      @default("{}")
+  gitRef      String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  tiles       Tile[]
+}
+
+model Tile {
+  id          String    @id @default(uuid())
+  dashboardId String
+  dashboard   Dashboard @relation(fields: [dashboardId], references: [id])
+  chartSpec   Json
+  oqlQuery    Json
+  position    Json
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model AIProviderConfig {
+  id            String    @id @default(uuid())
+  orgId         String
+  org           Organization @relation(fields: [orgId], references: [id])
+  providerType  String
+  endpointUrl   String
+  encryptedKeyRef String
+  taskRouting   Json      @default("{}")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  orgId     String
+  org       Organization @relation(fields: [orgId], references: [id])
+  actorId   String
+  actor     User     @relation(fields: [actorId], references: [id])
+  action    String
+  target    String
+  metadata  Json     @default("{}")
+  timestamp DateTime @default(now())
+}
+
+model AnalyticsJob {
+  id              String    @id @default(uuid())
+  workspaceId     String
+  workspace       Workspace @relation(fields: [workspaceId], references: [id])
+  type            String
+  params          Json      @default("{}")
+  status          String    @default("pending")
+  modelRegistryRef String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}

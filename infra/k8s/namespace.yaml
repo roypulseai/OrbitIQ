@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: orbitiq
+  labels:
+    app.kubernetes.io/name: orbitiq
+    app.kubernetes.io/part-of: orbitiq

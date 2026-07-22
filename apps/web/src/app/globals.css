@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --orbitiq-primary: #6366f1;
+  --orbitiq-primary-hover: #4f46e5;
+  --orbitiq-secondary: #10b981;
+  --orbitiq-accent: #f59e0b;
+  --orbitiq-danger: #ef4444;
+  --orbitiq-warning: #f59e0b;
+  --orbitiq-success: #10b981;
+  --orbitiq-bg: #ffffff;
+  --orbitiq-bg-secondary: #f8fafc;
+  --orbitiq-text: #0f172a;
+  --orbitiq-text-secondary: #64748b;
+  --orbitiq-border: #e2e8f0;
+  --orbitiq-sidebar-bg: #1e293b;
+  --orbitiq-sidebar-text: #f1f5f9;
+}
+
+@layer base {
+  body {
+    @apply bg-orbitiq-bg text-orbitiq-text;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-orbitiq-primary text-white px-4 py-2 rounded-lg hover:bg-orbitiq-primary-hover transition-colors font-medium;
+  }
+
+  .btn-secondary {
+    @apply bg-orbitiq-bg-secondary text-orbitiq-text border border-orbitiq-border px-4 py-2 rounded-lg hover:bg-orbitiq-border transition-colors font-medium;
+  }
+
+  .card {
+    @apply bg-white rounded-xl border border-orbitiq-border p-6 shadow-sm;
+  }
+
+  .input {
+    @apply w-full px-3 py-2 border border-orbitiq-border rounded-lg focus:outline-none focus:ring-2 focus:ring-orbitiq-primary focus:border-transparent;
+  }
+
+  .sidebar {
+    @apply bg-orbitiq-sidebar-bg text-orbitiq-sidebar-text w-64 min-h-screen p-4;
+  }
+}
