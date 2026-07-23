@@ -14,6 +14,8 @@ import { EmbeddingResolver } from "./resolvers/embedding.resolver";
 import { RLSResolver } from "./resolvers/rls.resolver";
 import { CLSResolver } from "./resolvers/cls.resolver";
 import { ComplianceResolver } from "./resolvers/compliance.resolver";
+import { ProfilingResolver } from "./resolvers/profiling.resolver";
+import { KnowledgeGraphResolver } from "./resolvers/knowledge-graph.resolver";
 import { OrganizationsService } from "./services/organizations.service";
 import { WorkspacesService } from "./services/workspaces.service";
 import { UsersService } from "./services/users.service";
@@ -38,6 +40,9 @@ import { CLSService } from "./services/cls.service";
 import { PIIScanningService } from "./services/pii-scanning.service";
 import { ComplianceService } from "./services/compliance.service";
 import { AuditTrailService } from "./services/audit-trail.service";
+import { ProfilingService } from "./services/profiling.service";
+import { KnowledgeGraphService } from "./services/knowledge-graph.service";
+import { SemanticFingerprintService } from "./services/semantic-fingerprint.service";
 
 @Module({
   imports: [
@@ -64,6 +69,8 @@ import { AuditTrailService } from "./services/audit-trail.service";
     RLSResolver,
     CLSResolver,
     ComplianceResolver,
+    ProfilingResolver,
+    KnowledgeGraphResolver,
     OrganizationsService,
     WorkspacesService,
     UsersService,
@@ -88,6 +95,9 @@ import { AuditTrailService } from "./services/audit-trail.service";
     PIIScanningService,
     ComplianceService,
     AuditTrailService,
+    ProfilingService,
+    KnowledgeGraphService,
+    SemanticFingerprintService,
   ],
 })
 export class AppModule {}

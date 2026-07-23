@@ -97,6 +97,24 @@ type ColumnInfo {
   scale: Float
 }
 
+type ColumnProfile {
+  cardinality: Int!
+  columnName: String!
+  dataType: String!
+  detectedFormat: String!
+  formatConfidence: Float!
+  id: ID!
+  jobId: String!
+  maxValue: String
+  meanValue: Float
+  minValue: String
+  nullCount: Int!
+  nullPercentage: Float!
+  sampleValues: [String!]!
+  tableId: String!
+  topValues: [TopValue!]!
+}
+
 type ColumnSecurityRule {
   appliesToRoles: [String!]!
   columnName: String!
@@ -220,6 +238,23 @@ input CreateEmbedTokenInput {
   filters: JSON
   theme: String
   userId: String
+}
+
+input CreateKGEntityInput {
+  description: String!
+  exampleColumns: [String!]!
+  name: String!
+  synonyms: [String!]!
+  type: String!
+  vertical: String!
+}
+
+input CreateKGRelationshipInput {
+  cardinality: String!
+  fromEntityId: String!
+  relationshipType: String!
+  toEntityId: String!
+  typicalIn: [String!]!
 }
 
 input CreateOrganizationInput {
@@ -382,6 +417,36 @@ The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://
 """
 scalar JSON @specifiedBy(url: "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf")
 
+type KGEntity {
+  createdAt: DateTime!
+  description: String!
+  exampleColumns: [String!]!
+  id: ID!
+  name: String!
+  synonyms: [String!]!
+  type: String!
+  vertical: String!
+}
+
+type KGMatch {
+  confidence: Float!
+  createdAt: DateTime!
+  id: ID!
+  matchType: String!
+  matchedEntityId: String!
+  sourceColumnName: String!
+  sourceTableId: String!
+}
+
+type KGRelationship {
+  cardinality: String!
+  fromEntityId: String!
+  id: ID!
+  relationshipType: String!
+  toEntityId: String!
+  typicalIn: [String!]!
+}
+
 type ModelColumn {
   createdAt: DateTime!
   dataType: String!
@@ -441,6 +506,8 @@ type Mutation {
   createDashboard(input: CreateDashboardInput!): Dashboard!
   createDataPipeline(input: CreateDataPipelineInput!): DataPipeline!
   createEmbedToken(input: CreateEmbedTokenInput!): EmbedToken!
+  createKGEntity(input: CreateKGEntityInput!): KGEntity!
+  createKGRelationship(input: CreateKGRelationshipInput!): KGRelationship!
   createOrUpdateEmbedConfig(dashboardId: String!, input: UpdateEmbedConfigInput!, workspaceId: String!): EmbedConfig!
   createOrganization(input: CreateOrganizationInput!): Organization!
   createPublicLink(input: CreatePublicLinkInput!): PublicLink!
@@ -453,6 +520,7 @@ type Mutation {
   deleteConnection(id: ID!): Boolean!
   deleteDashboard(id: ID!): Boolean!
   deleteDataPipeline(id: ID!): Boolean!
+  deleteKGEntity(id: ID!): Boolean!
   deleteRLSPolicy(id: ID!): Boolean!
   deleteRelationship(id: ID!): Boolean!
   deleteSemanticModel(id: ID!): Boolean!
@@ -471,8 +539,10 @@ type Mutation {
   removeTransformStep(id: ID!): Boolean!
   revokeConsent(id: ID!): ConsentRecord!
   revokePublicLink(id: ID!): Boolean!
+  runDiscovery(connectionId: String!): String!
   setUserAttributes(input: SetUserAttributesInput!): UserAttributes!
   shareDashboard(input: ShareDashboardInput!): DashboardShare!
+  startProfiling(input: StartProfilingInput!): ProfilingJob!
   testConnection(id: ID!): ConnectionTestResult!
   toggleColumnSecurityRule(id: ID!): ColumnSecurityRule!
   toggleCompliancePack(id: ID!): CompliancePack!
@@ -484,6 +554,7 @@ type Mutation {
   updateDashboard(id: ID!, input: UpdateDashboardInput!): Dashboard!
   updateDataPipeline(id: ID!, input: UpdateDataPipelineInput!): DataPipeline!
   updateDataResidency(input: UpdateDataResidencyInput!): DataResidencyRule!
+  updateKGEntity(id: ID!, input: CreateKGEntityInput!): KGEntity!
   updateModelColumn(id: ID!, input: UpdateModelColumnInput!): ModelColumn!
   updateModelMeasure(id: ID!, input: UpdateModelMeasureInput!): ModelMeasure!
   updateRLSPolicy(id: ID!, input: UpdateRLSPolicyInput!): RLSPolicy!
@@ -541,6 +612,16 @@ type PermissionCheck {
   reason: String
 }
 
+type ProfilingJob {
+  columnsProfiled: Int!
+  connectionId: String!
+  finishedAt: DateTime
+  id: ID!
+  startedAt: DateTime!
+  status: String!
+  tablesProfiled: Int!
+}
+
 type PublicLink {
   createdAt: DateTime!
   createdBy: String!
@@ -555,6 +636,7 @@ type Query {
   attributeKeys: [String!]!
   auditLogs(limit: Float = 100, orgId: String!): [AuditLog!]!
   buildJoinSQL(relationships: String!, tables: String!): String!
+  columnProfile(columnName: String!, jobId: String!, tableId: String!): ColumnProfile!
   columnSecurityRule(id: ID!): ColumnSecurityRule
   columnSecurityRules(modelId: String!, tableId: String): [ColumnSecurityRule!]!
   compilePipeline(pipelineId: String!): String!
@@ -566,6 +648,8 @@ type Query {
   dashboard(id: ID!): Dashboard!
   dashboards(workspaceId: String!): [Dashboard!]!
   dataResidencyRules(connectionId: String): [DataResidencyRule!]!
+  discoveryRun(id: ID!): String!
+  discoveryRuns(connectionId: String): [String!]!
   dsarRequests(status: String): [DSARRequest!]!
   effectivePolicies(modelId: String!, tableId: String!, userId: String!): [RLSPolicy!]!
   explainOQL(oql: String!): [String!]!
@@ -586,6 +670,13 @@ type Query {
   getRolePermissions(role: String!): [String!]!
   getSharedDashboards(userId: String!, workspaceId: String!): [DashboardShare!]!
   getTransformSteps(pipelineId: String!): [TransformStep!]!
+  kgEntities(type: String, vertical: String): [KGEntity!]!
+  kgEntity(id: ID!): KGEntity!
+  kgMatchResults(jobId: String!): [KGMatch!]!
+  kgRelationships(vertical: String): [KGRelationship!]!
+  kgSearchEntities(query: String!, vertical: String): [KGEntity!]!
+  kgStats: String!
+  kgVerticals: [VerticalInfo!]!
   listColumns(connectionId: String!, schema: String!, table: String!): [ColumnInfo!]!
   listSchemas(connectionId: String!): [SchemaInfo!]!
   listTables(connectionId: String!, schema: String): [TableInfo!]!
@@ -597,12 +688,16 @@ type Query {
   organizations: [Organization!]!
   piitags(modelId: String!): [PIITag!]!
   previewStep(stepId: String!): String!
+  profilingJob(id: ID!): ProfilingJob!
+  profilingJobs(connectionId: String): [ProfilingJob!]!
+  profilingStats(connectionId: String): String!
   rlsPolicies(modelId: String): [RLSPolicy!]!
   rlsPolicy(id: ID!): RLSPolicy!
   sampleData(connectionId: String!, limit: Float = 100, schema: String!, table: String!): TableSample!
   semanticModel(id: ID!): SemanticModel!
   semanticModels(workspaceId: String!): [SemanticModel!]!
   suggestRelationships(modelId: String!, tables: String!): [RelationshipSuggestion!]!
+  tableProfile(jobId: String!, tableId: String!): TableProfile!
   user(id: ID!): User!
   userAttributes(userId: String!): UserAttributes
   users(orgId: String!): [User!]!
@@ -693,6 +788,11 @@ input ShareDashboardInput {
   workspaceId: String!
 }
 
+input StartProfilingInput {
+  connectionId: String!
+  tableIds: [String!]!
+}
+
 type TableInfo {
   catalog: String!
   lastModified: DateTime
@@ -700,6 +800,16 @@ type TableInfo {
   schema: String!
   table: String!
   type: String!
+}
+
+type TableProfile {
+  columnCount: Int!
+  columns: [ColumnProfile!]!
+  id: ID!
+  jobId: String!
+  rowCount: Int!
+  tableId: String!
+  tableName: String!
 }
 
 type TableSample {
@@ -730,6 +840,12 @@ input TileConfigInput {
   id: ID
   position: JSON!
   type: String!
+}
+
+type TopValue {
+  count: Int!
+  percentage: Float!
+  value: String!
 }
 
 type TransformStep {
@@ -875,6 +991,12 @@ type UserAttributes {
   attributes: JSON!
   updatedAt: DateTime!
   userId: ID!
+}
+
+type VerticalInfo {
+  entityCount: Int!
+  name: String!
+  relationshipCount: Int!
 }
 
 type Workspace {

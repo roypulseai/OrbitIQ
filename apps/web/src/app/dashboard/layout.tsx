@@ -28,6 +28,9 @@ import {
   ScrollText,
   Lock,
   ScanSearch,
+  Sparkles,
+  Brain,
+  Waypoints,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 
@@ -53,6 +56,14 @@ const navigation = [
     group: "Developer",
     items: [
       { name: "OQL Playground", href: "/dashboard/oql", icon: FileCode },
+    ],
+  },
+  {
+    group: "Discovery",
+    items: [
+      { name: "Data Discovery", href: "/dashboard/discovery", icon: Sparkles },
+      { name: "Knowledge Graph", href: "/dashboard/discovery/knowledge-graph", icon: Brain },
+      { name: "Column Matching", href: "/dashboard/discovery/knowledge-graph/matches", icon: Waypoints },
     ],
   },
   {

@@ -1,6 +1,6 @@
 # OrbitIQ — Project Progress Tracker
 
-> Last Updated: Sprint 10 — Complete
+> Last Updated: Sprint 11 — Complete
 
 ---
 
@@ -19,6 +19,7 @@
 | 8 | Row-Level Security (RLS) | ✅ Complete | - | - | 100% |
 | 9 | Column-Level Security + Data Masking | ✅ Complete | - | - | 100% |
 | 10 | Compliance Policy Engine + SOC2 | ✅ Complete | - | - | 100% |
+| 11 | Statistical Profiling + Knowledge Graph | ✅ Complete | - | - | 100% |
 | 9 | Column-Level Security + Data Masking | ✅ Complete | - | - | 100% |
 
 ---
@@ -342,6 +343,19 @@
 
 ---
 
+## Sprint 11 — Statistical Profiling + Knowledge Graph (Complete)
+- ✅ ProfilingService with format detection (email, phone, currency, ZIP, date, IBAN, etc.), cardinality, null%, top-N values, percentiles
+- ✅ KnowledgeGraphService with starter ontology: 8 Retail entities + 8 SaaS entities + 4 relationships
+- ✅ SemanticFingerprintService for column-to-ontology matching via hash-based similarity
+- ✅ GraphQL types: ProfilingJob, ColumnProfile, TableProfile, TopValue, KGEntity, KGRelationship, KGMatch, KGStats, VerticalInfo
+- ✅ GraphQL resolvers: ProfilingResolver + KnowledgeGraphResolver with full CRUD + discovery runs
+- ✅ Data Discovery UI page with profiling jobs table, column profiling cards with format detection
+- ✅ Knowledge Graph UI page with SVG entity-relationship visualization, entity detail panel, entities table
+- ✅ Semantic Fingerprinting UI page with match results, confidence bars, unmatched columns
+- ✅ Dashboard sidebar updated with new Discovery nav group
+
+---
+
 ## Next Sprint Preview
 
-### Sprint 11 — Statistical Profiling + Knowledge Graph
+### Sprint 12 — Relationship Inference Engine

@@ -1724,3 +1724,126 @@ export class CreateDSARRequestInput {
   @Field() userId!: string;
   @Field() type!: string;
 }
+
+// ─── Sprint 11: Statistical Profiling + Knowledge Graph ──────────────────────
+
+@ObjectType()
+export class ProfilingJob {
+  @Field(() => ID) id!: string;
+  @Field() connectionId!: string;
+  @Field() status!: string;
+  @Field() startedAt!: Date;
+  @Field({ nullable: true }) finishedAt?: Date;
+  @Field(() => Int) tablesProfiled!: number;
+  @Field(() => Int) columnsProfiled!: number;
+}
+
+@ObjectType()
+export class TopValue {
+  @Field() value!: string;
+  @Field(() => Int) count!: number;
+  @Field(() => Float) percentage!: number;
+}
+
+@ObjectType()
+export class ColumnProfile {
+  @Field(() => ID) id!: string;
+  @Field() jobId!: string;
+  @Field() tableId!: string;
+  @Field() columnName!: string;
+  @Field() dataType!: string;
+  @Field(() => Int) cardinality!: number;
+  @Field(() => Int) nullCount!: number;
+  @Field(() => Float) nullPercentage!: number;
+  @Field({ nullable: true }) minValue?: string;
+  @Field({ nullable: true }) maxValue?: string;
+  @Field(() => Float, { nullable: true }) meanValue?: number;
+  @Field(() => [TopValue]) topValues!: TopValue[];
+  @Field() detectedFormat!: string;
+  @Field(() => Float) formatConfidence!: number;
+  @Field(() => [String]) sampleValues!: string[];
+}
+
+@ObjectType()
+export class TableProfile {
+  @Field(() => ID) id!: string;
+  @Field() jobId!: string;
+  @Field() tableId!: string;
+  @Field() tableName!: string;
+  @Field(() => Int) rowCount!: number;
+  @Field(() => Int) columnCount!: number;
+  @Field(() => [ColumnProfile]) columns!: ColumnProfile[];
+}
+
+@ObjectType()
+export class KGEntity {
+  @Field(() => ID) id!: string;
+  @Field() name!: string;
+  @Field() description!: string;
+  @Field() type!: string;
+  @Field() vertical!: string;
+  @Field(() => [String]) synonyms!: string[];
+  @Field(() => [String]) exampleColumns!: string[];
+  @Field() createdAt!: Date;
+}
+
+@ObjectType()
+export class KGRelationship {
+  @Field(() => ID) id!: string;
+  @Field() fromEntityId!: string;
+  @Field() toEntityId!: string;
+  @Field() relationshipType!: string;
+  @Field() cardinality!: string;
+  @Field(() => [String]) typicalIn!: string[];
+}
+
+@ObjectType()
+export class KGMatch {
+  @Field(() => ID) id!: string;
+  @Field() sourceColumnName!: string;
+  @Field() sourceTableId!: string;
+  @Field() matchedEntityId!: string;
+  @Field(() => Float) confidence!: number;
+  @Field() matchType!: string;
+  @Field() createdAt!: Date;
+}
+
+@ObjectType()
+export class KGStats {
+  @Field(() => Int) totalEntities!: number;
+  @Field(() => Int) totalRelationships!: number;
+  @Field(() => Int) totalMatches!: number;
+  @Field(() => Int) verticalsCount!: number;
+}
+
+@ObjectType()
+export class VerticalInfo {
+  @Field() name!: string;
+  @Field(() => Int) entityCount!: number;
+  @Field(() => Int) relationshipCount!: number;
+}
+
+@InputType()
+export class StartProfilingInput {
+  @Field() connectionId!: string;
+  @Field(() => [String]) tableIds!: string[];
+}
+
+@InputType()
+export class CreateKGEntityInput {
+  @Field() name!: string;
+  @Field() description!: string;
+  @Field() type!: string;
+  @Field() vertical!: string;
+  @Field(() => [String]) synonyms!: string[];
+  @Field(() => [String]) exampleColumns!: string[];
+}
+
+@InputType()
+export class CreateKGRelationshipInput {
+  @Field() fromEntityId!: string;
+  @Field() toEntityId!: string;
+  @Field() relationshipType!: string;
+  @Field() cardinality!: string;
+  @Field(() => [String]) typicalIn!: string[];
+}
