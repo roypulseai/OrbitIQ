@@ -1,6 +1,6 @@
 # OrbitIQ — Project Progress Tracker
 
-> Last Updated: Sprint 8 — Complete
+> Last Updated: Sprint 9 — Complete
 
 ---
 
@@ -17,6 +17,7 @@
 | 6 | Dashboard Canvas v1 | ✅ Complete | - | - | 100% |
 | 7 | Caching + Sharing + Embedding | ✅ Complete | - | - | 100% |
 | 8 | Row-Level Security (RLS) | ✅ Complete | - | - | 100% |
+| 9 | Column-Level Security + Data Masking | ✅ Complete | - | - | 100% |
 
 ---
 
@@ -115,7 +116,7 @@
 
 ### Release 2 — Security & Governance (Sprints 8-10)
 - [x] RLS engine (Sprint 8)
-- [ ] CLS + data masking
+- [x] CLS + data masking (Sprint 9)
 - [ ] GDPR compliance pack
 
 ### Release 3 — Smart Data Fabric (Sprints 11-14)
@@ -313,6 +314,20 @@
 
 ---
 
+## Sprint 9 — Column-Level Security + Data Masking (Complete)
+- ✅ CLSService with full CRUD for column security rules
+- ✅ 6 mask types: NONE, FULL, PARTIAL, HASH, TOKENIZE, GENERALIZE
+- ✅ applyMasking() with per-role enforcement at query time
+- ✅ autoDetectPII() with regex-based detection for 9 PII types
+- ✅ PIIScanningService for batch scanning and auto-tagging
+- ✅ GraphQL types: ColumnSecurityRule, PIITag, Create/UpdateColumnSecurityRuleInput, UpdatePIITagInput
+- ✅ GraphQL resolver: CLSResolver with all queries/mutations + audit logging
+- ✅ Column Security UI page with mask type legend, rules table, create/edit modal, masking preview
+- ✅ PII Detection & Tagging UI page with scan results, PII tags table, scan config panel
+- ✅ Dashboard sidebar updated with Column Security and PII Detection links
+
+---
+
 ## Next Sprint Preview
 
-### Sprint 9 — CLS + Data Masking
+### Sprint 10 — Compliance Policy Engine + SOC2 Hardening
