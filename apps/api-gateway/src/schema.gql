@@ -174,6 +174,15 @@ input CreatePublicLinkInput {
   password: String
 }
 
+input CreateRLSPolicyInput {
+  appliesToRoles: [String!]!
+  description: String
+  modelId: String!
+  oqlExpression: String!
+  priority: Int! = 100
+  tableId: String!
+}
+
 input CreateRelationshipInput {
   cardinality: Cardinality!
   description: String
@@ -353,6 +362,7 @@ type Mutation {
   createOrUpdateEmbedConfig(dashboardId: String!, input: UpdateEmbedConfigInput!, workspaceId: String!): EmbedConfig!
   createOrganization(input: CreateOrganizationInput!): Organization!
   createPublicLink(input: CreatePublicLinkInput!): PublicLink!
+  createRLSPolicy(input: CreateRLSPolicyInput!): RLSPolicy!
   createRelationship(input: CreateRelationshipInput!): Relationship!
   createSemanticModel(input: CreateSemanticModelInput!): SemanticModel!
   createUser(input: CreateUserInput!): User!
@@ -360,6 +370,7 @@ type Mutation {
   deleteConnection(id: ID!): Boolean!
   deleteDashboard(id: ID!): Boolean!
   deleteDataPipeline(id: ID!): Boolean!
+  deleteRLSPolicy(id: ID!): Boolean!
   deleteRelationship(id: ID!): Boolean!
   deleteSemanticModel(id: ID!): Boolean!
   deleteUser(id: ID!): Boolean!
@@ -376,14 +387,17 @@ type Mutation {
   removeTile(id: ID!): Boolean!
   removeTransformStep(id: ID!): Boolean!
   revokePublicLink(id: ID!): Boolean!
+  setUserAttributes(input: SetUserAttributesInput!): UserAttributes!
   shareDashboard(input: ShareDashboardInput!): DashboardShare!
   testConnection(id: ID!): ConnectionTestResult!
+  toggleRLSPolicy(id: ID!): RLSPolicy!
   unpublishSemanticModel(id: ID!): SemanticModel!
   updateConnection(id: ID!, input: UpdateConnectionInput!): Connection!
   updateDashboard(id: ID!, input: UpdateDashboardInput!): Dashboard!
   updateDataPipeline(id: ID!, input: UpdateDataPipelineInput!): DataPipeline!
   updateModelColumn(id: ID!, input: UpdateModelColumnInput!): ModelColumn!
   updateModelMeasure(id: ID!, input: UpdateModelMeasureInput!): ModelMeasure!
+  updateRLSPolicy(id: ID!, input: UpdateRLSPolicyInput!): RLSPolicy!
   updateRelationship(id: ID!, input: UpdateRelationshipInput!): Relationship!
   updateSemanticModel(id: ID!, input: UpdateSemanticModelInput!): SemanticModel!
   updateShare(id: ID!, input: UpdateShareInput!): DashboardShare!
@@ -438,6 +452,7 @@ type PublicLink {
 }
 
 type Query {
+  attributeKeys: [String!]!
   auditLogs(limit: Float = 100, orgId: String!): [AuditLog!]!
   buildJoinSQL(relationships: String!, tables: String!): String!
   compilePipeline(pipelineId: String!): String!
@@ -445,6 +460,7 @@ type Query {
   connections(workspaceId: String!): [Connection!]!
   dashboard(id: ID!): Dashboard!
   dashboards(workspaceId: String!): [Dashboard!]!
+  effectivePolicies(modelId: String!, tableId: String!, userId: String!): [RLSPolicy!]!
   explainOQL(oql: String!): [String!]!
   getActiveEmbeds(workspaceId: String!): [EmbedConfig!]!
   getAllRoles: [String!]!
@@ -473,11 +489,14 @@ type Query {
   organization(id: ID!): Organization!
   organizations: [Organization!]!
   previewStep(stepId: String!): String!
+  rlsPolicies(modelId: String): [RLSPolicy!]!
+  rlsPolicy(id: ID!): RLSPolicy!
   sampleData(connectionId: String!, limit: Float = 100, schema: String!, table: String!): TableSample!
   semanticModel(id: ID!): SemanticModel!
   semanticModels(workspaceId: String!): [SemanticModel!]!
   suggestRelationships(modelId: String!, tables: String!): [RelationshipSuggestion!]!
   user(id: ID!): User!
+  userAttributes(userId: String!): UserAttributes
   users(orgId: String!): [User!]!
   workspace(id: ID!): Workspace!
   workspaces(orgId: String!): [Workspace!]!
@@ -494,6 +513,20 @@ type QueryResult {
   executionTimeMs: Float!
   rowCount: Float!
   rows: JSON!
+}
+
+type RLSPolicy {
+  appliesToRoles: [String!]!
+  createdAt: DateTime!
+  createdBy: String
+  description: String
+  id: ID!
+  isEnabled: Boolean!
+  modelId: String!
+  oqlExpression: String!
+  priority: Int!
+  tableId: String!
+  updatedAt: DateTime
 }
 
 type Relationship {
@@ -537,6 +570,11 @@ type SemanticModel {
   status: ModelStatus!
   updatedAt: DateTime!
   workspaceId: String!
+}
+
+input SetUserAttributesInput {
+  attributes: JSON!
+  userId: String!
 }
 
 input ShareDashboardInput {
@@ -653,6 +691,14 @@ input UpdateModelMeasureInput {
   name: String
 }
 
+input UpdateRLSPolicyInput {
+  appliesToRoles: [String!]
+  description: String
+  isEnabled: Boolean
+  oqlExpression: String
+  priority: Int
+}
+
 input UpdateRelationshipInput {
   cardinality: Cardinality
   description: String
@@ -701,6 +747,12 @@ type User {
   orgId: String!
   ssoSubject: String
   updatedAt: DateTime!
+}
+
+type UserAttributes {
+  attributes: JSON!
+  updatedAt: DateTime!
+  userId: ID!
 }
 
 type Workspace {

@@ -1,6 +1,6 @@
 # OrbitIQ — Project Progress Tracker
 
-> Last Updated: Sprint 7 — Complete
+> Last Updated: Sprint 8 — Complete
 
 ---
 
@@ -16,6 +16,7 @@
 | 5 | Relationship Modeling | ✅ Complete | - | - | 100% |
 | 6 | Dashboard Canvas v1 | ✅ Complete | - | - | 100% |
 | 7 | Caching + Sharing + Embedding | ✅ Complete | - | - | 100% |
+| 8 | Row-Level Security (RLS) | ✅ Complete | - | - | 100% |
 
 ---
 
@@ -113,7 +114,7 @@
 - [x] Caching + sharing + embedding (Sprint 7)
 
 ### Release 2 — Security & Governance (Sprints 8-10)
-- [ ] RLS engine
+- [x] RLS engine (Sprint 8)
 - [ ] CLS + data masking
 - [ ] GDPR compliance pack
 
@@ -298,6 +299,20 @@
 
 ---
 
+## Sprint 8 — Row-Level Security (RLS) (Complete)
+- ✅ RLSService with full CRUD, OQL expression evaluator (USERATTRIBUTE, =, !=, IN, AND, OR, NOT, comparisons)
+- ✅ `buildRLSFilter()` — injects SQL WHERE clause fragments from policies at query-plan layer
+- ✅ `getEffectivePolicies()` — resolves applicable policies for user + table + model
+- ✅ UserAttributesService for managing user attribute key-value pairs
+- ✅ GraphQL types: RLSPolicy, UserAttributes, CreateRLSPolicyInput, UpdateRLSPolicyInput, SetUserAttributesInput
+- ✅ GraphQL resolver: RLSResolver with full CRUD + toggle + effective policies + user attribute management
+- ✅ RLS Policy Management UI page with stats, policy table, create/edit modal, expression tester
+- ✅ User Attributes UI page with attribute keys sidebar, user table, add/edit modal
+- ✅ Security Audit Log UI page with filters, date range, 12 mock audit entries
+- ✅ Dashboard sidebar updated with "Security & Governance" nav group
+
+---
+
 ## Next Sprint Preview
 
-### Sprint 8 — RLS + Data Masking
+### Sprint 9 — CLS + Data Masking

@@ -23,6 +23,8 @@ import {
   Users,
   Clock,
   Code,
+  Shield,
+  ScrollText,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 
@@ -64,6 +66,14 @@ const navigation = [
     items: [
       { name: "Settings", href: "/dashboard/settings", icon: Settings },
       { name: "API Keys", href: "/dashboard/settings/api-keys", icon: Key },
+    ],
+  },
+  {
+    group: "Security & Governance",
+    items: [
+      { name: "Row-Level Security", href: "/dashboard/security", icon: Shield },
+      { name: "User Attributes", href: "/dashboard/security/user-attributes", icon: Users },
+      { name: "Audit Log", href: "/dashboard/security/audit", icon: ScrollText },
     ],
   },
 ];

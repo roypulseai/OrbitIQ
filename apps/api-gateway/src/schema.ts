@@ -1,4 +1,4 @@
-import { ObjectType, Field, ID, InputType, registerEnumType, Float, GraphQLISODateTime } from "@nestjs/graphql";
+import { ObjectType, Field, ID, InputType, registerEnumType, Float, GraphQLISODateTime, Int } from "@nestjs/graphql";
 import { GraphQLJSON, GraphQLJSONObject } from "graphql-scalars";
 
 const JSON = GraphQLJSON;
@@ -1437,4 +1437,102 @@ export class UpdateEmbedConfigInput {
 
   @Field({ nullable: true })
   fontSize?: number;
+}
+
+// ─── Sprint 8: Row-Level Security (RLS) ─────────────────────────────────────
+
+@ObjectType()
+export class RLSPolicy {
+  @Field(() => ID)
+  id!: string;
+
+  @Field()
+  modelId!: string;
+
+  @Field()
+  tableId!: string;
+
+  @Field()
+  oqlExpression!: string;
+
+  @Field(() => [String])
+  appliesToRoles!: string[];
+
+  @Field()
+  isEnabled!: boolean;
+
+  @Field(() => Int)
+  priority!: number;
+
+  @Field({ nullable: true })
+  description?: string;
+
+  @Field()
+  createdAt!: Date;
+
+  @Field({ nullable: true })
+  updatedAt?: Date;
+
+  @Field({ nullable: true })
+  createdBy?: string;
+}
+
+@ObjectType()
+export class UserAttributes {
+  @Field(() => ID)
+  userId!: string;
+
+  @Field(() => GraphQLJSON)
+  attributes!: Record<string, string>;
+
+  @Field()
+  updatedAt!: Date;
+}
+
+@InputType()
+export class CreateRLSPolicyInput {
+  @Field()
+  modelId!: string;
+
+  @Field()
+  tableId!: string;
+
+  @Field()
+  oqlExpression!: string;
+
+  @Field(() => [String])
+  appliesToRoles!: string[];
+
+  @Field(() => Int, { defaultValue: 100 })
+  priority!: number;
+
+  @Field({ nullable: true })
+  description?: string;
+}
+
+@InputType()
+export class UpdateRLSPolicyInput {
+  @Field({ nullable: true })
+  oqlExpression?: string;
+
+  @Field(() => [String], { nullable: true })
+  appliesToRoles?: string[];
+
+  @Field({ nullable: true })
+  isEnabled?: boolean;
+
+  @Field(() => Int, { nullable: true })
+  priority?: number;
+
+  @Field({ nullable: true })
+  description?: string;
+}
+
+@InputType()
+export class SetUserAttributesInput {
+  @Field()
+  userId!: string;
+
+  @Field(() => GraphQLJSON)
+  attributes!: Record<string, string>;
 }

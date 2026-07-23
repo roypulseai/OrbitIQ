@@ -11,6 +11,7 @@ import { RelationshipsResolver } from "./resolvers/relationships.resolver";
 import { CacheResolver } from "./resolvers/cache.resolver";
 import { SharingResolver } from "./resolvers/sharing.resolver";
 import { EmbeddingResolver } from "./resolvers/embedding.resolver";
+import { RLSResolver } from "./resolvers/rls.resolver";
 import { OrganizationsService } from "./services/organizations.service";
 import { WorkspacesService } from "./services/workspaces.service";
 import { UsersService } from "./services/users.service";
@@ -29,6 +30,8 @@ import { CacheService } from "./services/cache.service";
 import { ScheduledRefreshService } from "./services/scheduled-refresh.service";
 import { SharingService } from "./services/sharing.service";
 import { EmbeddingService } from "./services/embedding.service";
+import { RLSService } from "./services/rls.service";
+import { UserAttributesService } from "./services/user-attributes.service";
 
 @Module({
   imports: [
@@ -52,6 +55,7 @@ import { EmbeddingService } from "./services/embedding.service";
     CacheResolver,
     SharingResolver,
     EmbeddingResolver,
+    RLSResolver,
     OrganizationsService,
     WorkspacesService,
     UsersService,
@@ -70,6 +74,8 @@ import { EmbeddingService } from "./services/embedding.service";
     ScheduledRefreshService,
     SharingService,
     EmbeddingService,
+    RLSService,
+    UserAttributesService,
   ],
 })
 export class AppModule {}
