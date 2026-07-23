@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useRef, useEffect } from "react";
 import { cn } from "../lib/utils";
 
@@ -8,6 +6,7 @@ interface DropdownItem {
   value: string;
   onClick?: () => void;
   danger?: boolean;
+  icon?: React.ReactNode;
 }
 
 interface DropdownProps {
@@ -16,32 +15,30 @@ interface DropdownProps {
   align?: "left" | "right";
 }
 
-export function Dropdown({ trigger, items, align = "left" }: DropdownProps) {
+export function Dropdown({ trigger, items, align = "right" }: DropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
+    function handleClickOutside(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) {
         setIsOpen(false);
       }
-    };
-
+    }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   return (
-    <div ref={ref} className="relative inline-block">
-      <div onClick={() => setIsOpen(!isOpen)}>{trigger}</div>
+    <div ref={ref} className="relative inline-flex">
+      <div onClick={() => setIsOpen(!isOpen)} className="cursor-pointer">
+        {trigger}
+      </div>
       {isOpen && (
         <div
           className={cn(
-            "absolute z-50 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1",
-            {
-              "left-0": align === "left",
-              "right-0": align === "right",
-            }
+            "absolute z-50 mt-2 w-48 py-1 bg-surface-3 border border-border-strong rounded-xl shadow-elevated animate-scale-in",
+            align === "right" ? "right-0" : "left-0"
           )}
         >
           {items.map((item) => (
@@ -52,13 +49,13 @@ export function Dropdown({ trigger, items, align = "left" }: DropdownProps) {
                 setIsOpen(false);
               }}
               className={cn(
-                "w-full text-left px-4 py-2 text-sm hover:bg-gray-100",
-                {
-                  "text-red-600 hover:bg-red-50": item.danger,
-                  "text-gray-700": !item.danger,
-                }
+                "w-full flex items-center gap-2 px-3 py-2 text-sm text-left transition-colors",
+                item.danger
+                  ? "text-danger hover:bg-danger-muted"
+                  : "text-white hover:bg-surface-4"
               )}
             >
+              {item.icon && <span className="w-4 h-4 text-muted">{item.icon}</span>}
               {item.label}
             </button>
           ))}

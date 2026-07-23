@@ -1,7 +1,13 @@
 import NextAuth from "next-auth";
 import Keycloak from "next-auth/providers/keycloak";
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+declare module "next-auth" {
+  interface Session {
+    accessToken?: string;
+  }
+}
+
+const result = NextAuth({
   providers: [
     Keycloak({
       clientId: process.env.AUTH_KEYCLOAK_ID || "orbitiq",
@@ -26,3 +32,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     signIn: "/auth/signin",
   },
 });
+
+export const handlers = result.handlers;
+export const signIn = result.signIn;
+export const signOut = result.signOut;
+export const auth = result.auth as (req?: any) => Promise<any>;

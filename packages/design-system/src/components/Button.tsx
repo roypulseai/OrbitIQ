@@ -18,24 +18,24 @@ export function Button({
   return (
     <button
       className={cn(
-        "inline-flex items-center justify-center font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2",
+        "inline-flex items-center justify-center gap-2 font-medium rounded-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface-1 active:scale-[0.98]",
         {
-          "bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500":
+          "bg-accent text-white hover:bg-accent-hover hover:shadow-glow focus:ring-accent/50":
             variant === "primary",
-          "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 focus:ring-indigo-500":
+          "bg-surface-3 text-white border border-border hover:bg-surface-4 hover:border-border-strong focus:ring-accent/50":
             variant === "secondary",
-          "text-gray-700 hover:bg-gray-100 focus:ring-gray-500":
+          "text-muted hover:bg-surface-3 hover:text-white focus:ring-accent/50":
             variant === "ghost",
-          "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500":
+          "bg-danger text-white hover:bg-red-600 focus:ring-danger/50":
             variant === "danger",
         },
         {
-          "px-3 py-1.5 text-sm": size === "sm",
+          "px-3 py-1.5 text-xs": size === "sm",
           "px-4 py-2 text-sm": size === "md",
           "px-6 py-3 text-base": size === "lg",
         },
         {
-          "opacity-50 cursor-not-allowed": disabled || isLoading,
+          "opacity-50 cursor-not-allowed pointer-events-none": disabled || isLoading,
         },
         className
       )}
@@ -44,7 +44,7 @@ export function Button({
     >
       {isLoading && (
         <svg
-          className="animate-spin -ml-1 mr-2 h-4 w-4"
+          className="animate-spin h-4 w-4"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"

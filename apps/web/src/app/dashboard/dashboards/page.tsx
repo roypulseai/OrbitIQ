@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Button } from "@orbitiq/design-system";
 
 interface Dashboard {
   id: string;

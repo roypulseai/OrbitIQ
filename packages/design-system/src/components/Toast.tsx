@@ -1,6 +1,4 @@
-"use client";
-
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { cn } from "../lib/utils";
 
 interface ToastProps {
@@ -16,43 +14,37 @@ export function Toast({
   duration = 5000,
   onClose,
 }: ToastProps) {
-  const [isVisible, setIsVisible] = useState(true);
-
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsVisible(false);
-      setTimeout(onClose, 300);
-    }, duration);
-
+    const timer = setTimeout(onClose, duration);
     return () => clearTimeout(timer);
   }, [duration, onClose]);
 
   return (
     <div
       className={cn(
-        "fixed bottom-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg transition-all duration-300",
-        {
-          "bg-green-500 text-white": type === "success",
-          "bg-red-500 text-white": type === "error",
-          "bg-yellow-500 text-white": type === "warning",
-          "bg-blue-500 text-white": type === "info",
-          "opacity-0 translate-y-2": !isVisible,
-          "opacity-100 translate-y-0": isVisible,
-        }
+        "fixed bottom-4 right-4 z-50 animate-slide-up",
+        "flex items-center gap-3 px-4 py-3 rounded-xl border shadow-elevated",
+        "bg-surface-2 border-border"
       )}
+      role="alert"
     >
-      <div className="flex items-center gap-2">
-        <span>{message}</span>
-        <button
-          onClick={() => {
-            setIsVisible(false);
-            setTimeout(onClose, 300);
-          }}
-          className="ml-2 hover:opacity-75"
-        >
-          ×
-        </button>
-      </div>
+      <span
+        className={cn("w-2 h-2 rounded-full shrink-0", {
+          "bg-success": type === "success",
+          "bg-danger": type === "error",
+          "bg-warning": type === "warning",
+          "bg-info": type === "info",
+        })}
+      />
+      <span className="text-sm text-white">{message}</span>
+      <button
+        onClick={onClose}
+        className="ml-2 text-muted hover:text-white transition-colors"
+      >
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
     </div>
   );
 }

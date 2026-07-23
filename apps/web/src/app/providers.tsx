@@ -1,5 +1,6 @@
 "use client";
 
+import { ThemeProvider } from "next-themes";
 import { ApolloProvider } from "@apollo/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SessionProvider } from "next-auth/react";
@@ -20,10 +21,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <SessionProvider>
-      <QueryClientProvider client={queryClient}>
-        <ApolloProvider client={apolloClient}>{children}</ApolloProvider>
-      </QueryClientProvider>
-    </SessionProvider>
+    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+      <SessionProvider>
+        <QueryClientProvider client={queryClient}>
+          <ApolloProvider client={apolloClient}>{children}</ApolloProvider>
+        </QueryClientProvider>
+      </SessionProvider>
+    </ThemeProvider>
   );
 }

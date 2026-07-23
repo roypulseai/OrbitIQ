@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useParams } from "next/navigation";
 import { Chart } from "@/components/charts/Chart";
 
 interface Tile {
@@ -83,7 +82,6 @@ const DEMO_TILES: Tile[] = [
 ];
 
 export default function DashboardDetailPage() {
-  const params = useParams();
   const [tiles] = useState<Tile[]>(DEMO_TILES);
 
   return (

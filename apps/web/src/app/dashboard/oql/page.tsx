@@ -1,495 +1,167 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@orbitiq/design-system";
+import { Button, Badge } from "@orbitiq/design-system";
+import { Code, Play, Copy, Download, Loader2, CheckCircle, Clock } from "lucide-react";
 
-interface OQLExample {
-  name: string;
-  oql: string;
-  description: string;
-}
-
-interface CompileResult {
-  sql: string;
-  params: string[];
-  warnings: string[];
-}
-
-interface ValidateResult {
-  valid: boolean;
-  errors: string[];
-  warnings: string[];
-}
-
-const EXAMPLES: OQLExample[] = [
-  {
-    name: "Basic SELECT",
-    oql: "SELECT id, name, email FROM users LIMIT 10",
-    description: "Simple select with column list",
-  },
-  {
-    name: "With Aggregation",
-    oql: "SELECT region, SUM(revenue) AS total_revenue FROM sales GROUP BY region ORDER BY total_revenue DESC",
-    description: "Aggregation with GROUP BY",
-  },
-  {
-    name: "Time Intelligence",
-    oql: "SELECT DATE_TRUNC('month', created_at) AS month, COUNT(*) AS signups FROM users WHERE TIME THIS_MONTH GROUP BY month ORDER BY month",
-    description: "Time-based filtering and grouping",
-  },
-  {
-    name: "Complex Filters",
-    oql: "SELECT * FROM orders WHERE status = 'completed' AND total > 100 AND created_at >= '2024-01-01' LIMIT 50",
-    description: "Multiple filter conditions",
-  },
-  {
-    name: "JOIN Query",
-    oql: "SELECT u.name, COUNT(o.id) AS order_count FROM users u LEFT JOIN orders o ON u.id = o.user_id GROUP BY u.name ORDER BY order_count DESC",
-    description: "Join with aggregation",
-  },
-  {
-    name: "Metric & Dimension",
-    oql: "SELECT METRIC revenue, DIMENSION region FROM sales WHERE TIME LAST_MONTH",
-    description: "Using semantic model concepts",
-  },
+const SAMPLE_QUERIES = [
+  "SELECT * FROM sales WHERE region = 'North America' LIMIT 10;",
+  "OQL: revenue by region for last 12 months;",
+  "OQL: top 10 customers by lifetime value;",
 ];
 
-const KEYWORDS = [
-  "SELECT", "FROM", "WHERE", "GROUP BY", "ORDER BY", "LIMIT", "OFFSET",
-  "JOIN", "LEFT JOIN", "RIGHT JOIN", "INNER JOIN", "ON",
-  "AND", "OR", "NOT", "IN", "LIKE", "BETWEEN", "IS NULL", "IS NOT NULL",
-  "AS", "HAVING", "FILTER",
-];
+const DEMO_OUTPUT = {
+  columns: ["region", "month", "revenue", "orders"],
+  rows: [
+    ["North America", "2025-01", "$125,000", "1,250"],
+    ["North America", "2025-02", "$132,000", "1,320"],
+    ["Europe", "2025-01", "$98,000", "980"],
+    ["Europe", "2025-02", "$105,000", "1,050"],
+    ["Asia Pacific", "2025-01", "$75,000", "750"],
+    ["Asia Pacific", "2025-02", "$82,000", "820"],
+  ],
+  generatedSql: "SELECT region, DATE_TRUNC('month', created_at) AS month, SUM(revenue) AS revenue, COUNT(*) AS orders FROM sales GROUP BY region, month ORDER BY month, revenue DESC",
+  executionTimeMs: 142,
+  rowCount: 6,
+};
 
-const FUNCTIONS = [
-  "SUM", "AVG", "COUNT", "MIN", "MAX", "COUNTDISTINCT",
-  "DATE_TRUNC", "DATE_ADD", "DATE_SUB", "DATE_DIFF",
-];
-
-const TIME_KEYWORDS = [
-  "TIME TODAY", "TIME YESTERDAY", "TIME THIS_WEEK", "TIME LAST_WEEK",
-  "TIME THIS_MONTH", "TIME LAST_MONTH", "TIME THIS_QUARTER", "TIME LAST_QUARTER",
-  "TIME THIS_YEAR", "TIME LAST_YEAR",
-];
-
-export default function OQLPlaygroundPage() {
-  const [oql, setOql] = useState("");
-  const [result, setResult] = useState<CompileResult | null>(null);
-  const [validation, setValidation] = useState<ValidateResult | null>(null);
+export default function OQLPage() {
+  const [query, setQuery] = useState(SAMPLE_QUERIES[0]);
+  const [result, setResult] = useState<typeof DEMO_OUTPUT | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<"compile" | "validate" | "examples">("compile");
-  const [dialect, setDialect] = useState("postgresql");
+  const [copied, setCopied] = useState(false);
 
-  const handleCompile = async () => {
-    if (!oql.trim()) return;
-
+  const handleRun = async () => {
+    if (!query.trim()) return;
     setIsLoading(true);
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      // In a real app, this would call the API
-      const mockResult: CompileResult = {
-        sql: `SELECT\n  "id",\n  "name",\n  "email"\nFROM "users"\nLIMIT $1`,
-        params: ["10"],
-        warnings: [],
-      };
-      setResult(mockResult);
-    } catch (error) {
-      console.error("Compile failed:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleValidate = async () => {
-    if (!oql.trim()) return;
-
-    setIsLoading(true);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 300));
-
-      const mockValidation: ValidateResult = {
-        valid: true,
-        errors: [],
-        warnings: ["Consider adding a LIMIT clause to prevent large result sets"],
-      };
-      setValidation(mockValidation);
-    } catch (error) {
-      console.error("Validation failed:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const loadExample = (example: OQLExample) => {
-    setOql(example.oql);
     setResult(null);
-    setValidation(null);
+    await new Promise((r) => setTimeout(r, 800));
+    setResult(DEMO_OUTPUT);
+    setIsLoading(false);
   };
 
-  const exportToCSV = () => {
-    if (!result) return;
-
-    // Simple CSV export mock
-    const csv = `SQL Query\n"${result.sql.replace(/"/g, '""')}"\n\nParameters\n${result.params.join(",")}`;
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "oql-query.csv";
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const exportToJSON = () => {
-    if (!result) return;
-
-    const json = JSON.stringify({
-      oql,
-      sql: result.sql,
-      params: result.params,
-      warnings: result.warnings,
-    }, null, 2);
-
-    const blob = new Blob([json], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "oql-query.json";
-    a.click();
-    URL.revokeObjectURL(url);
+  const handleCopy = () => {
+    navigator.clipboard.writeText(DEMO_OUTPUT.generatedSql);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">OQL Playground</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              Write and compile OrbitIQ Query Language (OQL) queries
-            </p>
+    <div className="page-content animate-fade-in">
+      <div className="flex items-end justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-white tracking-tight">OQL Playground</h1>
+          <p className="text-sm text-muted mt-1">Write OQL or SQL queries and see results instantly.</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Editor */}
+        <div className="space-y-4">
+          <div className="surface-card overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-2 border-b border-border">
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] text-muted uppercase tracking-wider">Query</span>
+                <Badge variant="accent">OQL v1</Badge>
+              </div>
+              <div className="flex items-center gap-1">
+                <button onClick={() => setQuery(SAMPLE_QUERIES[0])} className="px-2 py-1 text-[10px] text-muted hover:text-white bg-surface-3 rounded transition-colors">
+                  Example 1
+                </button>
+                <button onClick={() => setQuery(SAMPLE_QUERIES[1])} className="px-2 py-1 text-[10px] text-muted hover:text-white bg-surface-3 rounded transition-colors">
+                  Example 2
+                </button>
+                <button onClick={() => setQuery(SAMPLE_QUERIES[2])} className="px-2 py-1 text-[10px] text-muted hover:text-white bg-surface-3 rounded transition-colors">
+                  Example 3
+                </button>
+              </div>
+            </div>
+            <textarea
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="w-full bg-transparent text-green-400 font-mono text-sm p-4 resize-none focus:outline-none placeholder-surface-6 min-h-[200px]"
+              placeholder="Type your OQL query here..."
+              spellCheck={false}
+            />
+            <div className="flex items-center justify-between px-4 py-2 border-t border-border">
+              <span className="text-[11px] text-surface-6">{query.length} chars</span>
+              <Button onClick={handleRun} isLoading={isLoading}>
+                <Play className="w-4 h-4" /> Run Query
+              </Button>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <select
-              value={dialect}
-              onChange={(e) => setDialect(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-            >
-              <option value="postgresql">PostgreSQL</option>
-              <option value="mysql">MySQL</option>
-              <option value="bigquery">BigQuery</option>
-              <option value="snowflake">Snowflake</option>
-            </select>
-          </div>
+
+          {/* SQL Translation */}
+          {result && (
+            <div className="surface-card overflow-hidden animate-slide-up">
+              <div className="flex items-center justify-between px-4 py-2 border-b border-border">
+                <span className="text-[11px] text-muted uppercase tracking-wider">Generated SQL</span>
+                <button onClick={handleCopy} className="flex items-center gap-1 text-[11px] text-muted hover:text-accent transition-colors">
+                  {copied ? <CheckCircle className="w-3 h-3 text-success" /> : <Copy className="w-3 h-3" />}
+                  {copied ? "Copied" : "Copy"}
+                </button>
+              </div>
+              <pre className="p-4 text-sm font-mono text-green-400 overflow-x-auto">{result.generatedSql}</pre>
+            </div>
+          )}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Editor Panel */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-              <div className="border-b border-gray-200 px-4 py-3 flex justify-between items-center">
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setActiveTab("compile")}
-                    className={`px-3 py-1 text-sm rounded-lg ${
-                      activeTab === "compile"
-                        ? "bg-indigo-100 text-indigo-700"
-                        : "text-gray-600 hover:bg-gray-100"
-                    }`}
-                  >
-                    Compile
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("validate")}
-                    className={`px-3 py-1 text-sm rounded-lg ${
-                      activeTab === "validate"
-                        ? "bg-indigo-100 text-indigo-700"
-                        : "text-gray-600 hover:bg-gray-100"
-                    }`}
-                  >
-                    Validate
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("examples")}
-                    className={`px-3 py-1 text-sm rounded-lg ${
-                      activeTab === "examples"
-                        ? "bg-indigo-100 text-indigo-700"
-                        : "text-gray-600 hover:bg-gray-100"
-                    }`}
-                  >
-                    Examples
-                  </button>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setOql("")}
-                    className="px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded-lg"
-                  >
-                    Clear
-                  </button>
+        {/* Results */}
+        <div>
+          {isLoading && (
+            <div className="surface-card p-12 text-center animate-fade-in">
+              <Loader2 className="w-8 h-8 text-accent animate-spin mx-auto mb-3" />
+              <p className="text-sm text-muted">Executing query...</p>
+            </div>
+          )}
+
+          {!isLoading && result && (
+            <div className="surface-card overflow-hidden animate-slide-up">
+              <div className="flex items-center justify-between px-4 py-2 border-b border-border">
+                <span className="text-[11px] text-muted uppercase tracking-wider">Results</span>
+                <div className="flex items-center gap-3 text-[11px] text-surface-6">
+                  <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {result.executionTimeMs}ms</span>
+                  <span>{result.rowCount} rows</span>
                 </div>
               </div>
-
-              <div className="p-4">
-                {activeTab === "examples" ? (
-                  <div className="space-y-3">
-                    {EXAMPLES.map((example) => (
-                      <button
-                        key={example.name}
-                        onClick={() => loadExample(example)}
-                        className="w-full text-left p-3 rounded-lg border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 transition-colors"
-                      >
-                        <div className="font-medium text-gray-900 text-sm">
-                          {example.name}
-                        </div>
-                        <div className="text-xs text-gray-500 mt-1">
-                          {example.description}
-                        </div>
-                        <code className="block mt-2 text-xs text-indigo-600 font-mono">
-                          {example.oql}
-                        </code>
-                      </button>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-border">
+                      {result.columns.map((col) => (
+                        <th key={col} className="px-4 py-2.5 text-left text-muted font-medium bg-surface-2">{col}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {result.rows.map((row, ri) => (
+                      <tr key={ri} className="border-b border-border hover:bg-surface-2 transition-colors">
+                        {row.map((cell, ci) => (
+                          <td key={ci} className="px-4 py-2 text-white font-mono">{cell}</td>
+                        ))}
+                      </tr>
                     ))}
-                  </div>
-                ) : (
-                  <textarea
-                    value={oql}
-                    onChange={(e) => setOql(e.target.value)}
-                    placeholder="Write your OQL query here..."
-                    className="w-full h-64 p-4 font-mono text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
-                    spellCheck={false}
-                  />
-                )}
+                  </tbody>
+                </table>
               </div>
-
-              <div className="border-t border-gray-200 px-4 py-3 flex justify-between items-center">
-                <div className="flex gap-2">
-                  {activeTab === "compile" && (
-                    <Button onClick={handleCompile} isLoading={isLoading}>
-                      Compile to SQL
-                    </Button>
-                  )}
-                  {activeTab === "validate" && (
-                    <Button onClick={handleValidate} isLoading={isLoading}>
-                      Validate
-                    </Button>
-                  )}
-                </div>
-                <div className="text-xs text-gray-400">
-                  {oql.length} characters
-                </div>
+              <div className="flex items-center justify-between px-4 py-2 border-t border-border">
+                <span className="text-[11px] text-surface-6">Showing {result.rowCount} of {result.rowCount} rows</span>
+                <button className="flex items-center gap-1 text-[11px] text-muted hover:text-accent transition-colors">
+                  <Download className="w-3 h-3" /> Export CSV
+                </button>
               </div>
             </div>
+          )}
 
-            {/* Result Panel */}
-            {(result || validation) && (
-              <div className="mt-6 bg-white rounded-xl border border-gray-200 overflow-hidden">
-                <div className="border-b border-gray-200 px-4 py-3 flex justify-between items-center">
-                  <h3 className="font-medium text-gray-900">
-                    {result ? "Generated SQL" : "Validation Result"}
-                  </h3>
-                  {result && (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={exportToCSV}
-                        className="px-3 py-1 text-xs text-gray-600 hover:bg-gray-100 rounded-lg"
-                      >
-                        Export CSV
-                      </button>
-                      <button
-                        onClick={exportToJSON}
-                        className="px-3 py-1 text-xs text-gray-600 hover:bg-gray-100 rounded-lg"
-                      >
-                        Export JSON
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                <div className="p-4">
-                  {result && (
-                    <div>
-                      <pre className="bg-gray-900 text-green-400 p-4 rounded-lg overflow-x-auto text-sm font-mono">
-                        {result.sql}
-                      </pre>
-
-                      {result.params.length > 0 && (
-                        <div className="mt-4">
-                          <h4 className="text-sm font-medium text-gray-700 mb-2">
-                            Parameters
-                          </h4>
-                          <div className="flex flex-wrap gap-2">
-                            {result.params.map((param, i) => (
-                              <span
-                                key={i}
-                                className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-mono"
-                              >
-                                ${i + 1}: {param}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {result.warnings.length > 0 && (
-                        <div className="mt-4">
-                          <h4 className="text-sm font-medium text-yellow-700 mb-2">
-                            Warnings
-                          </h4>
-                          <ul className="list-disc list-inside text-sm text-yellow-600">
-                            {result.warnings.map((warning, i) => (
-                              <li key={i}>{warning}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {validation && (
-                    <div>
-                      <div
-                        className={`flex items-center gap-2 mb-4 ${
-                          validation.valid ? "text-green-600" : "text-red-600"
-                        }`}
-                      >
-                        {validation.valid ? (
-                          <svg
-                            className="w-5 h-5"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        ) : (
-                          <svg
-                            className="w-5 h-5"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        )}
-                        <span className="font-medium">
-                          {validation.valid ? "Valid OQL" : "Invalid OQL"}
-                        </span>
-                      </div>
-
-                      {validation.errors.length > 0 && (
-                        <div className="mb-4">
-                          <h4 className="text-sm font-medium text-red-700 mb-2">
-                            Errors
-                          </h4>
-                          <ul className="list-disc list-inside text-sm text-red-600">
-                            {validation.errors.map((error, i) => (
-                              <li key={i}>{error}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-
-                      {validation.warnings.length > 0 && (
-                        <div>
-                          <h4 className="text-sm font-medium text-yellow-700 mb-2">
-                            Warnings
-                          </h4>
-                          <ul className="list-disc list-inside text-sm text-yellow-600">
-                            {validation.warnings.map((warning, i) => (
-                              <li key={i}>{warning}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Reference Panel */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl border border-gray-200 p-4">
-              <h3 className="font-medium text-gray-900 mb-4">Quick Reference</h3>
-
-              <div className="space-y-4">
-                <div>
-                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                    Keywords
-                  </h4>
-                  <div className="flex flex-wrap gap-1">
-                    {KEYWORDS.slice(0, 12).map((keyword) => (
-                      <button
-                        key={keyword}
-                        onClick={() => setOql((prev) => prev + " " + keyword)}
-                        className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs hover:bg-gray-200 transition-colors"
-                      >
-                        {keyword}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                    Functions
-                  </h4>
-                  <div className="flex flex-wrap gap-1">
-                    {FUNCTIONS.map((func) => (
-                      <button
-                        key={func}
-                        onClick={() => setOql((prev) => prev + " " + func + "()")}
-                        className="px-2 py-1 bg-indigo-50 text-indigo-700 rounded text-xs hover:bg-indigo-100 transition-colors"
-                      >
-                        {func}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                    Time Intelligence
-                  </h4>
-                  <div className="flex flex-wrap gap-1">
-                    {TIME_KEYWORDS.slice(0, 6).map((time) => (
-                      <button
-                        key={time}
-                        onClick={() => setOql((prev) => prev + " " + time)}
-                        className="px-2 py-1 bg-green-50 text-green-700 rounded text-xs hover:bg-green-100 transition-colors"
-                      >
-                        {time}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                    Syntax
-                  </h4>
-                  <div className="text-xs text-gray-600 space-y-1 font-mono">
-                    <div>SELECT column1, column2</div>
-                    <div>FROM table_name</div>
-                    <div>WHERE condition</div>
-                    <div>GROUP BY column</div>
-                    <div>ORDER BY column ASC/DESC</div>
-                    <div>LIMIT n OFFSET m</div>
-                  </div>
-                </div>
-              </div>
+          {!isLoading && !result && (
+            <div className="surface-card p-12 text-center">
+              <Code className="w-10 h-10 text-surface-6 mx-auto mb-3" />
+              <h3 className="text-sm font-medium text-white mb-1">Run a query to see results</h3>
+              <p className="text-xs text-muted max-w-sm mx-auto">
+                Write OQL or SQL in the editor, then click Run. Results appear here.
+              </p>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

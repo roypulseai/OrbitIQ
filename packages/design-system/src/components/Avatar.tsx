@@ -10,26 +10,30 @@ interface AvatarProps {
 export function Avatar({ src, alt, size = "md", fallback }: AvatarProps) {
   const initials = fallback || alt?.charAt(0)?.toUpperCase() || "?";
 
+  const sizeClasses = {
+    sm: "w-7 h-7 text-xs",
+    md: "w-9 h-9 text-sm",
+    lg: "w-12 h-12 text-base",
+  };
+
+  if (src) {
+    return (
+      <img
+        src={src}
+        alt={alt}
+        className={cn("rounded-full object-cover", sizeClasses[size])}
+      />
+    );
+  }
+
   return (
     <div
       className={cn(
-        "relative inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-700 font-medium",
-        {
-          "w-8 h-8 text-xs": size === "sm",
-          "w-10 h-10 text-sm": size === "md",
-          "w-12 h-12 text-base": size === "lg",
-        }
+        "rounded-full bg-accent/20 text-accent flex items-center justify-center font-medium",
+        sizeClasses[size]
       )}
     >
-      {src ? (
-        <img
-          src={src}
-          alt={alt}
-          className="w-full h-full rounded-full object-cover"
-        />
-      ) : (
-        <span>{initials}</span>
-      )}
+      {initials}
     </div>
   );
 }

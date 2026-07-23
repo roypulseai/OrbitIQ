@@ -9,11 +9,11 @@ export function Spinner({ size = "md", className }: SpinnerProps) {
   return (
     <svg
       className={cn(
-        "animate-spin text-indigo-600",
+        "animate-spin text-accent",
         {
-          "w-4 h-4": size === "sm",
-          "w-6 h-6": size === "md",
-          "w-8 h-8": size === "lg",
+          "h-4 w-4": size === "sm",
+          "h-6 w-6": size === "md",
+          "h-8 w-8": size === "lg",
         },
         className
       )}
