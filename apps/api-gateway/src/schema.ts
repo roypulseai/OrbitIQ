@@ -1142,3 +1142,299 @@ export class UpdateTransformStepInput {
   @Field({ nullable: true })
   order?: number;
 }
+
+// ============================================
+// Sprint 7: Caching, Sharing, Embedding Types
+// ============================================
+
+// Cache Types
+@ObjectType()
+export class CacheEntry {
+  @Field(() => ID)
+  id: string;
+
+  @Field()
+  key: string;
+
+  @Field()
+  query: string;
+
+  @Field()
+  connectionId: string;
+
+  @Field()
+  resultSize: number;
+
+  @Field()
+  createdAt: Date;
+
+  @Field()
+  expiresAt: Date;
+
+  @Field()
+  hitCount: number;
+}
+
+@ObjectType()
+export class CacheStats {
+  @Field()
+  hits: number;
+
+  @Field()
+  misses: number;
+
+  @Field()
+  sets: number;
+
+  @Field()
+  evictions: number;
+
+  @Field()
+  totalEntries: number;
+
+  @Field()
+  hitRate: number;
+}
+
+@InputType()
+export class InvalidateCacheInput {
+  @Field({ nullable: true })
+  key?: string;
+
+  @Field({ nullable: true })
+  pattern?: string;
+
+  @Field({ nullable: true })
+  connectionId?: string;
+}
+
+// Scheduled Refresh Types
+@ObjectType()
+export class RefreshSchedule {
+  @Field(() => ID)
+  id: string;
+
+  @Field()
+  dashboardId: string;
+
+  @Field()
+  workspaceId: string;
+
+  @Field()
+  cronExpression: string;
+
+  @Field()
+  enabled: boolean;
+
+  @Field({ nullable: true })
+  lastRunAt?: Date;
+
+  @Field({ nullable: true })
+  nextRunAt?: Date;
+
+  @Field()
+  createdAt: Date;
+
+  @Field()
+  updatedAt: Date;
+}
+
+@InputType()
+export class CreateRefreshScheduleInput {
+  @Field()
+  dashboardId: string;
+
+  @Field()
+  workspaceId: string;
+
+  @Field()
+  cronExpression: string;
+
+  @Field({ nullable: true })
+  enabled?: boolean;
+}
+
+@InputType()
+export class UpdateRefreshScheduleInput {
+  @Field({ nullable: true })
+  cronExpression?: string;
+
+  @Field({ nullable: true })
+  enabled?: boolean;
+}
+
+// Sharing Types
+@ObjectType()
+export class DashboardShare {
+  @Field(() => ID)
+  id: string;
+
+  @Field()
+  dashboardId: string;
+
+  @Field()
+  userId: string;
+
+  @Field()
+  workspaceId: string;
+
+  @Field()
+  permissionLevel: string;
+
+  @Field()
+  sharedBy: string;
+
+  @Field()
+  createdAt: Date;
+}
+
+@ObjectType()
+export class PublicLink {
+  @Field(() => ID)
+  id: string;
+
+  @Field()
+  dashboardId: string;
+
+  @Field()
+  token: string;
+
+  @Field({ nullable: true })
+  expiresAt?: Date;
+
+  @Field()
+  isActive: boolean;
+
+  @Field()
+  createdAt: Date;
+
+  @Field()
+  createdBy: string;
+}
+
+@InputType()
+export class ShareDashboardInput {
+  @Field()
+  dashboardId: string;
+
+  @Field()
+  userId: string;
+
+  @Field()
+  workspaceId: string;
+
+  @Field()
+  permissionLevel: string;
+
+  @Field()
+  sharedBy: string;
+}
+
+@InputType()
+export class CreatePublicLinkInput {
+  @Field()
+  dashboardId: string;
+
+  @Field({ nullable: true })
+  expiresInHours?: number;
+
+  @Field({ nullable: true })
+  password?: string;
+}
+
+@InputType()
+export class UpdateShareInput {
+  @Field()
+  permissionLevel: string;
+}
+
+// Embedding Types
+@ObjectType()
+export class EmbedConfig {
+  @Field(() => ID)
+  id: string;
+
+  @Field()
+  dashboardId: string;
+
+  @Field()
+  workspaceId: string;
+
+  @Field(() => [String])
+  allowedDomains: string[];
+
+  @Field()
+  theme: string;
+
+  @Field()
+  showHeader: boolean;
+
+  @Field()
+  showFilters: boolean;
+
+  @Field()
+  showSidebar: boolean;
+
+  @Field()
+  fontSize: number;
+
+  @Field()
+  isActive: boolean;
+
+  @Field()
+  createdAt: Date;
+
+  @Field()
+  updatedAt: Date;
+}
+
+@ObjectType()
+export class EmbedToken {
+  @Field()
+  token: string;
+
+  @Field()
+  expiresAt: Date;
+
+  @Field()
+  embedUrl: string;
+}
+
+@InputType()
+export class CreateEmbedTokenInput {
+  @Field()
+  dashboardId: string;
+
+  @Field({ nullable: true })
+  userId?: string;
+
+  @Field({ nullable: true })
+  expiresInSeconds?: number;
+
+  @Field(() => JSON, { nullable: true })
+  filters?: Record<string, unknown>;
+
+  @Field({ nullable: true })
+  theme?: string;
+}
+
+@InputType()
+export class UpdateEmbedConfigInput {
+  @Field(() => [String], { nullable: true })
+  allowedDomains?: string[];
+
+  @Field({ nullable: true })
+  theme?: string;
+
+  @Field({ nullable: true })
+  showHeader?: boolean;
+
+  @Field({ nullable: true })
+  showFilters?: boolean;
+
+  @Field({ nullable: true })
+  showSidebar?: boolean;
+
+  @Field({ nullable: true })
+  fontSize?: number;
+}

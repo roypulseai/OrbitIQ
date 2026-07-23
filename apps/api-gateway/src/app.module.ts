@@ -8,6 +8,9 @@ import { SemanticModelsResolver } from "./resolvers/semantic-models.resolver";
 import { OQLResolver } from "./resolvers/oql.resolver";
 import { ExportResolver } from "./resolvers/export.resolver";
 import { RelationshipsResolver } from "./resolvers/relationships.resolver";
+import { CacheResolver } from "./resolvers/cache.resolver";
+import { SharingResolver } from "./resolvers/sharing.resolver";
+import { EmbeddingResolver } from "./resolvers/embedding.resolver";
 import { OrganizationsService } from "./services/organizations.service";
 import { WorkspacesService } from "./services/workspaces.service";
 import { UsersService } from "./services/users.service";
@@ -22,6 +25,10 @@ import { OQLService } from "./services/oql.service";
 import { ExportService } from "./services/export.service";
 import { RelationshipsService } from "./services/relationships.service";
 import { DataPrepService } from "./services/data-prep.service";
+import { CacheService } from "./services/cache.service";
+import { ScheduledRefreshService } from "./services/scheduled-refresh.service";
+import { SharingService } from "./services/sharing.service";
+import { EmbeddingService } from "./services/embedding.service";
 
 @Module({
   imports: [
@@ -42,6 +49,9 @@ import { DataPrepService } from "./services/data-prep.service";
     OQLResolver,
     ExportResolver,
     RelationshipsResolver,
+    CacheResolver,
+    SharingResolver,
+    EmbeddingResolver,
     OrganizationsService,
     WorkspacesService,
     UsersService,
@@ -56,6 +66,10 @@ import { DataPrepService } from "./services/data-prep.service";
     ExportService,
     RelationshipsService,
     DataPrepService,
+    CacheService,
+    ScheduledRefreshService,
+    SharingService,
+    EmbeddingService,
   ],
 })
 export class AppModule {}

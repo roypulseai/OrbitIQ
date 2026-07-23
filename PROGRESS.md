@@ -1,6 +1,6 @@
 # OrbitIQ — Project Progress Tracker
 
-> Last Updated: Sprint 6 — Complete
+> Last Updated: Sprint 7 — Complete
 
 ---
 
@@ -15,6 +15,7 @@
 | 4 | Multi-Connector Support | ✅ Complete | - | - | 100% |
 | 5 | Relationship Modeling | ✅ Complete | - | - | 100% |
 | 6 | Dashboard Canvas v1 | ✅ Complete | - | - | 100% |
+| 7 | Caching + Sharing + Embedding | ✅ Complete | - | - | 100% |
 
 ---
 
@@ -109,7 +110,7 @@
 - [x] Snowflake, BigQuery, MySQL connectors (Sprint 4)
 - [x] Relationship modeling + Data Prep (Sprint 5)
 - [x] Dashboard canvas (Sprint 6)
-- [ ] Caching + sharing
+- [x] Caching + sharing + embedding (Sprint 7)
 
 ### Release 2 — Security & Governance (Sprints 8-10)
 - [ ] RLS engine
@@ -282,9 +283,21 @@
 
 ## Next Sprint Preview
 
-### Sprint 7 — Caching + Sharing + Embedding
-- Result caching (Redis) for query performance
-- Scheduled refresh for data extracts
-- Dashboard sharing and permissions (workspace-level)
-- Basic embedding via iframe
-- Release 1 hardening + QA sprint
+### Sprint 7 — Caching + Sharing + Embedding (Complete)
+- ✅ CacheService with in-memory TTL-based caching, stats, pattern invalidation
+- ✅ ScheduledRefreshService for cron-based refresh schedule tracking
+- ✅ SharingService for dashboard sharing with permission levels (view/edit/admin) + public links with password/expiry
+- ✅ EmbeddingService for iframe embedding with HMAC-signed tokens + domain allowlists
+- ✅ GraphQL types: CacheEntry, CacheStats, RefreshSchedule, DashboardShare, PublicLink, EmbedConfig, EmbedToken + 8 InputTypes
+- ✅ GraphQL resolvers: CacheResolver, SharingResolver, EmbeddingResolver with full CRUD + audit logging
+- ✅ Sharing & Permissions UI page with people table, invite form, public links management
+- ✅ Embedding & Integration UI page with live preview, config panel, embed code generator
+- ✅ Scheduled Refreshes UI page with schedule cards, create modal, toggle/run controls
+- ✅ Query Cache UI page with stats cards, operations panel, entries table
+- ✅ Updated dashboard sidebar with new Workspace nav group (Sharing, Schedules, Caching, Embedding)
+
+---
+
+## Next Sprint Preview
+
+### Sprint 8 — RLS + Data Masking

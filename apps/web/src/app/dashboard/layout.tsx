@@ -20,6 +20,9 @@ import {
   Moon,
   Sun,
   Plus,
+  Users,
+  Clock,
+  Code,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 
@@ -45,6 +48,15 @@ const navigation = [
     group: "Developer",
     items: [
       { name: "OQL Playground", href: "/dashboard/oql", icon: FileCode },
+    ],
+  },
+  {
+    group: "Workspace",
+    items: [
+      { name: "Sharing", href: "/dashboard/sharing", icon: Users },
+      { name: "Schedules", href: "/dashboard/schedules", icon: Clock },
+      { name: "Caching", href: "/dashboard/caching", icon: Database },
+      { name: "Embedding", href: "/dashboard/embedding", icon: Code },
     ],
   },
   {

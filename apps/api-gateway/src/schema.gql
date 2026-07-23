@@ -62,6 +62,15 @@ input BuildQueryInput {
   selectedColumns: [String!]!
 }
 
+type CacheStats {
+  evictions: Float!
+  hitRate: Float!
+  hits: Float!
+  misses: Float!
+  sets: Float!
+  totalEntries: Float!
+}
+
 enum Cardinality {
   MANY_TO_MANY
   MANY_TO_ONE
@@ -145,10 +154,24 @@ input CreateDataPipelineInput {
   workspaceId: String!
 }
 
+input CreateEmbedTokenInput {
+  dashboardId: String!
+  expiresInSeconds: Float
+  filters: JSON
+  theme: String
+  userId: String
+}
+
 input CreateOrganizationInput {
   compliancePackId: String
   name: String!
   region: String!
+}
+
+input CreatePublicLinkInput {
+  dashboardId: String!
+  expiresInHours: Float
+  password: String
 }
 
 input CreateRelationshipInput {
@@ -206,6 +229,16 @@ input DashboardLayoutInput {
   tiles: [TileConfigInput!]!
 }
 
+type DashboardShare {
+  createdAt: DateTime!
+  dashboardId: String!
+  id: ID!
+  permissionLevel: String!
+  sharedBy: String!
+  userId: String!
+  workspaceId: String!
+}
+
 type DataPipeline {
   createdAt: DateTime!
   description: String
@@ -224,10 +257,37 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type EmbedConfig {
+  allowedDomains: [String!]!
+  createdAt: DateTime!
+  dashboardId: String!
+  fontSize: Float!
+  id: ID!
+  isActive: Boolean!
+  showFilters: Boolean!
+  showHeader: Boolean!
+  showSidebar: Boolean!
+  theme: String!
+  updatedAt: DateTime!
+  workspaceId: String!
+}
+
+type EmbedToken {
+  embedUrl: String!
+  expiresAt: DateTime!
+  token: String!
+}
+
 type ExportResult {
   data: String!
   filename: String!
   mimeType: String!
+}
+
+input InvalidateCacheInput {
+  connectionId: String
+  key: String
+  pattern: String
 }
 
 """
@@ -284,11 +344,15 @@ type Mutation {
   addTransformStep(input: AddTransformStepInput!): TransformStep!
   buildQuery(input: BuildQueryInput!): String!
   checkPermission(input: CheckPermissionInput!): PermissionCheck!
+  clearAllCache: Boolean!
   compileOQL(dialect: String = "postgresql", oql: String!): OQLCompileResult!
   createConnection(input: CreateConnectionInput!): Connection!
   createDashboard(input: CreateDashboardInput!): Dashboard!
   createDataPipeline(input: CreateDataPipelineInput!): DataPipeline!
+  createEmbedToken(input: CreateEmbedTokenInput!): EmbedToken!
+  createOrUpdateEmbedConfig(dashboardId: String!, input: UpdateEmbedConfigInput!, workspaceId: String!): EmbedConfig!
   createOrganization(input: CreateOrganizationInput!): Organization!
+  createPublicLink(input: CreatePublicLinkInput!): PublicLink!
   createRelationship(input: CreateRelationshipInput!): Relationship!
   createSemanticModel(input: CreateSemanticModelInput!): SemanticModel!
   createUser(input: CreateUserInput!): User!
@@ -303,12 +367,16 @@ type Mutation {
   executeQuery(input: QueryExecutionInput!): QueryResult!
   exportData(data: String!, filename: String, format: String!): ExportResult!
   getSupportedExportFormats: [String!]!
+  invalidateCache(input: InvalidateCacheInput!): Boolean!
   publishSemanticModel(id: ID!): SemanticModel!
   removeModelColumn(id: ID!): Boolean!
   removeModelMeasure(id: ID!): Boolean!
   removeModelTable(id: ID!): Boolean!
+  removeShare(id: ID!): Boolean!
   removeTile(id: ID!): Boolean!
   removeTransformStep(id: ID!): Boolean!
+  revokePublicLink(id: ID!): Boolean!
+  shareDashboard(input: ShareDashboardInput!): DashboardShare!
   testConnection(id: ID!): ConnectionTestResult!
   unpublishSemanticModel(id: ID!): SemanticModel!
   updateConnection(id: ID!, input: UpdateConnectionInput!): Connection!
@@ -318,6 +386,7 @@ type Mutation {
   updateModelMeasure(id: ID!, input: UpdateModelMeasureInput!): ModelMeasure!
   updateRelationship(id: ID!, input: UpdateRelationshipInput!): Relationship!
   updateSemanticModel(id: ID!, input: UpdateSemanticModelInput!): SemanticModel!
+  updateShare(id: ID!, input: UpdateShareInput!): DashboardShare!
   updateTile(id: ID!, input: UpdateTileInput!): Tile!
   updateTransformStep(id: ID!, input: UpdateTransformStepInput!): TransformStep!
   updateUser(id: ID!, input: UpdateUserInput!): User!
@@ -358,6 +427,16 @@ type PermissionCheck {
   reason: String
 }
 
+type PublicLink {
+  createdAt: DateTime!
+  createdBy: String!
+  dashboardId: String!
+  expiresAt: DateTime
+  id: ID!
+  isActive: Boolean!
+  token: String!
+}
+
 type Query {
   auditLogs(limit: Float = 100, orgId: String!): [AuditLog!]!
   buildJoinSQL(relationships: String!, tables: String!): String!
@@ -367,16 +446,22 @@ type Query {
   dashboard(id: ID!): Dashboard!
   dashboards(workspaceId: String!): [Dashboard!]!
   explainOQL(oql: String!): [String!]!
+  getActiveEmbeds(workspaceId: String!): [EmbedConfig!]!
   getAllRoles: [String!]!
+  getCacheStats: CacheStats!
+  getDashboardShares(dashboardId: String!): [DashboardShare!]!
   getDashboardTiles(dashboardId: String!): [Tile!]!
   getDataPipeline(id: ID!): DataPipeline!
   getDataPipelines(workspaceId: String!): [DataPipeline!]!
+  getEmbedConfig(dashboardId: String!): EmbedConfig!
   getModelColumns(tableId: String!): [ModelColumn!]!
   getModelMeasures(modelId: String!): [ModelMeasure!]!
   getModelTables(modelId: String!): [ModelTable!]!
+  getPublicLinks(dashboardId: String!): [PublicLink!]!
   getRelationship(id: ID!): Relationship!
   getRelationships(modelId: String!): [Relationship!]!
   getRolePermissions(role: String!): [String!]!
+  getSharedDashboards(userId: String!, workspaceId: String!): [DashboardShare!]!
   getTransformSteps(pipelineId: String!): [TransformStep!]!
   listColumns(connectionId: String!, schema: String!, table: String!): [ColumnInfo!]!
   listSchemas(connectionId: String!): [SchemaInfo!]!
@@ -451,6 +536,14 @@ type SemanticModel {
   name: String!
   status: ModelStatus!
   updatedAt: DateTime!
+  workspaceId: String!
+}
+
+input ShareDashboardInput {
+  dashboardId: String!
+  permissionLevel: String!
+  sharedBy: String!
+  userId: String!
   workspaceId: String!
 }
 
@@ -536,6 +629,15 @@ input UpdateDataPipelineInput {
   name: String
 }
 
+input UpdateEmbedConfigInput {
+  allowedDomains: [String!]
+  fontSize: Float
+  showFilters: Boolean
+  showHeader: Boolean
+  showSidebar: Boolean
+  theme: String
+}
+
 input UpdateModelColumnInput {
   isDimension: Boolean
   isMeasure: Boolean
@@ -562,6 +664,10 @@ input UpdateRelationshipInput {
 input UpdateSemanticModelInput {
   description: String
   name: String
+}
+
+input UpdateShareInput {
+  permissionLevel: String!
 }
 
 input UpdateTileInput {
