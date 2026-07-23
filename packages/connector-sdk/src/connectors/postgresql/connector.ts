@@ -1,4 +1,3 @@
-import { Pool, PoolConfig } from "pg";
 import { BaseConnector } from "../../base";
 import { ConnectorConfig, ConnectionTestResult, SchemaInfo, TableInfo, ColumnInfo, TableSample, QueryResult, PushdownCapabilities } from "../../types";
 
@@ -90,8 +89,9 @@ export class PostgreSQLConnector extends BaseConnector {
     },
   };
 
-  private createPool(config: PostgresConfig): Pool {
-    const poolConfig: PoolConfig = {
+  private createPool(config: PostgresConfig): any {
+    const pg = require("pg");
+    const poolConfig = {
       host: config.host,
       port: config.port,
       database: config.database,
@@ -103,7 +103,7 @@ export class PostgreSQLConnector extends BaseConnector {
       idleTimeoutMillis: 30000,
     };
 
-    return new Pool(poolConfig);
+    return new pg.Pool(poolConfig);
   }
 
   protected async doTestConnection(config: PostgresConfig): Promise<ConnectionTestResult> {

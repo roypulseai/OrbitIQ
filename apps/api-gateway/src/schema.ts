@@ -1,4 +1,7 @@
-import { ObjectType, Field, ID, InputType, registerEnumType, Float } from "@nestjs/graphql";
+import { ObjectType, Field, ID, InputType, registerEnumType, Float, GraphQLISODateTime } from "@nestjs/graphql";
+import { GraphQLJSON, GraphQLJSONObject } from "graphql-scalars";
+
+const JSON = GraphQLJSON;
 
 // Enums for Sprint 2
 export enum ModelStatus {
@@ -776,6 +779,33 @@ export class CreateDashboardInput {
 }
 
 @InputType()
+export class TileConfigInput {
+  @Field(() => ID, { nullable: true })
+  id?: string;
+
+  @Field(() => String)
+  type: string;
+
+  @Field(() => JSON)
+  position: { x: number; y: number; w: number; h: number };
+
+  @Field(() => JSON)
+  config: Record<string, unknown>;
+}
+
+@InputType()
+export class DashboardLayoutInput {
+  @Field()
+  columns: number;
+
+  @Field()
+  rowHeight: number;
+
+  @Field(() => [TileConfigInput])
+  tiles: TileConfigInput[];
+}
+
+@InputType()
 export class UpdateDashboardInput {
   @Field({ nullable: true })
   name?: string;
@@ -783,8 +813,8 @@ export class UpdateDashboardInput {
   @Field({ nullable: true })
   description?: string;
 
-  @Field(() => DashboardLayout, { nullable: true })
-  layout?: DashboardLayout;
+  @Field(() => DashboardLayoutInput, { nullable: true })
+  layout?: DashboardLayoutInput;
 }
 
 @InputType()

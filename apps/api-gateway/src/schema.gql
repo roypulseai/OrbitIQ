@@ -1,0 +1,607 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+input AddModelColumnInput {
+  dataType: String!
+  isDimension: Boolean
+  isMeasure: Boolean
+  isPii: Boolean
+  logicalName: String!
+  physicalName: String!
+  tableId: String!
+}
+
+input AddModelMeasureInput {
+  description: String
+  expression: String!
+  format: String
+  modelId: String!
+  name: String!
+}
+
+input AddModelTableInput {
+  connectionId: String!
+  logicalName: String!
+  modelId: String!
+  physicalName: String!
+  schema: String!
+}
+
+input AddTileInput {
+  chartSpec: JSON!
+  dashboardId: String!
+  oqlQuery: JSON!
+  position: JSON!
+}
+
+input AddTransformStepInput {
+  config: JSON!
+  order: Float
+  pipelineId: String!
+  type: TransformStepType!
+}
+
+type AuditLog {
+  action: String!
+  actorId: String!
+  id: ID!
+  metadata: JSON!
+  orgId: String!
+  target: String!
+  timestamp: DateTime!
+}
+
+input BuildQueryInput {
+  filters: [JSON!]!
+  groupBy: [String!]!
+  limit: Float
+  measures: [String!]!
+  modelId: String!
+  orderBy: String
+  selectedColumns: [String!]!
+}
+
+enum Cardinality {
+  MANY_TO_MANY
+  MANY_TO_ONE
+  ONE_TO_MANY
+  ONE_TO_ONE
+}
+
+input CheckPermissionInput {
+  permission: String!
+  roles: [String!]!
+}
+
+type ColumnInfo {
+  comment: String
+  dataType: String!
+  foreignKeyColumn: String
+  foreignKeyTable: String
+  isForeignKey: Boolean!
+  isPrimaryKey: Boolean!
+  maxLength: Float
+  name: String!
+  nullable: Boolean!
+  precision: Float
+  scale: Float
+}
+
+type Connection {
+  config: JSON!
+  connectorType: ConnectorType!
+  createdAt: DateTime!
+  createdBy: String!
+  id: ID!
+  lastTestResult: String
+  lastTestedAt: DateTime
+  regionPin: String
+  status: String!
+  updatedAt: DateTime!
+  workspaceId: String!
+}
+
+type ConnectionTestResult {
+  latencyMs: Float
+  message: String!
+  serverVersion: String
+  success: Boolean!
+}
+
+enum ConnectorType {
+  BIGQUERY
+  CSV
+  DATABRICKS
+  EXCEL
+  JSON
+  MYSQL
+  POSTGRESQL
+  REDSHIFT
+  SNOWFLAKE
+  SQLSERVER
+}
+
+input CreateConnectionInput {
+  config: JSON!
+  connectorType: ConnectorType!
+  createdBy: String!
+  regionPin: String
+  workspaceId: String!
+}
+
+input CreateDashboardInput {
+  description: String
+  name: String!
+  workspaceId: String!
+}
+
+input CreateDataPipelineInput {
+  description: String
+  name: String!
+  sourceConnectionId: String!
+  sourceSchema: String!
+  sourceTable: String!
+  workspaceId: String!
+}
+
+input CreateOrganizationInput {
+  compliancePackId: String
+  name: String!
+  region: String!
+}
+
+input CreateRelationshipInput {
+  cardinality: Cardinality!
+  description: String
+  fromColumnId: String!
+  fromTableId: String!
+  joinType: String
+  modelId: String!
+  name: String!
+  toColumnId: String!
+  toTableId: String!
+}
+
+input CreateSemanticModelInput {
+  description: String
+  name: String!
+  workspaceId: String!
+}
+
+input CreateUserInput {
+  attributes: JSON
+  email: String!
+  name: String!
+  orgId: String!
+  ssoSubject: String
+}
+
+input CreateWorkspaceInput {
+  description: String
+  name: String!
+  orgId: String!
+}
+
+type Dashboard {
+  createdAt: DateTime!
+  description: String
+  gitRef: String
+  id: ID!
+  layout: DashboardLayout!
+  name: String!
+  updatedAt: DateTime!
+  workspaceId: String!
+}
+
+type DashboardLayout {
+  columns: Float!
+  rowHeight: Float!
+  tiles: [TileConfig!]!
+}
+
+input DashboardLayoutInput {
+  columns: Float!
+  rowHeight: Float!
+  tiles: [TileConfigInput!]!
+}
+
+type DataPipeline {
+  createdAt: DateTime!
+  description: String
+  id: ID!
+  name: String!
+  sourceConnectionId: String!
+  sourceSchema: String!
+  sourceTable: String!
+  steps: [TransformStep!]!
+  updatedAt: DateTime!
+  workspaceId: String!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type ExportResult {
+  data: String!
+  filename: String!
+  mimeType: String!
+}
+
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON @specifiedBy(url: "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf")
+
+type ModelColumn {
+  createdAt: DateTime!
+  dataType: String!
+  id: ID!
+  isDimension: Boolean!
+  isMeasure: Boolean!
+  isPii: Boolean!
+  logicalName: String!
+  maskRule: JSON
+  physicalName: String!
+  tableId: String!
+  updatedAt: DateTime!
+}
+
+type ModelMeasure {
+  createdAt: DateTime!
+  description: String
+  expression: String!
+  format: String
+  id: ID!
+  modelId: String!
+  name: String!
+  updatedAt: DateTime!
+}
+
+enum ModelStatus {
+  DRAFT
+  PUBLISHED
+}
+
+type ModelTable {
+  connectionId: String!
+  createdAt: DateTime!
+  id: ID!
+  logicalName: String!
+  modelId: String!
+  physicalName: String!
+  schema: String!
+  updatedAt: DateTime!
+}
+
+type Mutation {
+  addModelColumn(input: AddModelColumnInput!): ModelColumn!
+  addModelMeasure(input: AddModelMeasureInput!): ModelMeasure!
+  addModelTable(input: AddModelTableInput!): ModelTable!
+  addTile(input: AddTileInput!): Tile!
+  addTransformStep(input: AddTransformStepInput!): TransformStep!
+  buildQuery(input: BuildQueryInput!): String!
+  checkPermission(input: CheckPermissionInput!): PermissionCheck!
+  compileOQL(dialect: String = "postgresql", oql: String!): OQLCompileResult!
+  createConnection(input: CreateConnectionInput!): Connection!
+  createDashboard(input: CreateDashboardInput!): Dashboard!
+  createDataPipeline(input: CreateDataPipelineInput!): DataPipeline!
+  createOrganization(input: CreateOrganizationInput!): Organization!
+  createRelationship(input: CreateRelationshipInput!): Relationship!
+  createSemanticModel(input: CreateSemanticModelInput!): SemanticModel!
+  createUser(input: CreateUserInput!): User!
+  createWorkspace(input: CreateWorkspaceInput!): Workspace!
+  deleteConnection(id: ID!): Boolean!
+  deleteDashboard(id: ID!): Boolean!
+  deleteDataPipeline(id: ID!): Boolean!
+  deleteRelationship(id: ID!): Boolean!
+  deleteSemanticModel(id: ID!): Boolean!
+  deleteUser(id: ID!): Boolean!
+  deleteWorkspace(id: ID!): Boolean!
+  executeQuery(input: QueryExecutionInput!): QueryResult!
+  exportData(data: String!, filename: String, format: String!): ExportResult!
+  getSupportedExportFormats: [String!]!
+  publishSemanticModel(id: ID!): SemanticModel!
+  removeModelColumn(id: ID!): Boolean!
+  removeModelMeasure(id: ID!): Boolean!
+  removeModelTable(id: ID!): Boolean!
+  removeTile(id: ID!): Boolean!
+  removeTransformStep(id: ID!): Boolean!
+  testConnection(id: ID!): ConnectionTestResult!
+  unpublishSemanticModel(id: ID!): SemanticModel!
+  updateConnection(id: ID!, input: UpdateConnectionInput!): Connection!
+  updateDashboard(id: ID!, input: UpdateDashboardInput!): Dashboard!
+  updateDataPipeline(id: ID!, input: UpdateDataPipelineInput!): DataPipeline!
+  updateModelColumn(id: ID!, input: UpdateModelColumnInput!): ModelColumn!
+  updateModelMeasure(id: ID!, input: UpdateModelMeasureInput!): ModelMeasure!
+  updateRelationship(id: ID!, input: UpdateRelationshipInput!): Relationship!
+  updateSemanticModel(id: ID!, input: UpdateSemanticModelInput!): SemanticModel!
+  updateTile(id: ID!, input: UpdateTileInput!): Tile!
+  updateTransformStep(id: ID!, input: UpdateTransformStepInput!): TransformStep!
+  updateUser(id: ID!, input: UpdateUserInput!): User!
+  updateWorkspace(id: ID!, input: UpdateWorkspaceInput!): Workspace!
+  validateOQL(oql: String!): OQLValidateResult!
+}
+
+type OQLCompileResult {
+  params: [String!]!
+  sql: String!
+  warnings: [String!]!
+}
+
+type OQLExample {
+  description: String!
+  name: String!
+  oql: String!
+}
+
+type OQLValidateResult {
+  errors: [String!]!
+  valid: Boolean!
+  warnings: [String!]!
+}
+
+type Organization {
+  compliancePackId: String
+  createdAt: DateTime!
+  id: ID!
+  name: String!
+  region: String!
+  updatedAt: DateTime!
+}
+
+type PermissionCheck {
+  granted: Boolean!
+  permission: String!
+  reason: String
+}
+
+type Query {
+  auditLogs(limit: Float = 100, orgId: String!): [AuditLog!]!
+  buildJoinSQL(relationships: String!, tables: String!): String!
+  compilePipeline(pipelineId: String!): String!
+  connection(id: ID!): Connection!
+  connections(workspaceId: String!): [Connection!]!
+  dashboard(id: ID!): Dashboard!
+  dashboards(workspaceId: String!): [Dashboard!]!
+  explainOQL(oql: String!): [String!]!
+  getAllRoles: [String!]!
+  getDashboardTiles(dashboardId: String!): [Tile!]!
+  getDataPipeline(id: ID!): DataPipeline!
+  getDataPipelines(workspaceId: String!): [DataPipeline!]!
+  getModelColumns(tableId: String!): [ModelColumn!]!
+  getModelMeasures(modelId: String!): [ModelMeasure!]!
+  getModelTables(modelId: String!): [ModelTable!]!
+  getRelationship(id: ID!): Relationship!
+  getRelationships(modelId: String!): [Relationship!]!
+  getRolePermissions(role: String!): [String!]!
+  getTransformSteps(pipelineId: String!): [TransformStep!]!
+  listColumns(connectionId: String!, schema: String!, table: String!): [ColumnInfo!]!
+  listSchemas(connectionId: String!): [SchemaInfo!]!
+  listTables(connectionId: String!, schema: String): [TableInfo!]!
+  me: User!
+  oqlExamples: [OQLExample!]!
+  oqlFunctions: [String!]!
+  oqlKeywords: [String!]!
+  organization(id: ID!): Organization!
+  organizations: [Organization!]!
+  previewStep(stepId: String!): String!
+  sampleData(connectionId: String!, limit: Float = 100, schema: String!, table: String!): TableSample!
+  semanticModel(id: ID!): SemanticModel!
+  semanticModels(workspaceId: String!): [SemanticModel!]!
+  suggestRelationships(modelId: String!, tables: String!): [RelationshipSuggestion!]!
+  user(id: ID!): User!
+  users(orgId: String!): [User!]!
+  workspace(id: ID!): Workspace!
+  workspaces(orgId: String!): [Workspace!]!
+}
+
+input QueryExecutionInput {
+  connectionId: String!
+  params: [JSON!]
+  query: String!
+}
+
+type QueryResult {
+  columns: [ColumnInfo!]!
+  executionTimeMs: Float!
+  rowCount: Float!
+  rows: JSON!
+}
+
+type Relationship {
+  cardinality: Cardinality!
+  createdAt: DateTime!
+  description: String
+  fromColumnId: String!
+  fromTableId: String!
+  id: ID!
+  isActive: Boolean!
+  joinType: String
+  modelId: String!
+  name: String!
+  toColumnId: String!
+  toTableId: String!
+  updatedAt: DateTime!
+}
+
+type RelationshipSuggestion {
+  confidence: Float!
+  fromColumn: String!
+  fromTable: String!
+  reason: String!
+  suggestedCardinality: Cardinality!
+  toColumn: String!
+  toTable: String!
+}
+
+type SchemaInfo {
+  catalog: String!
+  schema: String!
+  type: String!
+}
+
+type SemanticModel {
+  createdAt: DateTime!
+  description: String
+  gitRef: String
+  id: ID!
+  name: String!
+  status: ModelStatus!
+  updatedAt: DateTime!
+  workspaceId: String!
+}
+
+type TableInfo {
+  catalog: String!
+  lastModified: DateTime
+  rowCount: Float
+  schema: String!
+  table: String!
+  type: String!
+}
+
+type TableSample {
+  columns: [ColumnInfo!]!
+  rowCount: Float!
+  rows: JSON!
+}
+
+type Tile {
+  chartSpec: JSON!
+  createdAt: DateTime!
+  dashboardId: String!
+  id: ID!
+  oqlQuery: JSON!
+  position: JSON!
+  updatedAt: DateTime!
+}
+
+type TileConfig {
+  config: JSON!
+  id: ID!
+  position: JSON!
+  type: String!
+}
+
+input TileConfigInput {
+  config: JSON!
+  id: ID
+  position: JSON!
+  type: String!
+}
+
+type TransformStep {
+  config: JSON!
+  createdAt: DateTime!
+  id: ID!
+  isActive: Boolean!
+  order: Float!
+  pipelineId: String!
+  sqlOutput: String
+  type: TransformStepType!
+  updatedAt: DateTime!
+}
+
+enum TransformStepType {
+  ADD_COLUMN
+  CAST
+  DEDUPLICATE
+  FILTER
+  GROUP
+  JOIN
+  PIVOT
+  REMOVE_COLUMN
+  RENAME
+  SAMPLE
+  SORT
+  UNPIVOT
+}
+
+input UpdateConnectionInput {
+  config: JSON
+  regionPin: String
+}
+
+input UpdateDashboardInput {
+  description: String
+  layout: DashboardLayoutInput
+  name: String
+}
+
+input UpdateDataPipelineInput {
+  description: String
+  name: String
+}
+
+input UpdateModelColumnInput {
+  isDimension: Boolean
+  isMeasure: Boolean
+  isPii: Boolean
+  logicalName: String
+  maskRule: JSON
+}
+
+input UpdateModelMeasureInput {
+  description: String
+  expression: String
+  format: String
+  name: String
+}
+
+input UpdateRelationshipInput {
+  cardinality: Cardinality
+  description: String
+  isActive: Boolean
+  joinType: String
+  name: String
+}
+
+input UpdateSemanticModelInput {
+  description: String
+  name: String
+}
+
+input UpdateTileInput {
+  chartSpec: JSON
+  oqlQuery: JSON
+  position: JSON
+}
+
+input UpdateTransformStepInput {
+  config: JSON
+  isActive: Boolean
+  order: Float
+}
+
+input UpdateUserInput {
+  attributes: JSON
+  name: String
+}
+
+input UpdateWorkspaceInput {
+  description: String
+  name: String
+}
+
+type User {
+  attributes: JSON!
+  createdAt: DateTime!
+  email: String!
+  id: ID!
+  name: String!
+  orgId: String!
+  ssoSubject: String
+  updatedAt: DateTime!
+}
+
+type Workspace {
+  createdAt: DateTime!
+  description: String
+  id: ID!
+  name: String!
+  orgId: String!
+  updatedAt: DateTime!
+}

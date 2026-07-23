@@ -9,7 +9,7 @@ export abstract class BaseConnector implements Connector {
     version: string;
     icon: string;
     capabilities: PushdownCapabilities;
-    configSchema: Record<string, unknown>;
+    configSchema: Record<string, any>;
   };
 
   protected abstract doTestConnection(

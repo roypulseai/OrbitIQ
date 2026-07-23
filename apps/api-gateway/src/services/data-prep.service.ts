@@ -404,7 +404,7 @@ export class DataPrepService {
   async previewStep(stepId: string): Promise<{ sql: string; preview: Record<string, unknown>[] }> {
     const step = this.steps.get(stepId);
     if (!step) {
-      throw new NotFoundException(`Step ${id} not found`);
+      throw new NotFoundException(`Step ${stepId} not found`);
     }
 
     const pipeline = await this.findOne(step.pipelineId);

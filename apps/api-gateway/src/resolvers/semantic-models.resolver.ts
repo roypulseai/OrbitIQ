@@ -41,14 +41,14 @@ export class SemanticModelsResolver {
   async getSemanticModels(
     @Args("workspaceId") workspaceId: string
   ): Promise<SemanticModel[]> {
-    return this.semanticModelsService.findAllByWorkspace(workspaceId);
+    return this.semanticModelsService.findAllByWorkspace(workspaceId) as any;
   }
 
   @Query(() => SemanticModel, { name: "semanticModel" })
   async getSemanticModel(
     @Args("id", { type: () => ID }) id: string
   ): Promise<SemanticModel> {
-    return this.semanticModelsService.findOne(id);
+    return this.semanticModelsService.findOne(id) as any;
   }
 
   @Query(() => [ModelTable])
@@ -83,7 +83,7 @@ export class SemanticModelsResolver {
       target: model.id,
       metadata: { name: model.name, workspaceId: model.workspaceId },
     });
-    return model;
+    return model as any;
   }
 
   @Mutation(() => SemanticModel)
@@ -97,7 +97,7 @@ export class SemanticModelsResolver {
       target: id,
       metadata: { changes: input },
     });
-    return model;
+    return model as any;
   }
 
   @Mutation(() => SemanticModel)
@@ -110,7 +110,7 @@ export class SemanticModelsResolver {
       target: id,
       metadata: { name: model.name },
     });
-    return model;
+    return model as any;
   }
 
   @Mutation(() => SemanticModel)
@@ -123,7 +123,7 @@ export class SemanticModelsResolver {
       target: id,
       metadata: { name: model.name },
     });
-    return model;
+    return model as any;
   }
 
   @Mutation(() => Boolean)
@@ -303,7 +303,7 @@ export class SemanticModelsResolver {
       target: dashboard.id,
       metadata: { name: dashboard.name, workspaceId: dashboard.workspaceId },
     });
-    return dashboard;
+    return dashboard as any;
   }
 
   @Mutation(() => Dashboard)
@@ -311,13 +311,13 @@ export class SemanticModelsResolver {
     @Args("id", { type: () => ID }) id: string,
     @Args("input") input: UpdateDashboardInput
   ): Promise<Dashboard> {
-    const dashboard = await this.dashboardsService.update(id, input);
+    const dashboard = await this.dashboardsService.update(id, input as any);
     await this.auditService.log({
       action: "dashboard.update",
       target: id,
       metadata: { changes: input },
     });
-    return dashboard;
+    return dashboard as any;
   }
 
   @Mutation(() => Boolean)

@@ -1,1 +1,2 @@
-export { PostgreSQLConnector, PostgresConfig } from "./connector";
+export { PostgreSQLConnector } from "./connector";
+export type { PostgresConfig } from "./connector";

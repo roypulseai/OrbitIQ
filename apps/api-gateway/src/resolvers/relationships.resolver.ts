@@ -29,14 +29,14 @@ export class RelationshipsResolver {
   async getRelationships(
     @Args("modelId") modelId: string
   ): Promise<Relationship[]> {
-    return this.relationshipsService.findAllByModel(modelId);
+    return this.relationshipsService.findAllByModel(modelId) as any;
   }
 
   @Query(() => Relationship)
   async getRelationship(
     @Args("id", { type: () => ID }) id: string
   ): Promise<Relationship> {
-    return this.relationshipsService.findOne(id);
+    return this.relationshipsService.findOne(id) as any;
   }
 
   @Query(() => [RelationshipSuggestion])
@@ -45,7 +45,7 @@ export class RelationshipsResolver {
     @Args("tables") tables: string
   ): Promise<RelationshipSuggestion[]> {
     const parsedTables = JSON.parse(tables);
-    return this.relationshipsService.suggestRelationships(modelId, parsedTables);
+    return this.relationshipsService.suggestRelationships(modelId, parsedTables) as any;
   }
 
   @Query(() => String)
@@ -69,7 +69,7 @@ export class RelationshipsResolver {
       target: relationship.id,
       metadata: { modelId: relationship.modelId, name: relationship.name },
     });
-    return relationship;
+    return relationship as any;
   }
 
   @Mutation(() => Relationship)
@@ -83,7 +83,7 @@ export class RelationshipsResolver {
       target: id,
       metadata: { changes: input },
     });
-    return relationship;
+    return relationship as any;
   }
 
   @Mutation(() => Boolean)
@@ -104,21 +104,24 @@ export class RelationshipsResolver {
   async getDataPipelines(
     @Args("workspaceId") workspaceId: string
   ): Promise<DataPipeline[]> {
-    return this.dataPrepService.findAllByWorkspace(workspaceId);
+    const pipelines = await this.dataPrepService.findAllByWorkspace(workspaceId);
+    return pipelines.map(p => ({ ...p, steps: [] } as any));
   }
 
   @Query(() => DataPipeline)
   async getDataPipeline(
     @Args("id", { type: () => ID }) id: string
   ): Promise<DataPipeline> {
-    return this.dataPrepService.findOne(id);
+    const pipeline = await this.dataPrepService.findOne(id);
+    const steps = await this.dataPrepService.getSteps(id);
+    return { ...pipeline, steps } as any;
   }
 
   @Query(() => [TransformStep])
   async getTransformSteps(
     @Args("pipelineId") pipelineId: string
   ): Promise<TransformStep[]> {
-    return this.dataPrepService.getSteps(pipelineId);
+    return this.dataPrepService.getSteps(pipelineId) as any;
   }
 
   @Query(() => String)
@@ -147,7 +150,7 @@ export class RelationshipsResolver {
       target: pipeline.id,
       metadata: { name: pipeline.name, workspaceId: pipeline.workspaceId },
     });
-    return pipeline;
+    return { ...pipeline, steps: [] } as any;
   }
 
   @Mutation(() => DataPipeline)
@@ -156,12 +159,13 @@ export class RelationshipsResolver {
     @Args("input") input: UpdateDataPipelineInput
   ): Promise<DataPipeline> {
     const pipeline = await this.dataPrepService.update(id, input);
+    const steps = await this.dataPrepService.getSteps(id);
     await this.auditService.log({
       action: "data_pipeline.update",
       target: id,
       metadata: { changes: input },
     });
-    return pipeline;
+    return { ...pipeline, steps } as any;
   }
 
   @Mutation(() => Boolean)
@@ -188,7 +192,7 @@ export class RelationshipsResolver {
       target: input.pipelineId,
       metadata: { stepId: step.id, type: step.type },
     });
-    return step;
+    return step as any;
   }
 
   @Mutation(() => TransformStep)
@@ -202,7 +206,7 @@ export class RelationshipsResolver {
       target: id,
       metadata: { changes: input },
     });
-    return step;
+    return step as any;
   }
 
   @Mutation(() => Boolean)

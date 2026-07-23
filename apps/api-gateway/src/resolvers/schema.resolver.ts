@@ -147,14 +147,14 @@ export class SchemaResolver {
   async getConnections(
     @Args("workspaceId") workspaceId: string
   ): Promise<Connection[]> {
-    return this.connectionsService.findAll(workspaceId);
+    return this.connectionsService.findAll(workspaceId) as any;
   }
 
   @Query(() => Connection, { name: "connection" })
   async getConnection(
     @Args("id", { type: () => ID }) id: string
   ): Promise<Connection> {
-    return this.connectionsService.findOne(id);
+    return this.connectionsService.findOne(id) as any;
   }
 
   // Connection Mutations
@@ -162,7 +162,7 @@ export class SchemaResolver {
   async createConnection(
     @Args("input") input: CreateConnectionInput
   ): Promise<Connection> {
-    return this.connectionsService.create(input);
+    return this.connectionsService.create(input) as any;
   }
 
   @Mutation(() => Connection)
@@ -170,7 +170,7 @@ export class SchemaResolver {
     @Args("id", { type: () => ID }) id: string,
     @Args("input") input: UpdateConnectionInput
   ): Promise<Connection> {
-    return this.connectionsService.update(id, input);
+    return this.connectionsService.update(id, input) as any;
   }
 
   @Mutation(() => Boolean)

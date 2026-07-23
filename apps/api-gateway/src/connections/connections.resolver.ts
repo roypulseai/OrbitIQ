@@ -66,21 +66,21 @@ export class ConnectionsResolver {
   async findAll(
     @Args("workspaceId") workspaceId: string
   ): Promise<Connection[]> {
-    return this.connectionsService.findAll(workspaceId);
+    return this.connectionsService.findAll(workspaceId) as any;
   }
 
   @Query(() => Connection, { name: "connection" })
   async findOne(
     @Args("id", { type: () => ID }) id: string
   ): Promise<Connection> {
-    return this.connectionsService.findOne(id);
+    return this.connectionsService.findOne(id) as any;
   }
 
   @Mutation(() => Connection)
   async createConnection(
     @Args("input") input: CreateConnectionInput
   ): Promise<Connection> {
-    return this.connectionsService.create(input);
+    return this.connectionsService.create(input) as any;
   }
 
   @Mutation(() => Boolean)
