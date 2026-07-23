@@ -1536,3 +1536,110 @@ export class SetUserAttributesInput {
   @Field(() => GraphQLJSON)
   attributes!: Record<string, string>;
 }
+
+// ─── Sprint 9: Column-Level Security + Data Masking ──────────────────────────
+
+@ObjectType()
+export class ColumnSecurityRule {
+  @Field(() => ID)
+  id!: string;
+
+  @Field()
+  modelId!: string;
+
+  @Field()
+  tableId!: string;
+
+  @Field()
+  columnName!: string;
+
+  @Field()
+  maskType!: string;
+
+  @Field(() => GraphQLJSON, { nullable: true })
+  maskConfig?: Record<string, any>;
+
+  @Field(() => [String])
+  appliesToRoles!: string[];
+
+  @Field()
+  isEnabled!: boolean;
+
+  @Field()
+  createdAt!: Date;
+
+  @Field({ nullable: true })
+  updatedAt?: Date;
+}
+
+@ObjectType()
+export class PIITag {
+  @Field(() => ID)
+  id!: string;
+
+  @Field()
+  columnName!: string;
+
+  @Field()
+  tableId!: string;
+
+  @Field()
+  modelId!: string;
+
+  @Field(() => Float)
+  confidence!: number;
+
+  @Field()
+  source!: string;
+
+  @Field()
+  piiType!: string;
+
+  @Field()
+  createdAt!: Date;
+}
+
+@InputType()
+export class CreateColumnSecurityRuleInput {
+  @Field()
+  modelId!: string;
+
+  @Field()
+  tableId!: string;
+
+  @Field()
+  columnName!: string;
+
+  @Field()
+  maskType!: string;
+
+  @Field(() => GraphQLJSON, { nullable: true })
+  maskConfig?: Record<string, any>;
+
+  @Field(() => [String])
+  appliesToRoles!: string[];
+}
+
+@InputType()
+export class UpdateColumnSecurityRuleInput {
+  @Field({ nullable: true })
+  maskType?: string;
+
+  @Field(() => GraphQLJSON, { nullable: true })
+  maskConfig?: Record<string, any>;
+
+  @Field(() => [String], { nullable: true })
+  appliesToRoles?: string[];
+
+  @Field({ nullable: true })
+  isEnabled?: boolean;
+}
+
+@InputType()
+export class UpdatePIITagInput {
+  @Field()
+  piiType!: string;
+
+  @Field(() => Float, { nullable: true })
+  confidence?: number;
+}

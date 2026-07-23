@@ -25,6 +25,8 @@ import {
   Code,
   Shield,
   ScrollText,
+  Lock,
+  ScanSearch,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 
@@ -72,6 +74,8 @@ const navigation = [
     group: "Security & Governance",
     items: [
       { name: "Row-Level Security", href: "/dashboard/security", icon: Shield },
+      { name: "Column Security", href: "/dashboard/security/column-security", icon: Lock },
+      { name: "PII Detection", href: "/dashboard/security/pii-scanning", icon: ScanSearch },
       { name: "User Attributes", href: "/dashboard/security/user-attributes", icon: Users },
       { name: "Audit Log", href: "/dashboard/security/audit", icon: ScrollText },
     ],

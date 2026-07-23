@@ -97,6 +97,19 @@ type ColumnInfo {
   scale: Float
 }
 
+type ColumnSecurityRule {
+  appliesToRoles: [String!]!
+  columnName: String!
+  createdAt: DateTime!
+  id: ID!
+  isEnabled: Boolean!
+  maskConfig: JSON
+  maskType: String!
+  modelId: String!
+  tableId: String!
+  updatedAt: DateTime
+}
+
 type Connection {
   config: JSON!
   connectorType: ConnectorType!
@@ -129,6 +142,15 @@ enum ConnectorType {
   REDSHIFT
   SNOWFLAKE
   SQLSERVER
+}
+
+input CreateColumnSecurityRuleInput {
+  appliesToRoles: [String!]!
+  columnName: String!
+  maskConfig: JSON
+  maskType: String!
+  modelId: String!
+  tableId: String!
 }
 
 input CreateConnectionInput {
@@ -355,6 +377,7 @@ type Mutation {
   checkPermission(input: CheckPermissionInput!): PermissionCheck!
   clearAllCache: Boolean!
   compileOQL(dialect: String = "postgresql", oql: String!): OQLCompileResult!
+  createColumnSecurityRule(input: CreateColumnSecurityRuleInput!): ColumnSecurityRule!
   createConnection(input: CreateConnectionInput!): Connection!
   createDashboard(input: CreateDashboardInput!): Dashboard!
   createDataPipeline(input: CreateDataPipelineInput!): DataPipeline!
@@ -367,6 +390,7 @@ type Mutation {
   createSemanticModel(input: CreateSemanticModelInput!): SemanticModel!
   createUser(input: CreateUserInput!): User!
   createWorkspace(input: CreateWorkspaceInput!): Workspace!
+  deleteColumnSecurityRule(id: ID!): Boolean!
   deleteConnection(id: ID!): Boolean!
   deleteDashboard(id: ID!): Boolean!
   deleteDataPipeline(id: ID!): Boolean!
@@ -390,8 +414,10 @@ type Mutation {
   setUserAttributes(input: SetUserAttributesInput!): UserAttributes!
   shareDashboard(input: ShareDashboardInput!): DashboardShare!
   testConnection(id: ID!): ConnectionTestResult!
+  toggleColumnSecurityRule(id: ID!): ColumnSecurityRule!
   toggleRLSPolicy(id: ID!): RLSPolicy!
   unpublishSemanticModel(id: ID!): SemanticModel!
+  updateColumnSecurityRule(id: ID!, input: UpdateColumnSecurityRuleInput!): ColumnSecurityRule!
   updateConnection(id: ID!, input: UpdateConnectionInput!): Connection!
   updateDashboard(id: ID!, input: UpdateDashboardInput!): Dashboard!
   updateDataPipeline(id: ID!, input: UpdateDataPipelineInput!): DataPipeline!
@@ -435,6 +461,17 @@ type Organization {
   updatedAt: DateTime!
 }
 
+type PIITag {
+  columnName: String!
+  confidence: Float!
+  createdAt: DateTime!
+  id: ID!
+  modelId: String!
+  piiType: String!
+  source: String!
+  tableId: String!
+}
+
 type PermissionCheck {
   granted: Boolean!
   permission: String!
@@ -455,6 +492,8 @@ type Query {
   attributeKeys: [String!]!
   auditLogs(limit: Float = 100, orgId: String!): [AuditLog!]!
   buildJoinSQL(relationships: String!, tables: String!): String!
+  columnSecurityRule(id: ID!): ColumnSecurityRule
+  columnSecurityRules(modelId: String!, tableId: String): [ColumnSecurityRule!]!
   compilePipeline(pipelineId: String!): String!
   connection(id: ID!): Connection!
   connections(workspaceId: String!): [Connection!]!
@@ -488,6 +527,7 @@ type Query {
   oqlKeywords: [String!]!
   organization(id: ID!): Organization!
   organizations: [Organization!]!
+  piitags(modelId: String!): [PIITag!]!
   previewStep(stepId: String!): String!
   rlsPolicies(modelId: String): [RLSPolicy!]!
   rlsPolicy(id: ID!): RLSPolicy!
@@ -649,6 +689,13 @@ enum TransformStepType {
   SAMPLE
   SORT
   UNPIVOT
+}
+
+input UpdateColumnSecurityRuleInput {
+  appliesToRoles: [String!]
+  isEnabled: Boolean
+  maskConfig: JSON
+  maskType: String
 }
 
 input UpdateConnectionInput {

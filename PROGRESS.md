@@ -18,6 +18,7 @@
 | 7 | Caching + Sharing + Embedding | ✅ Complete | - | - | 100% |
 | 8 | Row-Level Security (RLS) | ✅ Complete | - | - | 100% |
 | 9 | Column-Level Security + Data Masking | ✅ Complete | - | - | 100% |
+| 9 | Column-Level Security + Data Masking | ✅ Complete | - | - | 100% |
 
 ---
 
