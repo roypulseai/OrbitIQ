@@ -1,6 +1,6 @@
 # OrbitIQ — Project Progress Tracker
 
-> Last Updated: Sprint 5 — Complete
+> Last Updated: Sprint 6 — Complete
 
 ---
 
@@ -14,6 +14,7 @@
 | 3 | OQL Compiler v1 | ✅ Complete | - | - | 100% |
 | 4 | Multi-Connector Support | ✅ Complete | - | - | 100% |
 | 5 | Relationship Modeling | ✅ Complete | - | - | 100% |
+| 6 | Dashboard Canvas v1 | ✅ Complete | - | - | 100% |
 
 ---
 
@@ -107,7 +108,7 @@
 - [x] OQL compiler v1 (Sprint 3)
 - [x] Snowflake, BigQuery, MySQL connectors (Sprint 4)
 - [x] Relationship modeling + Data Prep (Sprint 5)
-- [ ] Dashboard canvas
+- [x] Dashboard canvas (Sprint 6)
 - [ ] Caching + sharing
 
 ### Release 2 — Security & Governance (Sprints 8-10)
@@ -265,12 +266,25 @@
 
 ## Next Sprint Preview
 
-### Sprint 6 — Dashboard Canvas v1
-- Dashboard canvas with grid layout
-- Cross-filtering between tiles
-- Drill-down capability
-- Dashboard sharing and embedding
+### Sprint 6 — Dashboard Canvas v1 (Complete)
+- ✅ react-grid-layout for responsive draggable/resizable grid canvas
+- ✅ DashboardProvider context for filter state management
+- ✅ GlobalFilterBar with date range picker (presets) and category dropdowns
+- ✅ Cross-filtering: click chart elements to filter all tiles
+- ✅ DrillDownPanel slide-in panel with dimension breakdown
+- ✅ DashboardToolbar with edit/save mode, export dropdown, active filter badge
+- ✅ DashboardTile with KPI cards, chart rendering, drag handles, maximize modal
+- ✅ Chart component: dark theme Vega-Lite config, tooltips, click handlers, palette
+- ✅ Export to PDF (html2canvas + jspdf) and PNG
+- ✅ Rewrote dashboard detail page with all Sprint 6 features
 
 ---
 
-*This file is a living artifact. Update after each sprint completion.*
+## Next Sprint Preview
+
+### Sprint 7 — Caching + Sharing + Embedding
+- Result caching (Redis) for query performance
+- Scheduled refresh for data extracts
+- Dashboard sharing and permissions (workspace-level)
+- Basic embedding via iframe
+- Release 1 hardening + QA sprint
