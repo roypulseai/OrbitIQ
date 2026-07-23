@@ -1643,3 +1643,84 @@ export class UpdatePIITagInput {
   @Field(() => Float, { nullable: true })
   confidence?: number;
 }
+
+// ─── Sprint 10: Compliance Policy Engine ─────────────────────────────────────
+
+@ObjectType()
+export class CompliancePack {
+  @Field(() => ID) id!: string;
+  @Field() name!: string;
+  @Field() jurisdiction!: string;
+  @Field() description!: string;
+  @Field() version!: string;
+  @Field() isEnabled!: boolean;
+  @Field(() => Int) ruleCount!: number;
+  @Field() createdAt!: Date;
+}
+
+@ObjectType()
+export class DataResidencyRule {
+  @Field(() => ID) id!: string;
+  @Field() connectionId!: string;
+  @Field(() => [String]) allowedRegions!: string[];
+  @Field() defaultRegion!: string;
+  @Field() enforcementLevel!: string;
+  @Field() createdAt!: Date;
+}
+
+@ObjectType()
+export class ConsentRecord {
+  @Field(() => ID) id!: string;
+  @Field() userId!: string;
+  @Field() purpose!: string;
+  @Field() granted!: boolean;
+  @Field() grantedAt!: Date;
+  @Field({ nullable: true }) expiresAt?: Date;
+}
+
+@ObjectType()
+export class DSARRequest {
+  @Field(() => ID) id!: string;
+  @Field() userId!: string;
+  @Field() type!: string;
+  @Field() status!: string;
+  @Field() requestedAt!: Date;
+  @Field({ nullable: true }) completedAt?: Date;
+}
+
+@ObjectType()
+export class AuditTrailStats {
+  @Field(() => Int) totalEntries!: number;
+  @Field(() => Int) complianceRelevant!: number;
+  @Field(() => Int) criticalEvents!: number;
+  @Field(() => Int) todayEvents!: number;
+}
+
+@InputType()
+export class CreateCompliancePackInput {
+  @Field() name!: string;
+  @Field() jurisdiction!: string;
+  @Field() description!: string;
+}
+
+@InputType()
+export class UpdateDataResidencyInput {
+  @Field() connectionId!: string;
+  @Field(() => [String]) allowedRegions!: string[];
+  @Field() defaultRegion!: string;
+  @Field() enforcementLevel!: string;
+}
+
+@InputType()
+export class CreateConsentRecordInput {
+  @Field() userId!: string;
+  @Field() purpose!: string;
+  @Field() granted!: boolean;
+  @Field({ nullable: true }) expiresAt?: Date;
+}
+
+@InputType()
+export class CreateDSARRequestInput {
+  @Field() userId!: string;
+  @Field() type!: string;
+}

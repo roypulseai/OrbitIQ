@@ -110,6 +110,17 @@ type ColumnSecurityRule {
   updatedAt: DateTime
 }
 
+type CompliancePack {
+  createdAt: DateTime!
+  description: String!
+  id: ID!
+  isEnabled: Boolean!
+  jurisdiction: String!
+  name: String!
+  ruleCount: Int!
+  version: String!
+}
+
 type Connection {
   config: JSON!
   connectorType: ConnectorType!
@@ -144,6 +155,15 @@ enum ConnectorType {
   SQLSERVER
 }
 
+type ConsentRecord {
+  expiresAt: DateTime
+  granted: Boolean!
+  grantedAt: DateTime!
+  id: ID!
+  purpose: String!
+  userId: String!
+}
+
 input CreateColumnSecurityRuleInput {
   appliesToRoles: [String!]!
   columnName: String!
@@ -153,12 +173,30 @@ input CreateColumnSecurityRuleInput {
   tableId: String!
 }
 
+input CreateCompliancePackInput {
+  description: String!
+  jurisdiction: String!
+  name: String!
+}
+
 input CreateConnectionInput {
   config: JSON!
   connectorType: ConnectorType!
   createdBy: String!
   regionPin: String
   workspaceId: String!
+}
+
+input CreateConsentRecordInput {
+  expiresAt: DateTime
+  granted: Boolean!
+  purpose: String!
+  userId: String!
+}
+
+input CreateDSARRequestInput {
+  type: String!
+  userId: String!
 }
 
 input CreateDashboardInput {
@@ -237,6 +275,15 @@ input CreateWorkspaceInput {
   orgId: String!
 }
 
+type DSARRequest {
+  completedAt: DateTime
+  id: ID!
+  requestedAt: DateTime!
+  status: String!
+  type: String!
+  userId: String!
+}
+
 type Dashboard {
   createdAt: DateTime!
   description: String
@@ -281,6 +328,15 @@ type DataPipeline {
   steps: [TransformStep!]!
   updatedAt: DateTime!
   workspaceId: String!
+}
+
+type DataResidencyRule {
+  allowedRegions: [String!]!
+  connectionId: String!
+  createdAt: DateTime!
+  defaultRegion: String!
+  enforcementLevel: String!
+  id: ID!
 }
 
 """
@@ -378,7 +434,10 @@ type Mutation {
   clearAllCache: Boolean!
   compileOQL(dialect: String = "postgresql", oql: String!): OQLCompileResult!
   createColumnSecurityRule(input: CreateColumnSecurityRuleInput!): ColumnSecurityRule!
+  createCompliancePack(input: CreateCompliancePackInput!): CompliancePack!
   createConnection(input: CreateConnectionInput!): Connection!
+  createConsentRecord(input: CreateConsentRecordInput!): ConsentRecord!
+  createDSARRequest(input: CreateDSARRequestInput!): DSARRequest!
   createDashboard(input: CreateDashboardInput!): Dashboard!
   createDataPipeline(input: CreateDataPipelineInput!): DataPipeline!
   createEmbedToken(input: CreateEmbedTokenInput!): EmbedToken!
@@ -410,17 +469,21 @@ type Mutation {
   removeShare(id: ID!): Boolean!
   removeTile(id: ID!): Boolean!
   removeTransformStep(id: ID!): Boolean!
+  revokeConsent(id: ID!): ConsentRecord!
   revokePublicLink(id: ID!): Boolean!
   setUserAttributes(input: SetUserAttributesInput!): UserAttributes!
   shareDashboard(input: ShareDashboardInput!): DashboardShare!
   testConnection(id: ID!): ConnectionTestResult!
   toggleColumnSecurityRule(id: ID!): ColumnSecurityRule!
+  toggleCompliancePack(id: ID!): CompliancePack!
   toggleRLSPolicy(id: ID!): RLSPolicy!
   unpublishSemanticModel(id: ID!): SemanticModel!
   updateColumnSecurityRule(id: ID!, input: UpdateColumnSecurityRuleInput!): ColumnSecurityRule!
   updateConnection(id: ID!, input: UpdateConnectionInput!): Connection!
+  updateDSARStatus(id: ID!, status: String!): DSARRequest!
   updateDashboard(id: ID!, input: UpdateDashboardInput!): Dashboard!
   updateDataPipeline(id: ID!, input: UpdateDataPipelineInput!): DataPipeline!
+  updateDataResidency(input: UpdateDataResidencyInput!): DataResidencyRule!
   updateModelColumn(id: ID!, input: UpdateModelColumnInput!): ModelColumn!
   updateModelMeasure(id: ID!, input: UpdateModelMeasureInput!): ModelMeasure!
   updateRLSPolicy(id: ID!, input: UpdateRLSPolicyInput!): RLSPolicy!
@@ -495,10 +558,15 @@ type Query {
   columnSecurityRule(id: ID!): ColumnSecurityRule
   columnSecurityRules(modelId: String!, tableId: String): [ColumnSecurityRule!]!
   compilePipeline(pipelineId: String!): String!
+  compliancePack(id: ID!): CompliancePack!
+  compliancePacks: [CompliancePack!]!
   connection(id: ID!): Connection!
   connections(workspaceId: String!): [Connection!]!
+  consentRecords(userId: String): [ConsentRecord!]!
   dashboard(id: ID!): Dashboard!
   dashboards(workspaceId: String!): [Dashboard!]!
+  dataResidencyRules(connectionId: String): [DataResidencyRule!]!
+  dsarRequests(status: String): [DSARRequest!]!
   effectivePolicies(modelId: String!, tableId: String!, userId: String!): [RLSPolicy!]!
   explainOQL(oql: String!): [String!]!
   getActiveEmbeds(workspaceId: String!): [EmbedConfig!]!
@@ -712,6 +780,13 @@ input UpdateDashboardInput {
 input UpdateDataPipelineInput {
   description: String
   name: String
+}
+
+input UpdateDataResidencyInput {
+  allowedRegions: [String!]!
+  connectionId: String!
+  defaultRegion: String!
+  enforcementLevel: String!
 }
 
 input UpdateEmbedConfigInput {

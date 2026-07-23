@@ -1,6 +1,6 @@
 # OrbitIQ — Project Progress Tracker
 
-> Last Updated: Sprint 9 — Complete
+> Last Updated: Sprint 10 — Complete
 
 ---
 
@@ -18,6 +18,7 @@
 | 7 | Caching + Sharing + Embedding | ✅ Complete | - | - | 100% |
 | 8 | Row-Level Security (RLS) | ✅ Complete | - | - | 100% |
 | 9 | Column-Level Security + Data Masking | ✅ Complete | - | - | 100% |
+| 10 | Compliance Policy Engine + SOC2 | ✅ Complete | - | - | 100% |
 | 9 | Column-Level Security + Data Masking | ✅ Complete | - | - | 100% |
 
 ---
@@ -118,7 +119,7 @@
 ### Release 2 — Security & Governance (Sprints 8-10)
 - [x] RLS engine (Sprint 8)
 - [x] CLS + data masking (Sprint 9)
-- [ ] GDPR compliance pack
+- [x] GDPR compliance pack (Sprint 10)
 
 ### Release 3 — Smart Data Fabric (Sprints 11-14)
 - [ ] Statistical profiling
@@ -329,6 +330,18 @@
 
 ---
 
+## Sprint 10 — Compliance Policy Engine + SOC2 Hardening (Complete)
+- ✅ ComplianceService with CRUD for compliance packs, rules, data residency, consent records, DSAR requests
+- ✅ GDPR compliance pack (data residency, consent, RTBF, purpose limitation) + CCPA pack (do-not-sell, DSAR, data minimization)
+- ✅ AuditTrailService with append-only immutable store, query/search, stats, export
+- ✅ GraphQL types: CompliancePack, DataResidencyRule, ConsentRecord, DSARRequest, AuditTrailStats + input types
+- ✅ GraphQL resolver: ComplianceResolver with all queries/mutations + audit trail logging
+- ✅ Compliance Policy Engine UI with GDPR/CCPA pack cards, data residency table, consent management, DSAR requests
+- ✅ Immutable Audit Trail UI with stats, filters, 15-entry log with expandable details
+- ✅ Dashboard sidebar updated with Compliance and Audit Trail links
+
+---
+
 ## Next Sprint Preview
 
-### Sprint 10 — Compliance Policy Engine + SOC2 Hardening
+### Sprint 11 — Statistical Profiling + Knowledge Graph

@@ -13,6 +13,7 @@ import { SharingResolver } from "./resolvers/sharing.resolver";
 import { EmbeddingResolver } from "./resolvers/embedding.resolver";
 import { RLSResolver } from "./resolvers/rls.resolver";
 import { CLSResolver } from "./resolvers/cls.resolver";
+import { ComplianceResolver } from "./resolvers/compliance.resolver";
 import { OrganizationsService } from "./services/organizations.service";
 import { WorkspacesService } from "./services/workspaces.service";
 import { UsersService } from "./services/users.service";
@@ -35,6 +36,8 @@ import { RLSService } from "./services/rls.service";
 import { UserAttributesService } from "./services/user-attributes.service";
 import { CLSService } from "./services/cls.service";
 import { PIIScanningService } from "./services/pii-scanning.service";
+import { ComplianceService } from "./services/compliance.service";
+import { AuditTrailService } from "./services/audit-trail.service";
 
 @Module({
   imports: [
@@ -60,6 +63,7 @@ import { PIIScanningService } from "./services/pii-scanning.service";
     EmbeddingResolver,
     RLSResolver,
     CLSResolver,
+    ComplianceResolver,
     OrganizationsService,
     WorkspacesService,
     UsersService,
@@ -82,6 +86,8 @@ import { PIIScanningService } from "./services/pii-scanning.service";
     UserAttributesService,
     CLSService,
     PIIScanningService,
+    ComplianceService,
+    AuditTrailService,
   ],
 })
 export class AppModule {}
