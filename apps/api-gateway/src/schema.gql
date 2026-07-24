@@ -280,6 +280,33 @@ type ConsentRecord {
   userId: String!
 }
 
+type Conversation {
+  context: ConversationContext!
+  createdAt: DateTime!
+  id: ID!
+  messages: [ConversationMessage!]!
+  title: String!
+  updatedAt: DateTime!
+  userId: String!
+}
+
+type ConversationContext {
+  activeFilters: [String!]!
+  activeModels: [String!]!
+  maxTokens: Int!
+  previousIntents: [String!]!
+  summary: String!
+  tokenCount: Int!
+}
+
+type ConversationMessage {
+  content: String!
+  id: ID!
+  role: String!
+  timestamp: DateTime!
+  tokens: Int
+}
+
 type CostSummary {
   totalCost: Float!
   totalRequests: Int!
@@ -727,6 +754,7 @@ type Mutation {
   createCompliancePack(input: CreateCompliancePackInput!): CompliancePack!
   createConnection(input: CreateConnectionInput!): Connection!
   createConsentRecord(input: CreateConsentRecordInput!): ConsentRecord!
+  createConversation(initialMessage: String, userId: String!): Conversation!
   createDSARRequest(input: CreateDSARRequestInput!): DSARRequest!
   createDashboard(input: CreateDashboardInput!): Dashboard!
   createDataPipeline(input: CreateDataPipelineInput!): DataPipeline!
@@ -775,6 +803,7 @@ type Mutation {
   runDiscovery(connectionId: String!): String!
   sendAIPrompt(input: SendAIPromptInput!): AIRequest!
   sendAgentMessage(content: String!, sessionId: String!): AgentSession!
+  sendConversationMessage(content: String!, conversationId: String!): Conversation!
   setUserAttributes(input: SetUserAttributesInput!): UserAttributes!
   shareDashboard(input: ShareDashboardInput!): DashboardShare!
   startInference(input: StartInferenceInput!): InferenceJob!
@@ -933,6 +962,10 @@ type Query {
   connection(id: ID!): Connection!
   connections(workspaceId: String!): [Connection!]!
   consentRecords(userId: String): [ConsentRecord!]!
+  conversation(id: ID!): Conversation
+  conversationContext(conversationId: String!): ConversationContext!
+  conversationFollowUps(conversationId: String!, messageId: String): [SuggestedFollowUp!]!
+  conversations(userId: String!): [Conversation!]!
   costSummary(providerId: String): CostSummary!
   crossLanguageMatches(connectionId: String, targetLang: String): [CrossLanguageMatch!]!
   dashboard(id: ID!): Dashboard!
@@ -995,6 +1028,7 @@ type Query {
   rlsPolicies(modelId: String): [RLSPolicy!]!
   rlsPolicy(id: ID!): RLSPolicy!
   sampleData(connectionId: String!, limit: Float = 100, schema: String!, table: String!): TableSample!
+  searchConversations(query: String!, userId: String!): [Conversation!]!
   semanticModel(id: ID!): SemanticModel!
   semanticModels(workspaceId: String!): [SemanticModel!]!
   suggestRelationships(modelId: String!, tables: String!): [RelationshipSuggestion!]!
@@ -1108,6 +1142,14 @@ input StartInferenceInput {
 input StartProfilingInput {
   connectionId: String!
   tableIds: [String!]!
+}
+
+type SuggestedFollowUp {
+  basedOnMessageId: String!
+  category: String!
+  id: ID!
+  question: String!
+  relevance: Float!
 }
 
 type SupportedLanguage {

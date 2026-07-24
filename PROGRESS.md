@@ -1,6 +1,6 @@
 # OrbitIQ — Project Progress Tracker
 
-> Last Updated: Sprint 17 — Complete
+> Last Updated: Sprint 18 — Complete
 
 ---
 
@@ -26,6 +26,7 @@
 | 15 | Model Gateway (BYO-LLM) | ✅ Complete | - | - | 100% |
 | 16 | Intent Parser + Semantic Resolver | ✅ Complete | - | - | 100% |
 | 17 | Agent Tool Loop | ✅ Complete | - | - | 100% |
+| 18 | Conversational Follow-ups | ✅ Complete | - | - | 100% |
 | 9 | Column-Level Security + Data Masking | ✅ Complete | - | - | 100% |
 
 ---

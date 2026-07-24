@@ -58,6 +58,8 @@ import { IntentParserService } from "./services/intent-parser.service";
 import { SemanticResolverService } from "./services/semantic-resolver.service";
 import { AgentResolver } from "./resolvers/agent.resolver";
 import { AgentService } from "./services/agent.service";
+import { ConversationResolver } from "./resolvers/conversation.resolver";
+import { ConversationService } from "./services/conversation.service";
 
 @Module({
   imports: [
@@ -128,6 +130,8 @@ import { AgentService } from "./services/agent.service";
     SemanticResolverService,
     AgentResolver,
     AgentService,
+    ConversationResolver,
+    ConversationService,
   ],
 })
 export class AppModule {}

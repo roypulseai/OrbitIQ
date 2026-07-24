@@ -2235,3 +2235,44 @@ export class AvailableEntity {
   @Field() dataType!: string;
   @Field() sourceTable!: string;
 }
+
+// ─── Sprint 18: Conversational Follow-ups ────────────────────────────────────
+
+@ObjectType()
+export class ConversationMessage {
+  @Field(() => ID) id!: string;
+  @Field() role!: string;
+  @Field() content!: string;
+  @Field(() => Int, { nullable: true }) tokens?: number;
+  @Field() timestamp!: Date;
+}
+
+@ObjectType()
+export class ConversationContext {
+  @Field(() => [String]) previousIntents!: string[];
+  @Field(() => [String]) activeFilters!: string[];
+  @Field(() => [String]) activeModels!: string[];
+  @Field() summary!: string;
+  @Field(() => Int) tokenCount!: number;
+  @Field(() => Int) maxTokens!: number;
+}
+
+@ObjectType()
+export class Conversation {
+  @Field(() => ID) id!: string;
+  @Field() userId!: string;
+  @Field() title!: string;
+  @Field(() => [ConversationMessage]) messages!: ConversationMessage[];
+  @Field(() => ConversationContext) context!: ConversationContext;
+  @Field() createdAt!: Date;
+  @Field() updatedAt!: Date;
+}
+
+@ObjectType()
+export class SuggestedFollowUp {
+  @Field(() => ID) id!: string;
+  @Field() question!: string;
+  @Field() category!: string;
+  @Field(() => Float) relevance!: number;
+  @Field() basedOnMessageId!: string;
+}
