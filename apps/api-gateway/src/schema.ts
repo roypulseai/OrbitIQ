@@ -2037,3 +2037,101 @@ export class CatalogSearchInput {
   @Field({ nullable: true }) type?: string;
   @Field(() => [String], { nullable: true }) tags?: string[];
 }
+
+// ─── Sprint 15: Model Gateway (BYO-LLM) ─────────────────────────────────────
+
+@ObjectType()
+export class AIModel {
+  @Field() id!: string;
+  @Field() providerId!: string;
+  @Field() name!: string;
+  @Field() displayName!: string;
+  @Field(() => Int) maxTokens!: number;
+  @Field(() => Float) costPer1kInput!: number;
+  @Field(() => Float) costPer1kOutput!: number;
+  @Field() supportsStreaming!: boolean;
+  @Field() supportsVision!: boolean;
+  @Field(() => Int) contextWindow!: number;
+}
+
+@ObjectType()
+export class AIProvider {
+  @Field(() => ID) id!: string;
+  @Field() name!: string;
+  @Field() displayName!: string;
+  @Field() apiKey?: string;
+  @Field() baseUrl?: string;
+  @Field() defaultModel?: string;
+  @Field() isActive!: boolean;
+  @Field(() => [AIModel]) models!: AIModel[];
+  @Field() createdAt!: Date;
+  @Field({ nullable: true }) updatedAt?: Date;
+}
+
+@ObjectType()
+export class AIRequest {
+  @Field(() => ID) id!: string;
+  @Field() providerId!: string;
+  @Field() model!: string;
+  @Field() prompt!: string;
+  @Field({ nullable: true }) systemPrompt?: string;
+  @Field({ nullable: true }) response?: string;
+  @Field(() => Int, { nullable: true }) tokensUsed?: number;
+  @Field(() => Int, { nullable: true }) latencyMs?: number;
+  @Field(() => Float, { nullable: true }) cost?: number;
+  @Field() status!: string;
+  @Field() createdAt!: Date;
+}
+
+@ObjectType()
+export class ModelConfig {
+  @Field({ nullable: true }) defaultProviderId?: string;
+  @Field({ nullable: true }) defaultModelId?: string;
+  @Field(() => Float) temperature!: number;
+  @Field(() => Int) maxTokens!: number;
+  @Field({ nullable: true }) systemPrompt?: string;
+}
+
+@ObjectType()
+export class CostSummary {
+  @Field(() => Float) totalCost!: number;
+  @Field(() => Int) totalRequests!: number;
+  @Field(() => Int) totalTokens!: number;
+}
+
+@InputType()
+export class CreateAIProviderInput {
+  @Field() name!: string;
+  @Field() displayName!: string;
+  @Field({ nullable: true }) apiKey?: string;
+  @Field({ nullable: true }) baseUrl?: string;
+  @Field({ nullable: true }) defaultModel?: string;
+}
+
+@InputType()
+export class UpdateAIProviderInput {
+  @Field({ nullable: true }) displayName?: string;
+  @Field({ nullable: true }) apiKey?: string;
+  @Field({ nullable: true }) baseUrl?: string;
+  @Field({ nullable: true }) defaultModel?: string;
+  @Field({ nullable: true }) isActive?: boolean;
+}
+
+@InputType()
+export class SendAIPromptInput {
+  @Field() providerId!: string;
+  @Field() model!: string;
+  @Field() prompt!: string;
+  @Field({ nullable: true }) systemPrompt?: string;
+  @Field(() => Int, { nullable: true }) maxTokens?: number;
+  @Field(() => Float, { nullable: true }) temperature?: number;
+}
+
+@InputType()
+export class UpdateModelConfigInput {
+  @Field({ nullable: true }) defaultProviderId?: string;
+  @Field({ nullable: true }) defaultModelId?: string;
+  @Field(() => Float, { nullable: true }) temperature?: number;
+  @Field(() => Int, { nullable: true }) maxTokens?: number;
+  @Field({ nullable: true }) systemPrompt?: string;
+}

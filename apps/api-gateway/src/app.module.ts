@@ -51,6 +51,8 @@ import { CrossLanguageResolver } from "./resolvers/cross-language.resolver";
 import { CrossLanguageService } from "./services/cross-language.service";
 import { DataCatalogResolver } from "./resolvers/data-catalog.resolver";
 import { DataCatalogService } from "./services/data-catalog.service";
+import { ModelGatewayResolver } from "./resolvers/model-gateway.resolver";
+import { ModelGatewayService } from "./services/model-gateway.service";
 
 @Module({
   imports: [
@@ -114,6 +116,8 @@ import { DataCatalogService } from "./services/data-catalog.service";
     CrossLanguageService,
     DataCatalogResolver,
     DataCatalogService,
+    ModelGatewayResolver,
+    ModelGatewayService,
   ],
 })
 export class AppModule {}

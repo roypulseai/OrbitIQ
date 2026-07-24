@@ -34,6 +34,7 @@ import {
   GitBranch,
   Languages,
   BookOpen,
+  Bot,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 
@@ -80,6 +81,12 @@ const navigation = [
       { name: "Schedules", href: "/dashboard/schedules", icon: Clock },
       { name: "Caching", href: "/dashboard/caching", icon: Database },
       { name: "Embedding", href: "/dashboard/embedding", icon: Code },
+    ],
+  },
+  {
+    group: "AI",
+    items: [
+      { name: "Model Gateway", href: "/dashboard/ai/model-gateway", icon: Bot },
     ],
   },
   {

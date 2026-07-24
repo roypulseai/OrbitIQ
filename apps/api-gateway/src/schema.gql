@@ -2,6 +2,46 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type AIModel {
+  contextWindow: Int!
+  costPer1kInput: Float!
+  costPer1kOutput: Float!
+  displayName: String!
+  id: String!
+  maxTokens: Int!
+  name: String!
+  providerId: String!
+  supportsStreaming: Boolean!
+  supportsVision: Boolean!
+}
+
+type AIProvider {
+  apiKey: String!
+  baseUrl: String!
+  createdAt: DateTime!
+  defaultModel: String!
+  displayName: String!
+  id: ID!
+  isActive: Boolean!
+  models: [AIModel!]!
+  name: String!
+  updatedAt: DateTime
+}
+
+type AIRequest {
+  cost: Float
+  createdAt: DateTime!
+  id: ID!
+  latencyMs: Int
+  model: String!
+  prompt: String!
+  providerId: String!
+  response: String
+  status: String!
+  systemPrompt: String
+  tokensUsed: Int
+}
+
 input AddModelColumnInput {
   dataType: String!
   isDimension: Boolean
@@ -193,6 +233,20 @@ type ConsentRecord {
   id: ID!
   purpose: String!
   userId: String!
+}
+
+type CostSummary {
+  totalCost: Float!
+  totalRequests: Int!
+  totalTokens: Int!
+}
+
+input CreateAIProviderInput {
+  apiKey: String
+  baseUrl: String
+  defaultModel: String
+  displayName: String!
+  name: String!
 }
 
 input CreateColumnSecurityRuleInput {
@@ -559,6 +613,14 @@ type ModelColumn {
   updatedAt: DateTime!
 }
 
+type ModelConfig {
+  defaultModelId: String
+  defaultProviderId: String
+  maxTokens: Int!
+  systemPrompt: String
+  temperature: Float!
+}
+
 type ModelDiff {
   action: String!
   currentValue: String!
@@ -607,6 +669,7 @@ type Mutation {
   checkPermission(input: CheckPermissionInput!): PermissionCheck!
   clearAllCache: Boolean!
   compileOQL(dialect: String = "postgresql", oql: String!): OQLCompileResult!
+  createAIProvider(input: CreateAIProviderInput!): AIProvider!
   createColumnSecurityRule(input: CreateColumnSecurityRuleInput!): ColumnSecurityRule!
   createCompliancePack(input: CreateCompliancePackInput!): CompliancePack!
   createConnection(input: CreateConnectionInput!): Connection!
@@ -625,6 +688,7 @@ type Mutation {
   createSemanticModel(input: CreateSemanticModelInput!): SemanticModel!
   createUser(input: CreateUserInput!): User!
   createWorkspace(input: CreateWorkspaceInput!): Workspace!
+  deleteAIProvider(id: ID!): Boolean!
   deleteColumnSecurityRule(id: ID!): Boolean!
   deleteConnection(id: ID!): Boolean!
   deleteDashboard(id: ID!): Boolean!
@@ -654,16 +718,19 @@ type Mutation {
   revokeConsent(id: ID!): ConsentRecord!
   revokePublicLink(id: ID!): Boolean!
   runDiscovery(connectionId: String!): String!
+  sendAIPrompt(input: SendAIPromptInput!): AIRequest!
   setUserAttributes(input: SetUserAttributesInput!): UserAttributes!
   shareDashboard(input: ShareDashboardInput!): DashboardShare!
   startInference(input: StartInferenceInput!): InferenceJob!
   startProfiling(input: StartProfilingInput!): ProfilingJob!
+  testAIConnection(id: ID!): String!
   testConnection(id: ID!): ConnectionTestResult!
   toggleColumnSecurityRule(id: ID!): ColumnSecurityRule!
   toggleCompliancePack(id: ID!): CompliancePack!
   toggleRLSPolicy(id: ID!): RLSPolicy!
   translateColumnName(fromLang: String!, name: String!, toLang: String!): String!
   unpublishSemanticModel(id: ID!): SemanticModel!
+  updateAIProvider(id: ID!, input: UpdateAIProviderInput!): AIProvider
   updateColumnSecurityRule(id: ID!, input: UpdateColumnSecurityRuleInput!): ColumnSecurityRule!
   updateConnection(id: ID!, input: UpdateConnectionInput!): Connection!
   updateDSARStatus(id: ID!, status: String!): DSARRequest!
@@ -675,6 +742,7 @@ type Mutation {
   updateInferredRelationship(cardinality: String, confidence: Float, id: ID!, status: String): InferredRelationship!
   updateKGEntity(id: ID!, input: CreateKGEntityInput!): KGEntity!
   updateModelColumn(id: ID!, input: UpdateModelColumnInput!): ModelColumn!
+  updateModelConfig(input: UpdateModelConfigInput!): ModelConfig!
   updateModelMeasure(id: ID!, input: UpdateModelMeasureInput!): ModelMeasure!
   updateRLSPolicy(id: ID!, input: UpdateRLSPolicyInput!): RLSPolicy!
   updateRelationship(id: ID!, input: UpdateRelationshipInput!): Relationship!
@@ -752,6 +820,10 @@ type PublicLink {
 }
 
 type Query {
+  aiProvider(id: ID!): AIProvider
+  aiProviders: [AIProvider!]!
+  aiRequest(id: ID!): AIRequest
+  aiRequestHistory(providerId: String): [AIRequest!]!
   attributeKeys: [String!]!
   auditLogs(limit: Float = 100, orgId: String!): [AuditLog!]!
   buildJoinSQL(relationships: String!, tables: String!): String!
@@ -768,6 +840,7 @@ type Query {
   connection(id: ID!): Connection!
   connections(workspaceId: String!): [Connection!]!
   consentRecords(userId: String): [ConsentRecord!]!
+  costSummary(providerId: String): CostSummary!
   crossLanguageMatches(connectionId: String, targetLang: String): [CrossLanguageMatch!]!
   dashboard(id: ID!): Dashboard!
   dashboards(workspaceId: String!): [Dashboard!]!
@@ -812,6 +885,7 @@ type Query {
   listSchemas(connectionId: String!): [SchemaInfo!]!
   listTables(connectionId: String!, schema: String): [TableInfo!]!
   me: User!
+  modelConfig: ModelConfig!
   modelDiff(id: ID!): [ModelDiff!]!
   oqlExamples: [OQLExample!]!
   oqlFunctions: [String!]!
@@ -907,6 +981,15 @@ type SemanticModel {
   status: ModelStatus!
   updatedAt: DateTime!
   workspaceId: String!
+}
+
+input SendAIPromptInput {
+  maxTokens: Int
+  model: String!
+  prompt: String!
+  providerId: String!
+  systemPrompt: String
+  temperature: Float
 }
 
 input SetUserAttributesInput {
@@ -1037,6 +1120,14 @@ type TranslationEntry {
   targetTerm: String!
 }
 
+input UpdateAIProviderInput {
+  apiKey: String
+  baseUrl: String
+  defaultModel: String
+  displayName: String
+  isActive: Boolean
+}
+
 input UpdateColumnSecurityRuleInput {
   appliesToRoles: [String!]
   isEnabled: Boolean
@@ -1095,6 +1186,14 @@ input UpdateModelColumnInput {
   isPii: Boolean
   logicalName: String
   maskRule: JSON
+}
+
+input UpdateModelConfigInput {
+  defaultModelId: String
+  defaultProviderId: String
+  maxTokens: Int
+  systemPrompt: String
+  temperature: Float
 }
 
 input UpdateModelMeasureInput {
