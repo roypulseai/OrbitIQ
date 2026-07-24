@@ -38,6 +38,7 @@ import {
   MessageSquare,
   MessageCircle,
   Cpu,
+  TrendingUp,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 
@@ -49,6 +50,7 @@ const navigation = [
       { name: "Explore", href: "/dashboard/explore", icon: Search },
       { name: "Models", href: "/dashboard/models", icon: Box },
       { name: "Dashboards", href: "/dashboard/dashboards", icon: LayoutDashboard },
+      { name: "Forecasting", href: "/dashboard/analytics/forecasting", icon: TrendingUp },
     ],
   },
   {

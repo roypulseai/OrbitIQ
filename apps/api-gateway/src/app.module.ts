@@ -60,6 +60,8 @@ import { AgentResolver } from "./resolvers/agent.resolver";
 import { AgentService } from "./services/agent.service";
 import { ConversationResolver } from "./resolvers/conversation.resolver";
 import { ConversationService } from "./services/conversation.service";
+import { AnalyticsResolver } from "./resolvers/analytics.resolver";
+import { AnalyticsService } from "./services/analytics.service";
 
 @Module({
   imports: [
@@ -132,6 +134,8 @@ import { ConversationService } from "./services/conversation.service";
     AgentService,
     ConversationResolver,
     ConversationService,
+    AnalyticsResolver,
+    AnalyticsService,
   ],
 })
 export class AppModule {}

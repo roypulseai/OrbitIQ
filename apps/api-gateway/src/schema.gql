@@ -555,6 +555,48 @@ type ExportResult {
   mimeType: String!
 }
 
+input ForecastConfigInput {
+  confidenceLevel: Float
+  dataSource: String!
+  dateColumn: String!
+  horizon: Int!
+  model: String!
+  seasonality: String
+  targetColumn: String!
+}
+
+type ForecastJob {
+  completedAt: Float
+  confidenceLevel: Float!
+  createdAt: Int!
+  dataSource: String!
+  dateColumn: String!
+  horizon: Int!
+  id: ID!
+  metrics: ForecastMetrics
+  model: String!
+  name: String!
+  result: ForecastResult
+  status: String!
+  targetColumn: String!
+}
+
+type ForecastMetrics {
+  backtestFolds: Int!
+  mae: Float!
+  mape: Float!
+  r2: Float!
+  rmse: Float!
+}
+
+type ForecastResult {
+  actual: [Float!]!
+  dates: [String!]!
+  lowerBound: [Float!]!
+  predicted: [Float!]!
+  upperBound: [Float!]!
+}
+
 type GeneratedDimension {
   confidence: Float!
   dataType: String!
@@ -692,6 +734,15 @@ type ModelColumn {
   updatedAt: DateTime!
 }
 
+type ModelComparison {
+  mape: Float!
+  model: String!
+  r2: Float!
+  recommended: Boolean!
+  rmse: Float!
+  trainingTimeMs: Float!
+}
+
 type ModelConfig {
   defaultModelId: String
   defaultProviderId: String
@@ -745,6 +796,7 @@ type Mutation {
   approveRelationship(id: ID!): InferredRelationship!
   batchTranslate(columns: [TranslateColumnInput!]!, targetLang: String!): [CrossLanguageMatch!]!
   buildQuery(input: BuildQueryInput!): String!
+  cancelForecastJob(id: ID!): ForecastJob
   checkPermission(input: CheckPermissionInput!): PermissionCheck!
   clearAllCache: Boolean!
   compileOQL(dialect: String = "postgresql", oql: String!): OQLCompileResult!
@@ -759,6 +811,7 @@ type Mutation {
   createDashboard(input: CreateDashboardInput!): Dashboard!
   createDataPipeline(input: CreateDataPipelineInput!): DataPipeline!
   createEmbedToken(input: CreateEmbedTokenInput!): EmbedToken!
+  createForecast(config: ForecastConfigInput!): ForecastJob!
   createKGEntity(input: CreateKGEntityInput!): KGEntity!
   createKGRelationship(input: CreateKGRelationshipInput!): KGRelationship!
   createOrUpdateEmbedConfig(dashboardId: String!, input: UpdateEmbedConfigInput!, workspaceId: String!): EmbedConfig!
@@ -976,6 +1029,8 @@ type Query {
   dsarRequests(status: String): [DSARRequest!]!
   effectivePolicies(modelId: String!, tableId: String!, userId: String!): [RLSPolicy!]!
   explainOQL(oql: String!): [String!]!
+  forecastJob(id: ID!): ForecastJob
+  forecastJobs: [ForecastJob!]!
   generatedModel(id: ID!): GeneratedModel!
   generatedModels(connectionId: String): [GeneratedModel!]!
   generationStats(connectionId: String): GenerationStats!
@@ -1012,6 +1067,7 @@ type Query {
   listSchemas(connectionId: String!): [SchemaInfo!]!
   listTables(connectionId: String!, schema: String): [TableInfo!]!
   me: User!
+  modelComparison(dataSource: String!, targetColumn: String!): [ModelComparison!]!
   modelConfig: ModelConfig!
   modelDiff(id: ID!): [ModelDiff!]!
   oqlExamples: [OQLExample!]!

@@ -2276,3 +2276,61 @@ export class SuggestedFollowUp {
   @Field(() => Float) relevance!: number;
   @Field() basedOnMessageId!: string;
 }
+
+// ─── Sprint 19: Time-Series Forecasting ──────────────────────────────────────
+
+@ObjectType()
+export class ForecastMetrics {
+  @Field(() => Float) mae!: number;
+  @Field(() => Float) rmse!: number;
+  @Field(() => Float) mape!: number;
+  @Field(() => Float) r2!: number;
+  @Field(() => Int) backtestFolds!: number;
+}
+
+@ObjectType()
+export class ForecastResult {
+  @Field(() => [String]) dates!: string[];
+  @Field(() => [Float]) actual!: number[];
+  @Field(() => [Float]) predicted!: number[];
+  @Field(() => [Float]) lowerBound!: number[];
+  @Field(() => [Float]) upperBound!: number[];
+}
+
+@ObjectType()
+export class ForecastJob {
+  @Field(() => ID) id!: string;
+  @Field() name!: string;
+  @Field() status!: string;
+  @Field() model!: string;
+  @Field() dataSource!: string;
+  @Field() targetColumn!: string;
+  @Field() dateColumn!: string;
+  @Field(() => Int) horizon!: number;
+  @Field(() => Float) confidenceLevel!: number;
+  @Field(() => Int) createdAt!: number;
+  @Field({ nullable: true }) completedAt?: number;
+  @Field(() => ForecastMetrics, { nullable: true }) metrics?: ForecastMetrics;
+  @Field(() => ForecastResult, { nullable: true }) result?: ForecastResult;
+}
+
+@ObjectType()
+export class ModelComparison {
+  @Field() model!: string;
+  @Field(() => Float) rmse!: number;
+  @Field(() => Float) mape!: number;
+  @Field(() => Float) r2!: number;
+  @Field(() => Float) trainingTimeMs!: number;
+  @Field() recommended!: boolean;
+}
+
+@InputType()
+export class ForecastConfigInput {
+  @Field() dataSource!: string;
+  @Field() targetColumn!: string;
+  @Field() dateColumn!: string;
+  @Field(() => Int) horizon!: number;
+  @Field() model!: string;
+  @Field(() => Float, { nullable: true }) confidenceLevel?: number;
+  @Field({ nullable: true }) seasonality?: string;
+}
