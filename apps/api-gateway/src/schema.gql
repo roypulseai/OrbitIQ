@@ -78,6 +78,19 @@ enum Cardinality {
   ONE_TO_ONE
 }
 
+type CatalogEntry {
+  connectionId: String!
+  description: String!
+  id: ID!
+  lastUpdated: DateTime!
+  lineage: [String!]!
+  name: String!
+  owner: String
+  qualityScore: Float!
+  tags: [String!]!
+  type: String!
+}
+
 input CheckPermissionInput {
   permission: String!
   roles: [String!]!
@@ -308,6 +321,16 @@ input CreateWorkspaceInput {
   description: String
   name: String!
   orgId: String!
+}
+
+type CrossLanguageMatch {
+  confidence: Float!
+  id: ID!
+  matchedEntityId: String!
+  sourceColumn: String!
+  sourceLang: String!
+  targetLang: String!
+  translatedColumn: String!
 }
 
 type DSARRequest {
@@ -571,6 +594,7 @@ type ModelTable {
 }
 
 type Mutation {
+  addCatalogTag(id: ID!, tag: String!): CatalogEntry!
   addModelColumn(input: AddModelColumnInput!): ModelColumn!
   addModelMeasure(input: AddModelMeasureInput!): ModelMeasure!
   addModelTable(input: AddModelTableInput!): ModelTable!
@@ -578,6 +602,7 @@ type Mutation {
   addTransformStep(input: AddTransformStepInput!): TransformStep!
   approveModel(id: ID!): GeneratedModel!
   approveRelationship(id: ID!): InferredRelationship!
+  batchTranslate(columns: [TranslateColumnInput!]!, targetLang: String!): [CrossLanguageMatch!]!
   buildQuery(input: BuildQueryInput!): String!
   checkPermission(input: CheckPermissionInput!): PermissionCheck!
   clearAllCache: Boolean!
@@ -614,10 +639,12 @@ type Mutation {
   exportData(data: String!, filename: String, format: String!): ExportResult!
   generateModel(connectionId: String!, profilingJobId: String!): GeneratedModel!
   getSupportedExportFormats: [String!]!
+  indexConnectionToCatalog(connectionId: String!): String!
   invalidateCache(input: InvalidateCacheInput!): Boolean!
   publishModel(id: ID!): GeneratedModel!
   publishSemanticModel(id: ID!): SemanticModel!
   rejectRelationship(id: ID!): InferredRelationship!
+  removeCatalogTag(id: ID!, tag: String!): CatalogEntry!
   removeModelColumn(id: ID!): Boolean!
   removeModelMeasure(id: ID!): Boolean!
   removeModelTable(id: ID!): Boolean!
@@ -635,6 +662,7 @@ type Mutation {
   toggleColumnSecurityRule(id: ID!): ColumnSecurityRule!
   toggleCompliancePack(id: ID!): CompliancePack!
   toggleRLSPolicy(id: ID!): RLSPolicy!
+  translateColumnName(fromLang: String!, name: String!, toLang: String!): String!
   unpublishSemanticModel(id: ID!): SemanticModel!
   updateColumnSecurityRule(id: ID!, input: UpdateColumnSecurityRuleInput!): ColumnSecurityRule!
   updateConnection(id: ID!, input: UpdateConnectionInput!): Connection!
@@ -727,6 +755,10 @@ type Query {
   attributeKeys: [String!]!
   auditLogs(limit: Float = 100, orgId: String!): [AuditLog!]!
   buildJoinSQL(relationships: String!, tables: String!): String!
+  catalogEntries(connectionId: String, query: String, type: String): [CatalogEntry!]!
+  catalogEntry(id: ID!): CatalogEntry!
+  catalogEntryLineage(id: ID!): CatalogEntry!
+  catalogStats(connectionId: String): String!
   columnProfile(columnName: String!, jobId: String!, tableId: String!): ColumnProfile!
   columnSecurityRule(id: ID!): ColumnSecurityRule
   columnSecurityRules(modelId: String!, tableId: String): [ColumnSecurityRule!]!
@@ -736,6 +768,7 @@ type Query {
   connection(id: ID!): Connection!
   connections(workspaceId: String!): [Connection!]!
   consentRecords(userId: String): [ConsentRecord!]!
+  crossLanguageMatches(connectionId: String, targetLang: String): [CrossLanguageMatch!]!
   dashboard(id: ID!): Dashboard!
   dashboards(workspaceId: String!): [Dashboard!]!
   dataResidencyRules(connectionId: String): [DataResidencyRule!]!
@@ -796,7 +829,9 @@ type Query {
   semanticModel(id: ID!): SemanticModel!
   semanticModels(workspaceId: String!): [SemanticModel!]!
   suggestRelationships(modelId: String!, tables: String!): [RelationshipSuggestion!]!
+  supportedLanguages: [SupportedLanguage!]!
   tableProfile(jobId: String!, tableId: String!): TableProfile!
+  translationDictionary(fromLang: String!, toLang: String!): [TranslationEntry!]!
   user(id: ID!): User!
   userAttributes(userId: String!): UserAttributes
   users(orgId: String!): [User!]!
@@ -897,6 +932,13 @@ input StartProfilingInput {
   tableIds: [String!]!
 }
 
+type SupportedLanguage {
+  code: String!
+  name: String!
+  nativeName: String!
+  translationCount: Int!
+}
+
 type TableInfo {
   catalog: String!
   lastModified: DateTime
@@ -977,6 +1019,22 @@ enum TransformStepType {
   SAMPLE
   SORT
   UNPIVOT
+}
+
+input TranslateColumnInput {
+  fromLang: String!
+  name: String!
+  toLang: String!
+}
+
+type TranslationEntry {
+  confidence: Float!
+  domain: String!
+  id: ID!
+  sourceLang: String!
+  sourceTerm: String!
+  targetLang: String!
+  targetTerm: String!
 }
 
 input UpdateColumnSecurityRuleInput {

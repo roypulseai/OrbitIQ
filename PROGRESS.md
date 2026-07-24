@@ -1,6 +1,6 @@
 # OrbitIQ — Project Progress Tracker
 
-> Last Updated: Sprint 13 — Complete
+> Last Updated: Sprint 14 — Complete
 
 ---
 
@@ -22,6 +22,7 @@
 | 11 | Statistical Profiling + Knowledge Graph | ✅ Complete | - | - | 100% |
 | 12 | Relationship Inference Engine | ✅ Complete | - | - | 100% |
 | 13 | Semantic Model Auto-generation | ✅ Complete | - | - | 100% |
+| 14 | Cross-language Matching + Data Catalog | ✅ Complete | - | - | 100% |
 | 9 | Column-Level Security + Data Masking | ✅ Complete | - | - | 100% |
 
 ---
@@ -125,10 +126,10 @@
 - [x] GDPR compliance pack (Sprint 10)
 
 ### Release 3 — Smart Data Fabric (Sprints 11-14)
-- [ ] Statistical profiling
-- [ ] Knowledge Graph
-- [ ] Relationship inference
-- [ ] Semantic model auto-generation
+- [x] Statistical profiling (Sprint 11)
+- [x] Knowledge Graph (Sprint 12)
+- [x] Relationship inference (Sprint 13)
+- [x] Semantic model auto-generation (Sprint 14)
 
 ### Release 4 — AI-Native Authoring (Sprints 15-18)
 - [ ] Model Gateway (BYO-LLM)
@@ -379,6 +380,17 @@
 
 ---
 
+## Sprint 14 — Cross-language Matching + Data Catalog (Complete)
+- ✅ CrossLanguageService with EN/DE/ES/FR dictionaries (14 terms each), translateColumnName, batchTranslate, matchCrossLanguage
+- ✅ DataCatalogService with 15 seeded entries (3 tables, 8 columns, 4 metrics), full-text search, tag management, quality scores
+- ✅ GraphQL types: SupportedLanguage, TranslationEntry, CrossLanguageMatch, CatalogEntry, CatalogStats
+- ✅ GraphQL resolvers: CrossLanguageResolver + DataCatalogResolver
+- ✅ Cross-Language Matching UI with language selectors, translation dictionary grid, match results table, language cards
+- ✅ Data Catalog UI with search, stat cards, filter bar, 9-entry card grid with quality scores
+- ✅ Dashboard sidebar updated with Cross-Language and Data Catalog links
+
+---
+
 ## Next Sprint Preview
 
-### Sprint 14 — Cross-language Column Matching + Data Catalog
+### Sprint 15 — Model Gateway (BYO-LLM)

@@ -47,6 +47,10 @@ import { RelationshipInferenceService } from "./services/relationship-inference.
 import { RelationshipInferenceResolver } from "./resolvers/relationship-inference.resolver";
 import { ModelGenerationResolver } from "./resolvers/model-generation.resolver";
 import { ModelGenerationService } from "./services/model-generation.service";
+import { CrossLanguageResolver } from "./resolvers/cross-language.resolver";
+import { CrossLanguageService } from "./services/cross-language.service";
+import { DataCatalogResolver } from "./resolvers/data-catalog.resolver";
+import { DataCatalogService } from "./services/data-catalog.service";
 
 @Module({
   imports: [
@@ -106,6 +110,10 @@ import { ModelGenerationService } from "./services/model-generation.service";
     RelationshipInferenceResolver,
     ModelGenerationResolver,
     ModelGenerationService,
+    CrossLanguageResolver,
+    CrossLanguageService,
+    DataCatalogResolver,
+    DataCatalogService,
   ],
 })
 export class AppModule {}

@@ -1962,3 +1962,78 @@ export class UpdateGeneratedMeasureInput {
   @Field({ nullable: true }) format?: string;
   @Field({ nullable: true }) name?: string;
 }
+
+// ─── Sprint 14: Cross-language + Data Catalog ────────────────────────────────
+
+@ObjectType()
+export class SupportedLanguage {
+  @Field() code!: string;
+  @Field() name!: string;
+  @Field() nativeName!: string;
+  @Field(() => Int) translationCount!: number;
+}
+
+@ObjectType()
+export class TranslationEntry {
+  @Field(() => ID) id!: string;
+  @Field() sourceLang!: string;
+  @Field() sourceTerm!: string;
+  @Field() targetLang!: string;
+  @Field() targetTerm!: string;
+  @Field() domain!: string;
+  @Field(() => Float) confidence!: number;
+}
+
+@ObjectType()
+export class CrossLanguageMatch {
+  @Field(() => ID) id!: string;
+  @Field() sourceColumn!: string;
+  @Field() sourceLang!: string;
+  @Field() translatedColumn!: string;
+  @Field() targetLang!: string;
+  @Field() matchedEntityId!: string;
+  @Field(() => Float) confidence!: number;
+}
+
+@ObjectType()
+export class CatalogEntry {
+  @Field(() => ID) id!: string;
+  @Field() name!: string;
+  @Field() description!: string;
+  @Field() type!: string;
+  @Field() connectionId!: string;
+  @Field(() => [String]) tags!: string[];
+  @Field({ nullable: true }) owner?: string;
+  @Field() lastUpdated!: Date;
+  @Field(() => [String]) lineage!: string[];
+  @Field(() => Float) qualityScore!: number;
+}
+
+@ObjectType()
+export class CatalogStats {
+  @Field(() => Int) totalEntries!: number;
+  @Field(() => Int) tables!: number;
+  @Field(() => Int) columns!: number;
+  @Field(() => Int) metrics!: number;
+  @Field(() => Int) dashboards!: number;
+}
+
+@InputType()
+export class TranslateColumnInput {
+  @Field() name!: string;
+  @Field() fromLang!: string;
+  @Field() toLang!: string;
+}
+
+@InputType()
+export class BatchTranslateInput {
+  @Field(() => [TranslateColumnInput]) columns!: TranslateColumnInput[];
+}
+
+@InputType()
+export class CatalogSearchInput {
+  @Field({ nullable: true }) query?: string;
+  @Field({ nullable: true }) connectionId?: string;
+  @Field({ nullable: true }) type?: string;
+  @Field(() => [String], { nullable: true }) tags?: string[];
+}

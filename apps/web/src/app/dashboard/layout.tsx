@@ -32,6 +32,8 @@ import {
   Brain,
   Waypoints,
   GitBranch,
+  Languages,
+  BookOpen,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 
@@ -67,6 +69,8 @@ const navigation = [
       { name: "Column Matching", href: "/dashboard/discovery/knowledge-graph/matches", icon: Waypoints },
       { name: "Relationship Canvas", href: "/dashboard/discovery/relationship-canvas", icon: GitBranch },
       { name: "Model Generation", href: "/dashboard/discovery/model-generation", icon: Box },
+      { name: "Cross-Language", href: "/dashboard/discovery/cross-language", icon: Languages },
+      { name: "Data Catalog", href: "/dashboard/discovery/catalog", icon: BookOpen },
     ],
   },
   {
