@@ -1892,3 +1892,73 @@ export class StartInferenceInput {
   @Field() connectionId!: string;
   @Field(() => [String]) tableNames!: string[];
 }
+
+// ─── Sprint 13: Semantic Model Auto-generation ──────────────────────────────
+
+@ObjectType()
+export class GeneratedDimension {
+  @Field() name!: string;
+  @Field() sourceTable!: string;
+  @Field() sourceColumn!: string;
+  @Field() dataType!: string;
+  @Field() description!: string;
+  @Field() suggestedAs!: string;
+  @Field(() => Float) confidence!: number;
+}
+
+@ObjectType()
+export class GeneratedMeasure {
+  @Field() name!: string;
+  @Field() sourceTable!: string;
+  @Field() sourceColumn!: string;
+  @Field() dataType!: string;
+  @Field() aggregation!: string;
+  @Field() description!: string;
+  @Field() format!: string;
+  @Field(() => Float) confidence!: number;
+}
+
+@ObjectType()
+export class GeneratedModel {
+  @Field(() => ID) id!: string;
+  @Field() name!: string;
+  @Field() sourceConnectionId!: string;
+  @Field() status!: string;
+  @Field(() => [GeneratedDimension]) dimensions!: GeneratedDimension[];
+  @Field(() => [GeneratedMeasure]) measures!: GeneratedMeasure[];
+  @Field(() => [String]) relationships!: string[];
+  @Field() generatedAt!: Date;
+  @Field({ nullable: true }) reviewedAt?: Date;
+}
+
+@ObjectType()
+export class ModelDiff {
+  @Field() field!: string;
+  @Field() currentValue!: string;
+  @Field() proposedValue!: string;
+  @Field() action!: string;
+}
+
+@ObjectType()
+export class GenerationStats {
+  @Field(() => Int) total!: number;
+  @Field(() => Int) draft!: number;
+  @Field(() => Int) reviewing!: number;
+  @Field(() => Int) approved!: number;
+  @Field(() => Int) published!: number;
+}
+
+@InputType()
+export class UpdateGeneratedDimensionInput {
+  @Field({ nullable: true }) description?: string;
+  @Field({ nullable: true }) suggestedAs?: string;
+  @Field({ nullable: true }) name?: string;
+}
+
+@InputType()
+export class UpdateGeneratedMeasureInput {
+  @Field({ nullable: true }) description?: string;
+  @Field({ nullable: true }) aggregation?: string;
+  @Field({ nullable: true }) format?: string;
+  @Field({ nullable: true }) name?: string;
+}

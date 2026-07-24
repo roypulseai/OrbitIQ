@@ -406,6 +406,47 @@ type ExportResult {
   mimeType: String!
 }
 
+type GeneratedDimension {
+  confidence: Float!
+  dataType: String!
+  description: String!
+  name: String!
+  sourceColumn: String!
+  sourceTable: String!
+  suggestedAs: String!
+}
+
+type GeneratedMeasure {
+  aggregation: String!
+  confidence: Float!
+  dataType: String!
+  description: String!
+  format: String!
+  name: String!
+  sourceColumn: String!
+  sourceTable: String!
+}
+
+type GeneratedModel {
+  dimensions: [GeneratedDimension!]!
+  generatedAt: DateTime!
+  id: ID!
+  measures: [GeneratedMeasure!]!
+  name: String!
+  relationships: [String!]!
+  reviewedAt: DateTime
+  sourceConnectionId: String!
+  status: String!
+}
+
+type GenerationStats {
+  approved: Int!
+  draft: Int!
+  published: Int!
+  reviewing: Int!
+  total: Int!
+}
+
 type InferenceJob {
   connectionId: String!
   finishedAt: DateTime
@@ -495,6 +536,13 @@ type ModelColumn {
   updatedAt: DateTime!
 }
 
+type ModelDiff {
+  action: String!
+  currentValue: String!
+  field: String!
+  proposedValue: String!
+}
+
 type ModelMeasure {
   createdAt: DateTime!
   description: String
@@ -528,6 +576,7 @@ type Mutation {
   addModelTable(input: AddModelTableInput!): ModelTable!
   addTile(input: AddTileInput!): Tile!
   addTransformStep(input: AddTransformStepInput!): TransformStep!
+  approveModel(id: ID!): GeneratedModel!
   approveRelationship(id: ID!): InferredRelationship!
   buildQuery(input: BuildQueryInput!): String!
   checkPermission(input: CheckPermissionInput!): PermissionCheck!
@@ -563,8 +612,10 @@ type Mutation {
   deleteWorkspace(id: ID!): Boolean!
   executeQuery(input: QueryExecutionInput!): QueryResult!
   exportData(data: String!, filename: String, format: String!): ExportResult!
+  generateModel(connectionId: String!, profilingJobId: String!): GeneratedModel!
   getSupportedExportFormats: [String!]!
   invalidateCache(input: InvalidateCacheInput!): Boolean!
+  publishModel(id: ID!): GeneratedModel!
   publishSemanticModel(id: ID!): SemanticModel!
   rejectRelationship(id: ID!): InferredRelationship!
   removeModelColumn(id: ID!): Boolean!
@@ -591,6 +642,8 @@ type Mutation {
   updateDashboard(id: ID!, input: UpdateDashboardInput!): Dashboard!
   updateDataPipeline(id: ID!, input: UpdateDataPipelineInput!): DataPipeline!
   updateDataResidency(input: UpdateDataResidencyInput!): DataResidencyRule!
+  updateGeneratedDimension(dimIndex: Int!, id: ID!, updates: UpdateGeneratedDimensionInput!): GeneratedModel!
+  updateGeneratedMeasure(id: ID!, measIndex: Int!, updates: UpdateGeneratedMeasureInput!): GeneratedModel!
   updateInferredRelationship(cardinality: String, confidence: Float, id: ID!, status: String): InferredRelationship!
   updateKGEntity(id: ID!, input: CreateKGEntityInput!): KGEntity!
   updateModelColumn(id: ID!, input: UpdateModelColumnInput!): ModelColumn!
@@ -691,6 +744,9 @@ type Query {
   dsarRequests(status: String): [DSARRequest!]!
   effectivePolicies(modelId: String!, tableId: String!, userId: String!): [RLSPolicy!]!
   explainOQL(oql: String!): [String!]!
+  generatedModel(id: ID!): GeneratedModel!
+  generatedModels(connectionId: String): [GeneratedModel!]!
+  generationStats(connectionId: String): GenerationStats!
   getActiveEmbeds(workspaceId: String!): [EmbedConfig!]!
   getAllRoles: [String!]!
   getCacheStats: CacheStats!
@@ -723,6 +779,7 @@ type Query {
   listSchemas(connectionId: String!): [SchemaInfo!]!
   listTables(connectionId: String!, schema: String): [TableInfo!]!
   me: User!
+  modelDiff(id: ID!): [ModelDiff!]!
   oqlExamples: [OQLExample!]!
   oqlFunctions: [String!]!
   oqlKeywords: [String!]!
@@ -959,6 +1016,19 @@ input UpdateEmbedConfigInput {
   showHeader: Boolean
   showSidebar: Boolean
   theme: String
+}
+
+input UpdateGeneratedDimensionInput {
+  description: String
+  name: String
+  suggestedAs: String
+}
+
+input UpdateGeneratedMeasureInput {
+  aggregation: String
+  description: String
+  format: String
+  name: String
 }
 
 input UpdateModelColumnInput {

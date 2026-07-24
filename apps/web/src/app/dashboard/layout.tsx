@@ -66,6 +66,7 @@ const navigation = [
       { name: "Knowledge Graph", href: "/dashboard/discovery/knowledge-graph", icon: Brain },
       { name: "Column Matching", href: "/dashboard/discovery/knowledge-graph/matches", icon: Waypoints },
       { name: "Relationship Canvas", href: "/dashboard/discovery/relationship-canvas", icon: GitBranch },
+      { name: "Model Generation", href: "/dashboard/discovery/model-generation", icon: Box },
     ],
   },
   {

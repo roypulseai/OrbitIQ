@@ -45,6 +45,8 @@ import { KnowledgeGraphService } from "./services/knowledge-graph.service";
 import { SemanticFingerprintService } from "./services/semantic-fingerprint.service";
 import { RelationshipInferenceService } from "./services/relationship-inference.service";
 import { RelationshipInferenceResolver } from "./resolvers/relationship-inference.resolver";
+import { ModelGenerationResolver } from "./resolvers/model-generation.resolver";
+import { ModelGenerationService } from "./services/model-generation.service";
 
 @Module({
   imports: [
@@ -102,6 +104,8 @@ import { RelationshipInferenceResolver } from "./resolvers/relationship-inferenc
     SemanticFingerprintService,
     RelationshipInferenceService,
     RelationshipInferenceResolver,
+    ModelGenerationResolver,
+    ModelGenerationService,
   ],
 })
 export class AppModule {}

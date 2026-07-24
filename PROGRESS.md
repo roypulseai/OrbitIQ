@@ -1,6 +1,6 @@
 # OrbitIQ — Project Progress Tracker
 
-> Last Updated: Sprint 12 — Complete
+> Last Updated: Sprint 13 — Complete
 
 ---
 
@@ -21,6 +21,7 @@
 | 10 | Compliance Policy Engine + SOC2 | ✅ Complete | - | - | 100% |
 | 11 | Statistical Profiling + Knowledge Graph | ✅ Complete | - | - | 100% |
 | 12 | Relationship Inference Engine | ✅ Complete | - | - | 100% |
+| 13 | Semantic Model Auto-generation | ✅ Complete | - | - | 100% |
 | 9 | Column-Level Security + Data Masking | ✅ Complete | - | - | 100% |
 
 ---
@@ -368,6 +369,16 @@
 
 ---
 
+## Sprint 13 — Semantic Model Auto-generation (Complete)
+- ✅ ModelGenerationService with auto-draft from profiling output (dimensions + measures pre-populated)
+- ✅ Diff/review workflow: approve → publish, with dimension/measure editing
+- ✅ GraphQL types: GeneratedDimension, GeneratedMeasure, GeneratedModel, ModelDiff
+- ✅ GraphQL resolver: ModelGenerationResolver with CRUD + approve/publish mutations
+- ✅ Model Generation UI with two-column dimensions/measures review, diff table, action buttons
+- ✅ Dashboard sidebar updated with Model Generation link
+
+---
+
 ## Next Sprint Preview
 
-### Sprint 13 — Semantic Model Auto-generation
+### Sprint 14 — Cross-language Column Matching + Data Catalog
