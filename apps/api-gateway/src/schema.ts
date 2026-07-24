@@ -2009,6 +2009,51 @@ export class CatalogEntry {
   @Field(() => Float) qualityScore!: number;
 }
 
+// ─── Sprint 17: Agent Tool Loop ──────────────────────────────────────────────
+
+@ObjectType()
+export class AgentToolCall {
+  @Field(() => ID) id!: string;
+  @Field() toolName!: string;
+  @Field(() => GraphQLJSON) arguments!: Record<string, any>;
+  @Field() status!: string;
+}
+
+@ObjectType()
+export class AgentToolResult {
+  @Field() toolCallId!: string;
+  @Field(() => GraphQLJSON) output!: any;
+  @Field() success!: boolean;
+  @Field({ nullable: true }) error?: string;
+}
+
+@ObjectType()
+export class AgentMessage {
+  @Field(() => ID) id!: string;
+  @Field() role!: string;
+  @Field() content!: string;
+  @Field({ nullable: true }) toolCall?: AgentToolCall;
+  @Field({ nullable: true }) toolResult?: AgentToolResult;
+  @Field() timestamp!: Date;
+}
+
+@ObjectType()
+export class AgentSession {
+  @Field(() => ID) id!: string;
+  @Field() userId!: string;
+  @Field() status!: string;
+  @Field(() => [AgentMessage]) messages!: AgentMessage[];
+  @Field(() => [String]) toolsUsed!: string[];
+  @Field() createdAt!: Date;
+  @Field() updatedAt!: Date;
+}
+
+@ObjectType()
+export class AgentTool {
+  @Field() name!: string;
+  @Field() description!: string;
+}
+
 @ObjectType()
 export class CatalogStats {
   @Field(() => Int) totalEntries!: number;

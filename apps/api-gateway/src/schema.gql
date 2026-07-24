@@ -82,6 +82,44 @@ input AddTransformStepInput {
   type: TransformStepType!
 }
 
+type AgentMessage {
+  content: String!
+  id: ID!
+  role: String!
+  timestamp: DateTime!
+  toolCall: AgentToolCall
+  toolResult: AgentToolResult
+}
+
+type AgentSession {
+  createdAt: DateTime!
+  id: ID!
+  messages: [AgentMessage!]!
+  status: String!
+  toolsUsed: [String!]!
+  updatedAt: DateTime!
+  userId: String!
+}
+
+type AgentTool {
+  description: String!
+  name: String!
+}
+
+type AgentToolCall {
+  arguments: JSON!
+  id: ID!
+  status: String!
+  toolName: String!
+}
+
+type AgentToolResult {
+  error: String
+  output: JSON!
+  success: Boolean!
+  toolCallId: String!
+}
+
 type AuditLog {
   action: String!
   actorId: String!
@@ -684,6 +722,7 @@ type Mutation {
   clearAllCache: Boolean!
   compileOQL(dialect: String = "postgresql", oql: String!): OQLCompileResult!
   createAIProvider(input: CreateAIProviderInput!): AIProvider!
+  createAgentSession(userId: String!): AgentSession!
   createColumnSecurityRule(input: CreateColumnSecurityRuleInput!): ColumnSecurityRule!
   createCompliancePack(input: CreateCompliancePackInput!): CompliancePack!
   createConnection(input: CreateConnectionInput!): Connection!
@@ -735,6 +774,7 @@ type Mutation {
   revokePublicLink(id: ID!): Boolean!
   runDiscovery(connectionId: String!): String!
   sendAIPrompt(input: SendAIPromptInput!): AIRequest!
+  sendAgentMessage(content: String!, sessionId: String!): AgentSession!
   setUserAttributes(input: SetUserAttributesInput!): UserAttributes!
   shareDashboard(input: ShareDashboardInput!): DashboardShare!
   startInference(input: StartInferenceInput!): InferenceJob!
@@ -869,6 +909,9 @@ type PublicLink {
 }
 
 type Query {
+  agentSession(id: ID!): AgentSession
+  agentSessions(userId: String): [AgentSession!]!
+  agentTools: [AgentTool!]!
   aiProvider(id: ID!): AIProvider
   aiProviders: [AIProvider!]!
   aiRequest(id: ID!): AIRequest

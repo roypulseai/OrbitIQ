@@ -56,6 +56,8 @@ import { ModelGatewayService } from "./services/model-gateway.service";
 import { IntentParserResolver } from "./resolvers/intent-parser.resolver";
 import { IntentParserService } from "./services/intent-parser.service";
 import { SemanticResolverService } from "./services/semantic-resolver.service";
+import { AgentResolver } from "./resolvers/agent.resolver";
+import { AgentService } from "./services/agent.service";
 
 @Module({
   imports: [
@@ -124,6 +126,8 @@ import { SemanticResolverService } from "./services/semantic-resolver.service";
     IntentParserResolver,
     IntentParserService,
     SemanticResolverService,
+    AgentResolver,
+    AgentService,
   ],
 })
 export class AppModule {}

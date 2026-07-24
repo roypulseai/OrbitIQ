@@ -36,6 +36,7 @@ import {
   BookOpen,
   Bot,
   MessageSquare,
+  Cpu,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 
@@ -89,6 +90,7 @@ const navigation = [
     items: [
       { name: "Model Gateway", href: "/dashboard/ai/model-gateway", icon: Bot },
       { name: "Intent Parser", href: "/dashboard/ai/intent-parser", icon: MessageSquare },
+      { name: "AI Agent", href: "/dashboard/ai/agent", icon: Cpu },
     ],
   },
   {
