@@ -259,7 +259,7 @@ mutation {
 
 **Proprietary Software** — All rights reserved.
 
-For licensing inquiries, contact [your-email@orbitiq.dev](mailto:your-email@orbitiq.dev).
+For licensing inquiries, contact [roypulseai@gmail.com](mailto:roypulseai@gmail.com).
 
 ---
 
