@@ -43,6 +43,8 @@ import { AuditTrailService } from "./services/audit-trail.service";
 import { ProfilingService } from "./services/profiling.service";
 import { KnowledgeGraphService } from "./services/knowledge-graph.service";
 import { SemanticFingerprintService } from "./services/semantic-fingerprint.service";
+import { RelationshipInferenceService } from "./services/relationship-inference.service";
+import { RelationshipInferenceResolver } from "./resolvers/relationship-inference.resolver";
 
 @Module({
   imports: [
@@ -98,6 +100,8 @@ import { SemanticFingerprintService } from "./services/semantic-fingerprint.serv
     ProfilingService,
     KnowledgeGraphService,
     SemanticFingerprintService,
+    RelationshipInferenceService,
+    RelationshipInferenceResolver,
   ],
 })
 export class AppModule {}

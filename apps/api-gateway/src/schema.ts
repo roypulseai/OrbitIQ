@@ -1847,3 +1847,48 @@ export class CreateKGRelationshipInput {
   @Field() cardinality!: string;
   @Field(() => [String]) typicalIn!: string[];
 }
+
+// ─── Sprint 12: Relationship Inference ───────────────────────────────────────
+
+@ObjectType()
+export class InferredRelationship {
+  @Field(() => ID) id!: string;
+  @Field() sourceTable!: string;
+  @Field() sourceColumn!: string;
+  @Field() targetTable!: string;
+  @Field() targetColumn!: string;
+  @Field(() => Float) confidence!: number;
+  @Field(() => [String]) evidence!: string[];
+  @Field() method!: string;
+  @Field() cardinality!: string;
+  @Field() status!: string;
+  @Field() createdAt!: Date;
+  @Field({ nullable: true }) reviewedAt?: Date;
+}
+
+@ObjectType()
+export class InferenceJob {
+  @Field(() => ID) id!: string;
+  @Field() connectionId!: string;
+  @Field() status!: string;
+  @Field() startedAt!: Date;
+  @Field({ nullable: true }) finishedAt?: Date;
+  @Field(() => Int) tablesScanned!: number;
+  @Field(() => Int) relationshipsFound!: number;
+  @Field(() => Int) relationshipsApproved!: number;
+}
+
+@ObjectType()
+export class InferenceStats {
+  @Field(() => Int) totalProposed!: number;
+  @Field(() => Int) approved!: number;
+  @Field(() => Int) rejected!: number;
+  @Field(() => Int) needsReview!: number;
+  @Field(() => Int) pendingReview!: number;
+}
+
+@InputType()
+export class StartInferenceInput {
+  @Field() connectionId!: string;
+  @Field(() => [String]) tableNames!: string[];
+}

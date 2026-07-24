@@ -31,6 +31,7 @@ import {
   Sparkles,
   Brain,
   Waypoints,
+  GitBranch,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 
@@ -64,6 +65,7 @@ const navigation = [
       { name: "Data Discovery", href: "/dashboard/discovery", icon: Sparkles },
       { name: "Knowledge Graph", href: "/dashboard/discovery/knowledge-graph", icon: Brain },
       { name: "Column Matching", href: "/dashboard/discovery/knowledge-graph/matches", icon: Waypoints },
+      { name: "Relationship Canvas", href: "/dashboard/discovery/relationship-canvas", icon: GitBranch },
     ],
   },
   {

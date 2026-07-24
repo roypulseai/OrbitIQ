@@ -1,6 +1,6 @@
 # OrbitIQ — Project Progress Tracker
 
-> Last Updated: Sprint 11 — Complete
+> Last Updated: Sprint 12 — Complete
 
 ---
 
@@ -20,6 +20,7 @@
 | 9 | Column-Level Security + Data Masking | ✅ Complete | - | - | 100% |
 | 10 | Compliance Policy Engine + SOC2 | ✅ Complete | - | - | 100% |
 | 11 | Statistical Profiling + Knowledge Graph | ✅ Complete | - | - | 100% |
+| 12 | Relationship Inference Engine | ✅ Complete | - | - | 100% |
 | 9 | Column-Level Security + Data Masking | ✅ Complete | - | - | 100% |
 
 ---
@@ -356,6 +357,17 @@
 
 ---
 
+## Sprint 12 — Relationship Inference Engine (Complete)
+- ✅ RelationshipInferenceService with FK detection, name similarity, value-overlap sampling, cardinality matching, KG-based inference
+- ✅ InferredRelationship type with confidence, evidence, method, cardinality, status (proposed/approved/rejected/needs_review)
+- ✅ 10 seeded inferred relationships across Customers/Orders/Products/Subscriptions
+- ✅ GraphQL types: InferredRelationship, InferenceJob, InferenceStats, StartInferenceInput
+- ✅ GraphQL resolver: RelationshipInferenceResolver with queries + approve/reject mutations
+- ✅ Relationship Canvas UI page with SVG entity-relationship diagram, color-coded edges, approve/reject workflow
+- ✅ Dashboard sidebar updated with Relationship Canvas link
+
+---
+
 ## Next Sprint Preview
 
-### Sprint 12 — Relationship Inference Engine
+### Sprint 13 — Semantic Model Auto-generation

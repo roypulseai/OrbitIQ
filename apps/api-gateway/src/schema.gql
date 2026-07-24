@@ -406,6 +406,40 @@ type ExportResult {
   mimeType: String!
 }
 
+type InferenceJob {
+  connectionId: String!
+  finishedAt: DateTime
+  id: ID!
+  relationshipsApproved: Int!
+  relationshipsFound: Int!
+  startedAt: DateTime!
+  status: String!
+  tablesScanned: Int!
+}
+
+type InferenceStats {
+  approved: Int!
+  needsReview: Int!
+  pendingReview: Int!
+  rejected: Int!
+  totalProposed: Int!
+}
+
+type InferredRelationship {
+  cardinality: String!
+  confidence: Float!
+  createdAt: DateTime!
+  evidence: [String!]!
+  id: ID!
+  method: String!
+  reviewedAt: DateTime
+  sourceColumn: String!
+  sourceTable: String!
+  status: String!
+  targetColumn: String!
+  targetTable: String!
+}
+
 input InvalidateCacheInput {
   connectionId: String
   key: String
@@ -494,6 +528,7 @@ type Mutation {
   addModelTable(input: AddModelTableInput!): ModelTable!
   addTile(input: AddTileInput!): Tile!
   addTransformStep(input: AddTransformStepInput!): TransformStep!
+  approveRelationship(id: ID!): InferredRelationship!
   buildQuery(input: BuildQueryInput!): String!
   checkPermission(input: CheckPermissionInput!): PermissionCheck!
   clearAllCache: Boolean!
@@ -531,6 +566,7 @@ type Mutation {
   getSupportedExportFormats: [String!]!
   invalidateCache(input: InvalidateCacheInput!): Boolean!
   publishSemanticModel(id: ID!): SemanticModel!
+  rejectRelationship(id: ID!): InferredRelationship!
   removeModelColumn(id: ID!): Boolean!
   removeModelMeasure(id: ID!): Boolean!
   removeModelTable(id: ID!): Boolean!
@@ -542,6 +578,7 @@ type Mutation {
   runDiscovery(connectionId: String!): String!
   setUserAttributes(input: SetUserAttributesInput!): UserAttributes!
   shareDashboard(input: ShareDashboardInput!): DashboardShare!
+  startInference(input: StartInferenceInput!): InferenceJob!
   startProfiling(input: StartProfilingInput!): ProfilingJob!
   testConnection(id: ID!): ConnectionTestResult!
   toggleColumnSecurityRule(id: ID!): ColumnSecurityRule!
@@ -554,6 +591,7 @@ type Mutation {
   updateDashboard(id: ID!, input: UpdateDashboardInput!): Dashboard!
   updateDataPipeline(id: ID!, input: UpdateDataPipelineInput!): DataPipeline!
   updateDataResidency(input: UpdateDataResidencyInput!): DataResidencyRule!
+  updateInferredRelationship(cardinality: String, confidence: Float, id: ID!, status: String): InferredRelationship!
   updateKGEntity(id: ID!, input: CreateKGEntityInput!): KGEntity!
   updateModelColumn(id: ID!, input: UpdateModelColumnInput!): ModelColumn!
   updateModelMeasure(id: ID!, input: UpdateModelMeasureInput!): ModelMeasure!
@@ -670,6 +708,10 @@ type Query {
   getRolePermissions(role: String!): [String!]!
   getSharedDashboards(userId: String!, workspaceId: String!): [DashboardShare!]!
   getTransformSteps(pipelineId: String!): [TransformStep!]!
+  inferenceJob(id: ID!): InferenceJob!
+  inferenceJobs(connectionId: String!): [InferenceJob!]!
+  inferenceStats(connectionId: String!): InferenceStats!
+  inferredRelationships(jobId: String!): [InferredRelationship!]!
   kgEntities(type: String, vertical: String): [KGEntity!]!
   kgEntity(id: ID!): KGEntity!
   kgMatchResults(jobId: String!): [KGMatch!]!
@@ -786,6 +828,11 @@ input ShareDashboardInput {
   sharedBy: String!
   userId: String!
   workspaceId: String!
+}
+
+input StartInferenceInput {
+  connectionId: String!
+  tableNames: [String!]!
 }
 
 input StartProfilingInput {
