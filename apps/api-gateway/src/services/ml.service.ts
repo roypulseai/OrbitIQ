@@ -54,6 +54,8 @@ export interface MLModelRegistry {
   version: string;
   stage: "staging" | "production" | "archived";
   metrics: Record<string, number>;
+  accuracy: number;
+  f1Score: number;
   registeredAt: number;
   description?: string;
 }
@@ -278,6 +280,8 @@ export class MLService {
       version: "2.1.0",
       stage: "production",
       metrics: { accuracy: 0.91, f1: 0.88, auc_roc: 0.95 },
+      accuracy: 0.91,
+      f1Score: 0.88,
       registeredAt: now - 3 * day,
       description:
         "XGBoost classifier for customer churn prediction. Trained on 50k records with 4 features.",
@@ -290,6 +294,8 @@ export class MLService {
       version: "1.0.0",
       stage: "staging",
       metrics: { r2: 0.94, rmse: 3.8, mape: 4.1 },
+      accuracy: 0.94,
+      f1Score: 0,
       registeredAt: now - 7 * day,
       description:
         "Random Forest regressor for revenue prediction. 3 features, 100k training records.",
@@ -302,6 +308,8 @@ export class MLService {
       version: "1.0.0",
       stage: "production",
       metrics: { silhouette: 0.62, davies_bouldin: 1.35 },
+      accuracy: 0.62,
+      f1Score: 0,
       registeredAt: now - 14 * day,
       description:
         "K-Means clustering model for customer segmentation. Auto-selected K=4.",
@@ -418,6 +426,8 @@ export class MLService {
       version: config.version,
       stage: config.stage as MLModelRegistry["stage"],
       metrics: config.metrics,
+      accuracy: config.metrics.accuracy || config.metrics.r2 || config.metrics.silhouette || 0,
+      f1Score: config.metrics.f1 || 0,
       registeredAt: Date.now(),
       description: config.description,
     };
