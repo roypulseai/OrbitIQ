@@ -1,0 +1,100 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+jobs:
+  deploy-web:
+    name: Deploy Web to Vercel
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+
+      - name: Pull Vercel Environment
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build Artifacts
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy to Vercel
+        id: deploy
+        run: |
+          url=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
+          echo "url=$url" >> $GITHUB_OUTPUT
+
+      - name: Comment PR with URL
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `🚀 Web deployed to: ${{ steps.deploy.outputs.url }}`
+            })
+
+  deploy-api:
+    name: Deploy API to Railway
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to Railway
+        uses: bervProject/railway-deploy@main
+        with:
+          service: api-gateway
+          token: ${{ secrets.RAILWAY_TOKEN }}
+
+  create-release:
+    name: Create GitHub Release
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          name: "OrbitIQ ${{ github.ref_name }}"
+          body: |
+            ## OrbitIQ ${{ github.ref_name }}
+
+            ### What's Included
+            - AI-Native Enterprise BI Platform
+            - 30+ dashboard pages
+            - 80+ GraphQL queries/mutations
+            - 5 connectors (PostgreSQL, MySQL, Snowflake, BigQuery, ClickHouse)
+            - Compliance packs (GDPR, CCPA, DPDP, FADP)
+            - Advanced analytics (forecasting, experiments, ML)
+            - AI agent with tool execution
+
+            ### Quick Start
+            ```bash
+            git clone https://github.com/roypulseai/OrbitIQ.git
+            cd OrbitIQ
+            docker-compose up -d
+            npm install
+            npm run dev
+            ```
