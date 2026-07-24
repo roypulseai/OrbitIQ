@@ -2634,3 +2634,90 @@ export class PerformanceDashboard {
   @Field(() => Int) activeCDCPipelines!: number;
   @Field(() => Int) activeStreamingSources!: number;
 }
+
+// ─── Sprint 24: GA Launch ────────────────────────────────────────────────────
+
+@ObjectType()
+export class GACheckItem {
+  @Field(() => ID) id!: string;
+  @Field() category!: string;
+  @Field() item!: string;
+  @Field() status!: string;
+  @Field() details!: string;
+  @Field() severity!: string;
+  @Field() lastChecked!: Date;
+}
+
+@ObjectType()
+export class GAReport {
+  @Field(() => ID) id!: string;
+  @Field() overallStatus!: string;
+  @Field(() => Int) totalChecks!: number;
+  @Field(() => Int) passed!: number;
+  @Field(() => Int) failed!: number;
+  @Field(() => Int) warnings!: number;
+  @Field(() => Int) pending!: number;
+  @Field(() => [GACheckItem]) checks!: GACheckItem[];
+  @Field() generatedAt!: Date;
+}
+
+@ObjectType()
+export class ComplianceRequirement {
+  @Field(() => ID) id!: string;
+  @Field() description!: string;
+  @Field() status!: string;
+  @Field({ nullable: true }) article?: string;
+}
+
+@ObjectType()
+export class CompliancePackGQL {
+  @Field(() => ID) id!: string;
+  @Field() name!: string;
+  @Field() region!: string;
+  @Field() regulation!: string;
+  @Field() status!: string;
+  @Field(() => [ComplianceRequirement]) requirements!: ComplianceRequirement[];
+  @Field(() => Float) coveragePercent!: number;
+}
+
+@ObjectType()
+export class ConnectorCatalogEntry {
+  @Field(() => ID) id!: string;
+  @Field() name!: string;
+  @Field() type!: string;
+  @Field() category!: string;
+  @Field() status!: string;
+  @Field() version!: string;
+  @Field() lastUpdated!: Date;
+}
+
+@ObjectType()
+export class EmbeddingSDKConfig {
+  @Field(() => ID) id!: string;
+  @Field() name!: string;
+  @Field() domain!: string;
+  @Field() rlsEnabled!: boolean;
+  @Field() tokenSigning!: boolean;
+  @Field(() => Int) maxConcurrentSessions!: number;
+  @Field() customTheme!: string;
+}
+
+@ObjectType()
+export class SecurityAuditResult {
+  @Field(() => ID) id!: string;
+  @Field() name!: string;
+  @Field() status!: string;
+  @Field() category!: string;
+  @Field() details!: string;
+  @Field({ nullable: true }) remediation?: string;
+}
+
+@InputType()
+export class CreateEmbeddingConfigInput {
+  @Field() name!: string;
+  @Field() domain!: string;
+  @Field({ nullable: true }) rlsEnabled?: boolean;
+  @Field({ nullable: true }) tokenSigning?: boolean;
+  @Field(() => Int, { nullable: true }) maxConcurrentSessions?: number;
+  @Field({ nullable: true }) customTheme?: string;
+}

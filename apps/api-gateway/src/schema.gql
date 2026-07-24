@@ -278,6 +278,23 @@ type CompliancePack {
   version: String!
 }
 
+type CompliancePackGQL {
+  coveragePercent: Float!
+  id: ID!
+  name: String!
+  region: String!
+  regulation: String!
+  requirements: [ComplianceRequirement!]!
+  status: String!
+}
+
+type ComplianceRequirement {
+  article: String
+  description: String!
+  id: ID!
+  status: String!
+}
+
 type Connection {
   config: JSON!
   connectorType: ConnectorType!
@@ -297,6 +314,16 @@ type ConnectionTestResult {
   message: String!
   serverVersion: String
   success: Boolean!
+}
+
+type ConnectorCatalogEntry {
+  category: String!
+  id: ID!
+  lastUpdated: DateTime!
+  name: String!
+  status: String!
+  type: String!
+  version: String!
 }
 
 enum ConnectorType {
@@ -418,6 +445,15 @@ input CreateEmbedTokenInput {
   filters: JSON
   theme: String
   userId: String
+}
+
+input CreateEmbeddingConfigInput {
+  customTheme: String
+  domain: String!
+  maxConcurrentSessions: Int
+  name: String!
+  rlsEnabled: Boolean
+  tokenSigning: Boolean
 }
 
 input CreateKGEntityInput {
@@ -598,6 +634,16 @@ type EmbedToken {
   token: String!
 }
 
+type EmbeddingSDKConfig {
+  customTheme: String!
+  domain: String!
+  id: ID!
+  maxConcurrentSessions: Int!
+  name: String!
+  rlsEnabled: Boolean!
+  tokenSigning: Boolean!
+}
+
 type EngineHealthGQL {
   avgLatencyMs: Float!
   engineId: String!
@@ -714,6 +760,28 @@ type ForecastResult {
   lowerBound: [Float!]!
   predicted: [Float!]!
   upperBound: [Float!]!
+}
+
+type GACheckItem {
+  category: String!
+  details: String!
+  id: ID!
+  item: String!
+  lastChecked: DateTime!
+  severity: String!
+  status: String!
+}
+
+type GAReport {
+  checks: [GACheckItem!]!
+  failed: Int!
+  generatedAt: DateTime!
+  id: ID!
+  overallStatus: String!
+  passed: Int!
+  pending: Int!
+  totalChecks: Int!
+  warnings: Int!
 }
 
 type GeneratedDimension {
@@ -1002,6 +1070,7 @@ type Mutation {
   createDashboard(input: CreateDashboardInput!): Dashboard!
   createDataPipeline(input: CreateDataPipelineInput!): DataPipeline!
   createEmbedToken(input: CreateEmbedTokenInput!): EmbedToken!
+  createEmbeddingConfig(config: CreateEmbeddingConfigInput!): EmbeddingSDKConfig!
   createExperiment(duration: Int!, experimentType: String!, hypothesis: String!, name: String!, sampleSize: Int!, targetMetric: String!): Experiment!
   createForecast(config: ForecastConfigInput!): ForecastJob!
   createHypothesisTest(name: String!, significanceLevel: Float, testType: String!, variable1: String!, variable2: String): HypothesisTest!
@@ -1055,6 +1124,7 @@ type Mutation {
   revokePublicLink(id: ID!): Boolean!
   runClustering(config: RunClusteringInput!): ClusteringResult!
   runDiscovery(connectionId: String!): String!
+  runSecurityAudit: [SecurityAuditResult!]!
   sendAIPrompt(input: SendAIPromptInput!): AIRequest!
   sendAgentMessage(content: String!, sessionId: String!): AgentSession!
   sendConversationMessage(content: String!, conversationId: String!): Conversation!
@@ -1230,10 +1300,11 @@ type Query {
   columnSecurityRule(id: ID!): ColumnSecurityRule
   columnSecurityRules(modelId: String!, tableId: String): [ColumnSecurityRule!]!
   compilePipeline(pipelineId: String!): String!
-  compliancePack(id: ID!): CompliancePack!
-  compliancePacks: [CompliancePack!]!
+  compliancePack(id: ID!): CompliancePackGQL
+  compliancePacks: [CompliancePackGQL!]!
   connection(id: ID!): Connection!
   connections(workspaceId: String!): [Connection!]!
+  connectorCatalog: [ConnectorCatalogEntry!]!
   consentRecords(userId: String): [ConsentRecord!]!
   conversation(id: ID!): Conversation
   conversationContext(conversationId: String!): ConversationContext!
@@ -1248,6 +1319,7 @@ type Query {
   discoveryRuns(connectionId: String): [String!]!
   dsarRequests(status: String): [DSARRequest!]!
   effectivePolicies(modelId: String!, tableId: String!, userId: String!): [RLSPolicy!]!
+  embeddingSDKConfigs: [EmbeddingSDKConfig!]!
   engineHealth: [EngineHealthGQL!]!
   experiment(id: ID!): Experiment
   experiments: [Experiment!]!
@@ -1259,6 +1331,7 @@ type Query {
   federationEngines: [FederationEngineGQL!]!
   forecastJob(id: ID!): ForecastJob
   forecastJobs: [ForecastJob!]!
+  gaReport: GAReport!
   generatedModel(id: ID!): GeneratedModel!
   generatedModels(connectionId: String): [GeneratedModel!]!
   generationStats(connectionId: String): GenerationStats!
@@ -1323,6 +1396,7 @@ type Query {
   rlsPolicy(id: ID!): RLSPolicy!
   sampleData(connectionId: String!, limit: Float = 100, schema: String!, table: String!): TableSample!
   searchConversations(query: String!, userId: String!): [Conversation!]!
+  securityAudit: [SecurityAuditResult!]!
   semanticModel(id: ID!): SemanticModel!
   semanticModels(workspaceId: String!): [SemanticModel!]!
   streamingSources: [StreamingSourceGQL!]!
@@ -1428,6 +1502,15 @@ type SchemaInfo {
   catalog: String!
   schema: String!
   type: String!
+}
+
+type SecurityAuditResult {
+  category: String!
+  details: String!
+  id: ID!
+  name: String!
+  remediation: String
+  status: String!
 }
 
 type SemanticModel {

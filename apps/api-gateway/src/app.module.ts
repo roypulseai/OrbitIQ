@@ -71,6 +71,8 @@ import { FederationResolver } from "./resolvers/federation.resolver";
 import { FederationService } from "./services/federation.service";
 import { PerformanceResolver } from "./resolvers/performance.resolver";
 import { PerformanceService } from "./services/performance.service";
+import { GAChecklistResolver } from "./resolvers/ga-checklist.resolver";
+import { GAChecklistService } from "./services/ga-checklist.service";
 
 @Module({
   imports: [
@@ -154,6 +156,8 @@ import { PerformanceService } from "./services/performance.service";
     FederationService,
     PerformanceResolver,
     PerformanceService,
+    GAChecklistResolver,
+    GAChecklistService,
   ],
 })
 export class AppModule {}

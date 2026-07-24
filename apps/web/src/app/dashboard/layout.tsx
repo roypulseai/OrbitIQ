@@ -43,6 +43,7 @@ import {
   Beaker,
   Network,
   Gauge,
+  Rocket,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 
@@ -111,6 +112,7 @@ const navigation = [
     items: [
       { name: "Settings", href: "/dashboard/settings", icon: Settings },
       { name: "API Keys", href: "/dashboard/settings/api-keys", icon: Key },
+      { name: "GA Launch", href: "/dashboard/settings/ga-launch", icon: Rocket },
     ],
   },
   {
