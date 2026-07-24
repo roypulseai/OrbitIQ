@@ -55,6 +55,7 @@ const navigation = [
       { name: "Forecasting", href: "/dashboard/analytics/forecasting", icon: TrendingUp },
       { name: "Hypothesis Testing", href: "/dashboard/analytics/hypothesis-testing", icon: FlaskConical },
       { name: "Experiments", href: "/dashboard/analytics/experiments", icon: Beaker },
+      { name: "ML Experiments", href: "/dashboard/analytics/ml", icon: Brain },
     ],
   },
   {

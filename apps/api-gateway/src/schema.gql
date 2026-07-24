@@ -181,6 +181,16 @@ input CheckPermissionInput {
   roles: [String!]!
 }
 
+type ClusteringResult {
+  clusterLabels: [String!]!
+  daviesBouldinIndex: Float!
+  id: ID!
+  nClusters: Int!
+  name: String!
+  silhouetteScore: Float!
+  totalPoints: Int!
+}
+
 type ColumnInfo {
   comment: String
   dataType: String!
@@ -396,6 +406,14 @@ input CreateKGRelationshipInput {
   typicalIn: [String!]!
 }
 
+input CreateMLExperimentInput {
+  dataset: String!
+  features: [String!]!
+  name: String!
+  targetColumn: String
+  taskType: String!
+}
+
 input CreateOrganizationInput {
   compliancePackId: String
   name: String!
@@ -579,6 +597,12 @@ type ExportResult {
   mimeType: String!
 }
 
+type FeatureImportanceGQL {
+  direction: String
+  feature: String!
+  importance: Float!
+}
+
 input ForecastConfigInput {
   confidenceLevel: Float
   dataSource: String!
@@ -757,6 +781,27 @@ type KGRelationship {
   typicalIn: [String!]!
 }
 
+type MLExperiment {
+  completedAt: Float
+  createdAt: Int!
+  features: [String!]!
+  id: ID!
+  models: [MLModel!]!
+  name: String!
+  status: String!
+  targetColumn: String
+  taskType: String!
+}
+
+type MLModel {
+  algorithm: String!
+  featuresImportance: [FeatureImportanceGQL!]!
+  id: ID!
+  metrics: JSON!
+  name: String!
+  trainingTimeMs: Int!
+}
+
 type ModelColumn {
   createdAt: DateTime!
   dataType: String!
@@ -806,6 +851,18 @@ type ModelMeasure {
   updatedAt: DateTime!
 }
 
+type ModelRegistryEntry {
+  accuracy: Float!
+  description: String
+  f1Score: Float!
+  id: ID!
+  modelId: String!
+  name: String!
+  registeredAt: Int!
+  stage: String!
+  version: String!
+}
+
 enum ModelStatus {
   DRAFT
   PUBLISHED
@@ -831,6 +888,7 @@ type Mutation {
   addTransformStep(input: AddTransformStepInput!): TransformStep!
   approveModel(id: ID!): GeneratedModel!
   approveRelationship(id: ID!): InferredRelationship!
+  archiveModel(id: ID!): ModelRegistryEntry
   batchTranslate(columns: [TranslateColumnInput!]!, targetLang: String!): [CrossLanguageMatch!]!
   buildQuery(input: BuildQueryInput!): String!
   calculatePower(effectSize: Float!, sampleSize: Int!, significanceLevel: Float!): Float!
@@ -854,6 +912,7 @@ type Mutation {
   createHypothesisTest(name: String!, significanceLevel: Float, testType: String!, variable1: String!, variable2: String): HypothesisTest!
   createKGEntity(input: CreateKGEntityInput!): KGEntity!
   createKGRelationship(input: CreateKGRelationshipInput!): KGRelationship!
+  createMLExperiment(config: CreateMLExperimentInput!): MLExperiment!
   createOrUpdateEmbedConfig(dashboardId: String!, input: UpdateEmbedConfigInput!, workspaceId: String!): EmbedConfig!
   createOrganization(input: CreateOrganizationInput!): Organization!
   createPublicLink(input: CreatePublicLinkInput!): PublicLink!
@@ -880,8 +939,10 @@ type Mutation {
   indexConnectionToCatalog(connectionId: String!): String!
   invalidateCache(input: InvalidateCacheInput!): Boolean!
   parseIntent(modelId: String, query: String!): ParsedIntent!
+  promoteModel(id: ID!, stage: String!): ModelRegistryEntry
   publishModel(id: ID!): GeneratedModel!
   publishSemanticModel(id: ID!): SemanticModel!
+  registerModel(config: RegisterModelInput!): ModelRegistryEntry!
   rejectRelationship(id: ID!): InferredRelationship!
   removeCatalogTag(id: ID!, tag: String!): CatalogEntry!
   removeModelColumn(id: ID!): Boolean!
@@ -893,6 +954,7 @@ type Mutation {
   resolveToExecutable(intentId: String!, modelId: String!): String!
   revokeConsent(id: ID!): ConsentRecord!
   revokePublicLink(id: ID!): Boolean!
+  runClustering(config: RunClusteringInput!): ClusteringResult!
   runDiscovery(connectionId: String!): String!
   sendAIPrompt(input: SendAIPromptInput!): AIRequest!
   sendAgentMessage(content: String!, sessionId: String!): AgentSession!
@@ -1048,6 +1110,8 @@ type Query {
   catalogEntry(id: ID!): CatalogEntry!
   catalogEntryLineage(id: ID!): CatalogEntry!
   catalogStats(connectionId: String): String!
+  clusteringResult(id: ID!): ClusteringResult
+  clusteringResults: [ClusteringResult!]!
   columnProfile(columnName: String!, jobId: String!, tableId: String!): ColumnProfile!
   columnSecurityRule(id: ID!): ColumnSecurityRule
   columnSecurityRules(modelId: String!, tableId: String): [ColumnSecurityRule!]!
@@ -1073,6 +1137,7 @@ type Query {
   experiment(id: ID!): Experiment
   experiments: [Experiment!]!
   explainOQL(oql: String!): [String!]!
+  featureImportance(modelId: String!): [FeatureImportanceGQL!]!
   forecastJob(id: ID!): ForecastJob
   forecastJobs: [ForecastJob!]!
   generatedModel(id: ID!): GeneratedModel!
@@ -1113,9 +1178,13 @@ type Query {
   listSchemas(connectionId: String!): [SchemaInfo!]!
   listTables(connectionId: String!, schema: String): [TableInfo!]!
   me: User!
+  mlExperiment(id: ID!): MLExperiment
+  mlExperiments: [MLExperiment!]!
+  mlModel(id: ID!): MLModel
   modelComparison(dataSource: String!, targetColumn: String!): [ModelComparison!]!
   modelConfig: ModelConfig!
   modelDiff(id: ID!): [ModelDiff!]!
+  modelRegistry: [ModelRegistryEntry!]!
   oqlExamples: [OQLExample!]!
   oqlFunctions: [String!]!
   oqlKeywords: [String!]!
@@ -1171,6 +1240,15 @@ type RLSPolicy {
   updatedAt: DateTime
 }
 
+input RegisterModelInput {
+  description: String
+  metrics: JSON!
+  modelId: String!
+  name: String!
+  stage: String!
+  version: String!
+}
+
 type Relationship {
   cardinality: Cardinality!
   createdAt: DateTime!
@@ -1195,6 +1273,13 @@ type RelationshipSuggestion {
   suggestedCardinality: Cardinality!
   toColumn: String!
   toTable: String!
+}
+
+input RunClusteringInput {
+  autoK: Boolean!
+  dataset: String!
+  features: [String!]!
+  name: String!
 }
 
 type SchemaInfo {

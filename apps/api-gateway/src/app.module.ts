@@ -65,6 +65,8 @@ import { AnalyticsService } from "./services/analytics.service";
 import { HypothesisResolver } from "./resolvers/hypothesis.resolver";
 import { HypothesisService } from "./services/hypothesis.service";
 import { ExperimentationService } from "./services/experimentation.service";
+import { MLResolver } from "./resolvers/ml.resolver";
+import { MLService } from "./services/ml.service";
 
 @Module({
   imports: [
@@ -142,6 +144,8 @@ import { ExperimentationService } from "./services/experimentation.service";
     HypothesisResolver,
     HypothesisService,
     ExperimentationService,
+    MLResolver,
+    MLService,
   ],
 })
 export class AppModule {}

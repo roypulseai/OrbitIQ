@@ -1,6 +1,6 @@
 # OrbitIQ — Project Progress Tracker
 
-> Last Updated: Sprint 20 — Complete
+> Last Updated: Sprint 21 — Complete
 
 ---
 
@@ -29,6 +29,7 @@
 | 18 | Conversational Follow-ups | ✅ Complete | - | - | 100% |
 | 19 | Time-Series Forecasting | ✅ Complete | - | - | 100% |
 | 20 | Hypothesis Testing + Experiments | ✅ Complete | - | - | 100% |
+| 21 | ML Wizards + MLflow | ✅ Complete | - | - | 100% |
 | 9 | Column-Level Security + Data Masking | ✅ Complete | - | - | 100% |
 
 ---

@@ -2400,3 +2400,86 @@ export class Experiment {
   @Field({ nullable: true }) endDate?: number;
   @Field(() => ExperimentResult, { nullable: true }) results?: ExperimentResult;
 }
+
+// ─── Sprint 21: ML Wizards + MLflow ──────────────────────────────────────────
+
+@ObjectType()
+export class FeatureImportanceGQL {
+  @Field() feature!: string;
+  @Field(() => Float) importance!: number;
+  @Field({ nullable: true }) direction?: string;
+}
+
+@ObjectType()
+export class MLModel {
+  @Field(() => ID) id!: string;
+  @Field() name!: string;
+  @Field() algorithm!: string;
+  @Field(() => GraphQLJSON) metrics!: Record<string, number>;
+  @Field(() => Int) trainingTimeMs!: number;
+  @Field(() => [FeatureImportanceGQL]) featuresImportance!: FeatureImportanceGQL[];
+}
+
+@ObjectType()
+export class MLExperiment {
+  @Field(() => ID) id!: string;
+  @Field() name!: string;
+  @Field() status!: string;
+  @Field() taskType!: string;
+  @Field(() => [MLModel]) models!: MLModel[];
+  @Field({ nullable: true }) targetColumn?: string;
+  @Field(() => [String]) features!: string[];
+  @Field(() => Int) createdAt!: number;
+  @Field({ nullable: true }) completedAt?: number;
+}
+
+@ObjectType()
+export class ClusteringResult {
+  @Field(() => ID) id!: string;
+  @Field() name!: string;
+  @Field(() => Int) nClusters!: number;
+  @Field(() => Float) silhouetteScore!: number;
+  @Field(() => Float) daviesBouldinIndex!: number;
+  @Field(() => [String]) clusterLabels!: string[];
+  @Field(() => Int) totalPoints!: number;
+}
+
+@ObjectType()
+export class ModelRegistryEntry {
+  @Field(() => ID) id!: string;
+  @Field() modelId!: string;
+  @Field() name!: string;
+  @Field() version!: string;
+  @Field() stage!: string;
+  @Field(() => Float) accuracy!: number;
+  @Field(() => Float) f1Score!: number;
+  @Field(() => Int) registeredAt!: number;
+  @Field({ nullable: true }) description?: string;
+}
+
+@InputType()
+export class CreateMLExperimentInput {
+  @Field() name!: string;
+  @Field() taskType!: string;
+  @Field() dataset!: string;
+  @Field({ nullable: true }) targetColumn?: string;
+  @Field(() => [String]) features!: string[];
+}
+
+@InputType()
+export class RunClusteringInput {
+  @Field() name!: string;
+  @Field() dataset!: string;
+  @Field(() => [String]) features!: string[];
+  @Field() autoK!: boolean;
+}
+
+@InputType()
+export class RegisterModelInput {
+  @Field() modelId!: string;
+  @Field() name!: string;
+  @Field() version!: string;
+  @Field() stage!: string;
+  @Field(() => GraphQLJSON) metrics!: Record<string, number>;
+  @Field({ nullable: true }) description?: string;
+}
