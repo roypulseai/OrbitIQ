@@ -2556,3 +2556,81 @@ export class EngineHealthGQL {
   @Field(() => Float) uptimePercent!: number;
   @Field(() => Int) queriesLast24h!: number;
 }
+
+// ─── Sprint 23: Performance & Scale ──────────────────────────────────────────
+
+@ObjectType()
+export class AggregateTableGQL {
+  @Field(() => ID) id!: string;
+  @Field() name!: string;
+  @Field() sourceTable!: string;
+  @Field(() => [String]) dimensions!: string[];
+  @Field(() => [String]) measures!: string[];
+  @Field() refreshInterval!: string;
+  @Field() lastRefreshed!: Date;
+  @Field(() => Int) rowCount!: number;
+  @Field(() => Int) sizeBytes!: number;
+  @Field() status!: string;
+}
+
+@ObjectType()
+export class CDCPipelineGQL {
+  @Field(() => ID) id!: string;
+  @Field() name!: string;
+  @Field() sourceType!: string;
+  @Field() status!: string;
+  @Field(() => [String]) tables!: string[];
+  @Field(() => Int) lastLagMs!: number;
+  @Field(() => Int) eventsProcessed!: number;
+  @Field(() => Int) errorsCount!: number;
+  @Field() createdAt!: Date;
+}
+
+@ObjectType()
+export class StreamingSourceGQL {
+  @Field(() => ID) id!: string;
+  @Field() name!: string;
+  @Field() type!: string;
+  @Field() status!: string;
+  @Field(() => Int) throughputPerSec!: number;
+  @Field(() => Int) latencyMs!: number;
+  @Field(() => Int) topicsCount!: number;
+  @Field(() => Int) partitionsCount!: number;
+}
+
+@ObjectType()
+export class LoadTestResultGQL {
+  @Field(() => Float) p50LatencyMs!: number;
+  @Field(() => Float) p95LatencyMs!: number;
+  @Field(() => Float) p99LatencyMs!: number;
+  @Field(() => Float) maxLatencyMs!: number;
+  @Field(() => Int) throughputPerSec!: number;
+  @Field(() => Float) errorRate!: number;
+  @Field(() => Int) totalRequests!: number;
+  @Field(() => Int) successfulRequests!: number;
+  @Field(() => Int) failedRequests!: number;
+}
+
+@ObjectType()
+export class LoadTestGQL {
+  @Field(() => ID) id!: string;
+  @Field() name!: string;
+  @Field() status!: string;
+  @Field(() => Int) concurrentUsers!: number;
+  @Field(() => Int) durationSeconds!: number;
+  @Field(() => Int) targetP95LatencyMs!: number;
+  @Field(() => LoadTestResultGQL, { nullable: true }) result?: LoadTestResultGQL;
+  @Field() createdAt!: Date;
+}
+
+@ObjectType()
+export class PerformanceDashboard {
+  @Field(() => Float) aggregateHitRate!: number;
+  @Field(() => Int) avgCDCPipelinesLagMs!: number;
+  @Field(() => Int) totalEventsProcessed!: number;
+  @Field(() => Int) totalLoadTestRequests!: number;
+  @Field(() => Int) streamingThroughput!: number;
+  @Field(() => Int) activeAggregates!: number;
+  @Field(() => Int) activeCDCPipelines!: number;
+  @Field(() => Int) activeStreamingSources!: number;
+}

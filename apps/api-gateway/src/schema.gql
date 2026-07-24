@@ -120,6 +120,19 @@ type AgentToolResult {
   toolCallId: String!
 }
 
+type AggregateTableGQL {
+  dimensions: [String!]!
+  id: ID!
+  lastRefreshed: DateTime!
+  measures: [String!]!
+  name: String!
+  refreshInterval: String!
+  rowCount: Int!
+  sizeBytes: Int!
+  sourceTable: String!
+  status: String!
+}
+
 type AuditLog {
   action: String!
   actorId: String!
@@ -145,6 +158,18 @@ input BuildQueryInput {
   modelId: String!
   orderBy: String
   selectedColumns: [String!]!
+}
+
+type CDCPipelineGQL {
+  createdAt: DateTime!
+  errorsCount: Int!
+  eventsProcessed: Int!
+  id: ID!
+  lastLagMs: Int!
+  name: String!
+  sourceType: String!
+  status: String!
+  tables: [String!]!
 }
 
 type CacheStats {
@@ -827,6 +852,29 @@ type KGRelationship {
   typicalIn: [String!]!
 }
 
+type LoadTestGQL {
+  concurrentUsers: Int!
+  createdAt: DateTime!
+  durationSeconds: Int!
+  id: ID!
+  name: String!
+  result: LoadTestResultGQL
+  status: String!
+  targetP95LatencyMs: Int!
+}
+
+type LoadTestResultGQL {
+  errorRate: Float!
+  failedRequests: Int!
+  maxLatencyMs: Float!
+  p50LatencyMs: Float!
+  p95LatencyMs: Float!
+  p99LatencyMs: Float!
+  successfulRequests: Int!
+  throughputPerSec: Int!
+  totalRequests: Int!
+}
+
 type MLExperiment {
   completedAt: Float
   createdAt: Int!
@@ -988,9 +1036,11 @@ type Mutation {
   invalidateCache(input: InvalidateCacheInput!): Boolean!
   invalidateQueryCache(id: ID!): Boolean!
   parseIntent(modelId: String, query: String!): ParsedIntent!
+  pauseCDC(id: ID!): CDCPipelineGQL
   promoteModel(id: ID!, stage: String!): ModelRegistryEntry
   publishModel(id: ID!): GeneratedModel!
   publishSemanticModel(id: ID!): SemanticModel!
+  refreshAggregate(id: ID!): AggregateTableGQL
   registerModel(config: RegisterModelInput!): ModelRegistryEntry!
   rejectRelationship(id: ID!): InferredRelationship!
   removeCatalogTag(id: ID!, tag: String!): CatalogEntry!
@@ -1116,6 +1166,17 @@ type ParsedIntent {
   visualizationHint: String
 }
 
+type PerformanceDashboard {
+  activeAggregates: Int!
+  activeCDCPipelines: Int!
+  activeStreamingSources: Int!
+  aggregateHitRate: Float!
+  avgCDCPipelinesLagMs: Int!
+  streamingThroughput: Int!
+  totalEventsProcessed: Int!
+  totalLoadTestRequests: Int!
+}
+
 type PermissionCheck {
   granted: Boolean!
   permission: String!
@@ -1146,6 +1207,8 @@ type Query {
   agentSession(id: ID!): AgentSession
   agentSessions(userId: String): [AgentSession!]!
   agentTools: [AgentTool!]!
+  aggregateTable(id: ID!): AggregateTableGQL
+  aggregateTables: [AggregateTableGQL!]!
   aiProvider(id: ID!): AIProvider
   aiProviders: [AIProvider!]!
   aiRequest(id: ID!): AIRequest
@@ -1159,6 +1222,8 @@ type Query {
   catalogEntry(id: ID!): CatalogEntry!
   catalogEntryLineage(id: ID!): CatalogEntry!
   catalogStats(connectionId: String): String!
+  cdcPipeline(id: ID!): CDCPipelineGQL
+  cdcPipelines: [CDCPipelineGQL!]!
   clusteringResult(id: ID!): ClusteringResult
   clusteringResults: [ClusteringResult!]!
   columnProfile(columnName: String!, jobId: String!, tableId: String!): ColumnProfile!
@@ -1231,6 +1296,8 @@ type Query {
   listColumns(connectionId: String!, schema: String!, table: String!): [ColumnInfo!]!
   listSchemas(connectionId: String!): [SchemaInfo!]!
   listTables(connectionId: String!, schema: String): [TableInfo!]!
+  loadTest(id: ID!): LoadTestGQL
+  loadTests: [LoadTestGQL!]!
   me: User!
   mlExperiment(id: ID!): MLExperiment
   mlExperiments: [MLExperiment!]!
@@ -1244,6 +1311,7 @@ type Query {
   oqlKeywords: [String!]!
   organization(id: ID!): Organization!
   organizations: [Organization!]!
+  performanceDashboard: PerformanceDashboard!
   piitags(modelId: String!): [PIITag!]!
   previewStep(stepId: String!): String!
   profilingJob(id: ID!): ProfilingJob!
@@ -1257,6 +1325,7 @@ type Query {
   searchConversations(query: String!, userId: String!): [Conversation!]!
   semanticModel(id: ID!): SemanticModel!
   semanticModels(workspaceId: String!): [SemanticModel!]!
+  streamingSources: [StreamingSourceGQL!]!
   suggestRelationships(modelId: String!, tables: String!): [RelationshipSuggestion!]!
   supportedLanguages: [SupportedLanguage!]!
   tableProfile(jobId: String!, tableId: String!): TableProfile!
@@ -1402,6 +1471,17 @@ input StartInferenceInput {
 input StartProfilingInput {
   connectionId: String!
   tableIds: [String!]!
+}
+
+type StreamingSourceGQL {
+  id: ID!
+  latencyMs: Int!
+  name: String!
+  partitionsCount: Int!
+  status: String!
+  throughputPerSec: Int!
+  topicsCount: Int!
+  type: String!
 }
 
 type SuggestedFollowUp {

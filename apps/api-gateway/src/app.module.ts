@@ -69,6 +69,8 @@ import { MLResolver } from "./resolvers/ml.resolver";
 import { MLService } from "./services/ml.service";
 import { FederationResolver } from "./resolvers/federation.resolver";
 import { FederationService } from "./services/federation.service";
+import { PerformanceResolver } from "./resolvers/performance.resolver";
+import { PerformanceService } from "./services/performance.service";
 
 @Module({
   imports: [
@@ -150,6 +152,8 @@ import { FederationService } from "./services/federation.service";
     MLService,
     FederationResolver,
     FederationService,
+    PerformanceResolver,
+    PerformanceService,
   ],
 })
 export class AppModule {}

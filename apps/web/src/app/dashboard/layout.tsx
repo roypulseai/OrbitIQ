@@ -42,6 +42,7 @@ import {
   FlaskConical,
   Beaker,
   Network,
+  Gauge,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 
@@ -58,6 +59,7 @@ const navigation = [
       { name: "Experiments", href: "/dashboard/analytics/experiments", icon: Beaker },
       { name: "ML Experiments", href: "/dashboard/analytics/ml", icon: Brain },
       { name: "Federated Query", href: "/dashboard/analytics/federation", icon: Network },
+      { name: "Performance", href: "/dashboard/analytics/performance", icon: Gauge },
     ],
   },
   {
