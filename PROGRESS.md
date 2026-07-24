@@ -1,6 +1,6 @@
 # OrbitIQ — Project Progress Tracker
 
-> Last Updated: Sprint 15 — Complete
+> Last Updated: Sprint 16 — Complete
 
 ---
 
@@ -24,6 +24,7 @@
 | 13 | Semantic Model Auto-generation | ✅ Complete | - | - | 100% |
 | 14 | Cross-language Matching + Data Catalog | ✅ Complete | - | - | 100% |
 | 15 | Model Gateway (BYO-LLM) | ✅ Complete | - | - | 100% |
+| 16 | Intent Parser + Semantic Resolver | ✅ Complete | - | - | 100% |
 | 9 | Column-Level Security + Data Masking | ✅ Complete | - | - | 100% |
 
 ---

@@ -2135,3 +2135,58 @@ export class UpdateModelConfigInput {
   @Field(() => Int, { nullable: true }) maxTokens?: number;
   @Field({ nullable: true }) systemPrompt?: string;
 }
+
+// ─── Sprint 16: Intent Parser + Semantic Resolver ────────────────────────────
+
+@ObjectType()
+export class ParsedEntity {
+  @Field() name!: string;
+  @Field() entityType!: string;
+  @Field() sourceModel!: string;
+  @Field() matchedField!: string;
+}
+
+@ObjectType()
+export class ParsedFilter {
+  @Field() field!: string;
+  @Field() operator!: string;
+  @Field() value!: string;
+  @Field() logicalOperator!: string;
+}
+
+@ObjectType()
+export class ParsedAggregation {
+  @Field() field!: string;
+  @Field() function!: string;
+  @Field() alias!: string;
+}
+
+@ObjectType()
+export class ParsedIntent {
+  @Field(() => ID) id!: string;
+  @Field() rawQuery!: string;
+  @Field() parsedAt!: Date;
+  @Field() intent!: string;
+  @Field(() => [ParsedEntity]) entities!: ParsedEntity[];
+  @Field(() => [ParsedFilter]) filters!: ParsedFilter[];
+  @Field(() => [ParsedAggregation]) aggregations!: ParsedAggregation[];
+  @Field({ nullable: true }) visualizationHint?: string;
+  @Field(() => Float) confidence!: number;
+  @Field({ nullable: true }) suggestedOQL?: string;
+}
+
+@ObjectType()
+export class IntentStats {
+  @Field(() => Int) totalIntents!: number;
+  @Field(() => Float) avgConfidence!: number;
+  @Field(() => Int) queriesThisWeek!: number;
+  @Field(() => String) topIntent!: string;
+}
+
+@ObjectType()
+export class AvailableEntity {
+  @Field() name!: string;
+  @Field() type!: string;
+  @Field() dataType!: string;
+  @Field() sourceTable!: string;
+}

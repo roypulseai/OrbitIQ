@@ -53,6 +53,9 @@ import { DataCatalogResolver } from "./resolvers/data-catalog.resolver";
 import { DataCatalogService } from "./services/data-catalog.service";
 import { ModelGatewayResolver } from "./resolvers/model-gateway.resolver";
 import { ModelGatewayService } from "./services/model-gateway.service";
+import { IntentParserResolver } from "./resolvers/intent-parser.resolver";
+import { IntentParserService } from "./services/intent-parser.service";
+import { SemanticResolverService } from "./services/semantic-resolver.service";
 
 @Module({
   imports: [
@@ -118,6 +121,9 @@ import { ModelGatewayService } from "./services/model-gateway.service";
     DataCatalogService,
     ModelGatewayResolver,
     ModelGatewayService,
+    IntentParserResolver,
+    IntentParserService,
+    SemanticResolverService,
   ],
 })
 export class AppModule {}

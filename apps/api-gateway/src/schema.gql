@@ -92,6 +92,13 @@ type AuditLog {
   timestamp: DateTime!
 }
 
+type AvailableEntity {
+  dataType: String!
+  name: String!
+  sourceTable: String!
+  type: String!
+}
+
 input BuildQueryInput {
   filters: [JSON!]!
   groupBy: [String!]!
@@ -558,6 +565,13 @@ type InferredRelationship {
   targetTable: String!
 }
 
+type IntentStats {
+  avgConfidence: Float!
+  queriesThisWeek: Int!
+  topIntent: String!
+  totalIntents: Int!
+}
+
 input InvalidateCacheInput {
   connectionId: String
   key: String
@@ -705,6 +719,7 @@ type Mutation {
   getSupportedExportFormats: [String!]!
   indexConnectionToCatalog(connectionId: String!): String!
   invalidateCache(input: InvalidateCacheInput!): Boolean!
+  parseIntent(modelId: String, query: String!): ParsedIntent!
   publishModel(id: ID!): GeneratedModel!
   publishSemanticModel(id: ID!): SemanticModel!
   rejectRelationship(id: ID!): InferredRelationship!
@@ -715,6 +730,7 @@ type Mutation {
   removeShare(id: ID!): Boolean!
   removeTile(id: ID!): Boolean!
   removeTransformStep(id: ID!): Boolean!
+  resolveToExecutable(intentId: String!, modelId: String!): String!
   revokeConsent(id: ID!): ConsentRecord!
   revokePublicLink(id: ID!): Boolean!
   runDiscovery(connectionId: String!): String!
@@ -793,6 +809,39 @@ type PIITag {
   tableId: String!
 }
 
+type ParsedAggregation {
+  alias: String!
+  field: String!
+  function: String!
+}
+
+type ParsedEntity {
+  entityType: String!
+  matchedField: String!
+  name: String!
+  sourceModel: String!
+}
+
+type ParsedFilter {
+  field: String!
+  logicalOperator: String!
+  operator: String!
+  value: String!
+}
+
+type ParsedIntent {
+  aggregations: [ParsedAggregation!]!
+  confidence: Float!
+  entities: [ParsedEntity!]!
+  filters: [ParsedFilter!]!
+  id: ID!
+  intent: String!
+  parsedAt: DateTime!
+  rawQuery: String!
+  suggestedOQL: String
+  visualizationHint: String
+}
+
 type PermissionCheck {
   granted: Boolean!
   permission: String!
@@ -826,6 +875,7 @@ type Query {
   aiRequestHistory(providerId: String): [AIRequest!]!
   attributeKeys: [String!]!
   auditLogs(limit: Float = 100, orgId: String!): [AuditLog!]!
+  availableEntities(modelId: String!): [AvailableEntity!]!
   buildJoinSQL(relationships: String!, tables: String!): String!
   catalogEntries(connectionId: String, query: String, type: String): [CatalogEntry!]!
   catalogEntry(id: ID!): CatalogEntry!
@@ -874,6 +924,7 @@ type Query {
   inferenceJobs(connectionId: String!): [InferenceJob!]!
   inferenceStats(connectionId: String!): InferenceStats!
   inferredRelationships(jobId: String!): [InferredRelationship!]!
+  intentStats: IntentStats!
   kgEntities(type: String, vertical: String): [KGEntity!]!
   kgEntity(id: ID!): KGEntity!
   kgMatchResults(jobId: String!): [KGMatch!]!
@@ -897,6 +948,7 @@ type Query {
   profilingJob(id: ID!): ProfilingJob!
   profilingJobs(connectionId: String): [ProfilingJob!]!
   profilingStats(connectionId: String): String!
+  recentIntents(limit: Int = 10): [ParsedIntent!]!
   rlsPolicies(modelId: String): [RLSPolicy!]!
   rlsPolicy(id: ID!): RLSPolicy!
   sampleData(connectionId: String!, limit: Float = 100, schema: String!, table: String!): TableSample!

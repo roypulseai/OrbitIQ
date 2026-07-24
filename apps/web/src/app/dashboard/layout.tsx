@@ -35,6 +35,7 @@ import {
   Languages,
   BookOpen,
   Bot,
+  MessageSquare,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 
@@ -87,6 +88,7 @@ const navigation = [
     group: "AI",
     items: [
       { name: "Model Gateway", href: "/dashboard/ai/model-gateway", icon: Bot },
+      { name: "Intent Parser", href: "/dashboard/ai/intent-parser", icon: MessageSquare },
     ],
   },
   {
