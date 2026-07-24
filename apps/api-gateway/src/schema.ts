@@ -2334,3 +2334,69 @@ export class ForecastConfigInput {
   @Field(() => Float, { nullable: true }) confidenceLevel?: number;
   @Field({ nullable: true }) seasonality?: string;
 }
+
+// ─── Sprint 20: Hypothesis Testing + Experimentation ─────────────────────────
+
+@ObjectType()
+export class TestResultGQL {
+  @Field(() => Float) statistic!: number;
+  @Field(() => Float) pValue!: number;
+  @Field() significant!: boolean;
+  @Field(() => [Float]) confidenceInterval!: number[];
+  @Field(() => Float) effectSize!: number;
+  @Field(() => Float) power!: number;
+  @Field(() => Int) sampleSize1!: number;
+  @Field(() => Int) sampleSize2!: number;
+  @Field() interpretation!: string;
+}
+
+@ObjectType()
+export class HypothesisTest {
+  @Field(() => ID) id!: string;
+  @Field() name!: string;
+  @Field() status!: string;
+  @Field() testType!: string;
+  @Field() variable1!: string;
+  @Field({ nullable: true }) variable2?: string;
+  @Field(() => Float) significanceLevel!: number;
+  @Field(() => TestResultGQL, { nullable: true }) result?: TestResultGQL;
+  @Field() createdAt!: number;
+  @Field({ nullable: true }) completedAt?: number;
+}
+
+@ObjectType()
+export class Variant {
+  @Field(() => ID) id!: string;
+  @Field() name!: string;
+  @Field() description!: string;
+  @Field(() => Float) trafficPercentage!: number;
+  @Field(() => Float) metricValue!: number;
+  @Field(() => Int) conversions!: number;
+  @Field(() => Int) sampleSize!: number;
+}
+
+@ObjectType()
+export class ExperimentResult {
+  @Field({ nullable: true }) winner?: string;
+  @Field(() => Float) pValue!: number;
+  @Field(() => Float) power!: number;
+  @Field(() => [Float]) confidenceInterval!: number[];
+  @Field(() => [String]) recommendations!: string[];
+}
+
+@ObjectType()
+export class Experiment {
+  @Field(() => ID) id!: string;
+  @Field() name!: string;
+  @Field() status!: string;
+  @Field() hypothesis!: string;
+  @Field() experimentType!: string;
+  @Field(() => [Variant]) variants!: Variant[];
+  @Field() targetMetric!: string;
+  @Field(() => Int) sampleSize!: number;
+  @Field(() => Int) duration!: number;
+  @Field({ nullable: true }) createdAt!: number;
+  @Field({ nullable: true }) startDate?: number;
+  @Field({ nullable: true }) endDate?: number;
+  @Field(() => ExperimentResult, { nullable: true }) results?: ExperimentResult;
+}

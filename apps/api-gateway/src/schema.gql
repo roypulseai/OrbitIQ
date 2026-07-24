@@ -549,6 +549,30 @@ type EmbedToken {
   token: String!
 }
 
+type Experiment {
+  createdAt: Float
+  duration: Int!
+  endDate: Float
+  experimentType: String!
+  hypothesis: String!
+  id: ID!
+  name: String!
+  results: ExperimentResult
+  sampleSize: Int!
+  startDate: Float
+  status: String!
+  targetMetric: String!
+  variants: [Variant!]!
+}
+
+type ExperimentResult {
+  confidenceInterval: [Float!]!
+  pValue: Float!
+  power: Float!
+  recommendations: [String!]!
+  winner: String
+}
+
 type ExportResult {
   data: String!
   filename: String!
@@ -636,6 +660,19 @@ type GenerationStats {
   published: Int!
   reviewing: Int!
   total: Int!
+}
+
+type HypothesisTest {
+  completedAt: Float
+  createdAt: Float!
+  id: ID!
+  name: String!
+  result: TestResultGQL
+  significanceLevel: Float!
+  status: String!
+  testType: String!
+  variable1: String!
+  variable2: String
 }
 
 type InferenceJob {
@@ -796,6 +833,7 @@ type Mutation {
   approveRelationship(id: ID!): InferredRelationship!
   batchTranslate(columns: [TranslateColumnInput!]!, targetLang: String!): [CrossLanguageMatch!]!
   buildQuery(input: BuildQueryInput!): String!
+  calculatePower(effectSize: Float!, sampleSize: Int!, significanceLevel: Float!): Float!
   cancelForecastJob(id: ID!): ForecastJob
   checkPermission(input: CheckPermissionInput!): PermissionCheck!
   clearAllCache: Boolean!
@@ -811,7 +849,9 @@ type Mutation {
   createDashboard(input: CreateDashboardInput!): Dashboard!
   createDataPipeline(input: CreateDataPipelineInput!): DataPipeline!
   createEmbedToken(input: CreateEmbedTokenInput!): EmbedToken!
+  createExperiment(duration: Int!, experimentType: String!, hypothesis: String!, name: String!, sampleSize: Int!, targetMetric: String!): Experiment!
   createForecast(config: ForecastConfigInput!): ForecastJob!
+  createHypothesisTest(name: String!, significanceLevel: Float, testType: String!, variable1: String!, variable2: String): HypothesisTest!
   createKGEntity(input: CreateKGEntityInput!): KGEntity!
   createKGRelationship(input: CreateKGRelationshipInput!): KGRelationship!
   createOrUpdateEmbedConfig(dashboardId: String!, input: UpdateEmbedConfigInput!, workspaceId: String!): EmbedConfig!
@@ -875,6 +915,7 @@ type Mutation {
   updateDashboard(id: ID!, input: UpdateDashboardInput!): Dashboard!
   updateDataPipeline(id: ID!, input: UpdateDataPipelineInput!): DataPipeline!
   updateDataResidency(input: UpdateDataResidencyInput!): DataResidencyRule!
+  updateExperimentStatus(id: ID!, status: String!): Experiment
   updateGeneratedDimension(dimIndex: Int!, id: ID!, updates: UpdateGeneratedDimensionInput!): GeneratedModel!
   updateGeneratedMeasure(id: ID!, measIndex: Int!, updates: UpdateGeneratedMeasureInput!): GeneratedModel!
   updateInferredRelationship(cardinality: String, confidence: Float, id: ID!, status: String): InferredRelationship!
@@ -1000,6 +1041,7 @@ type Query {
   aiRequestHistory(providerId: String): [AIRequest!]!
   attributeKeys: [String!]!
   auditLogs(limit: Float = 100, orgId: String!): [AuditLog!]!
+  autoSelectTest(variable1: String!, variable2: String): String!
   availableEntities(modelId: String!): [AvailableEntity!]!
   buildJoinSQL(relationships: String!, tables: String!): String!
   catalogEntries(connectionId: String, query: String, type: String): [CatalogEntry!]!
@@ -1028,6 +1070,8 @@ type Query {
   discoveryRuns(connectionId: String): [String!]!
   dsarRequests(status: String): [DSARRequest!]!
   effectivePolicies(modelId: String!, tableId: String!, userId: String!): [RLSPolicy!]!
+  experiment(id: ID!): Experiment
+  experiments: [Experiment!]!
   explainOQL(oql: String!): [String!]!
   forecastJob(id: ID!): ForecastJob
   forecastJobs: [ForecastJob!]!
@@ -1051,6 +1095,8 @@ type Query {
   getRolePermissions(role: String!): [String!]!
   getSharedDashboards(userId: String!, workspaceId: String!): [DashboardShare!]!
   getTransformSteps(pipelineId: String!): [TransformStep!]!
+  hypothesisTest(id: ID!): HypothesisTest
+  hypothesisTests: [HypothesisTest!]!
   inferenceJob(id: ID!): InferenceJob!
   inferenceJobs(connectionId: String!): [InferenceJob!]!
   inferenceStats(connectionId: String!): InferenceStats!
@@ -1238,6 +1284,18 @@ type TableSample {
   columns: [ColumnInfo!]!
   rowCount: Float!
   rows: JSON!
+}
+
+type TestResultGQL {
+  confidenceInterval: [Float!]!
+  effectSize: Float!
+  interpretation: String!
+  pValue: Float!
+  power: Float!
+  sampleSize1: Int!
+  sampleSize2: Int!
+  significant: Boolean!
+  statistic: Float!
 }
 
 type Tile {
@@ -1458,6 +1516,16 @@ type UserAttributes {
   attributes: JSON!
   updatedAt: DateTime!
   userId: ID!
+}
+
+type Variant {
+  conversions: Int!
+  description: String!
+  id: ID!
+  metricValue: Float!
+  name: String!
+  sampleSize: Int!
+  trafficPercentage: Float!
 }
 
 type VerticalInfo {

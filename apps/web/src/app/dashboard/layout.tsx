@@ -39,6 +39,8 @@ import {
   MessageCircle,
   Cpu,
   TrendingUp,
+  FlaskConical,
+  Beaker,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 
@@ -51,6 +53,8 @@ const navigation = [
       { name: "Models", href: "/dashboard/models", icon: Box },
       { name: "Dashboards", href: "/dashboard/dashboards", icon: LayoutDashboard },
       { name: "Forecasting", href: "/dashboard/analytics/forecasting", icon: TrendingUp },
+      { name: "Hypothesis Testing", href: "/dashboard/analytics/hypothesis-testing", icon: FlaskConical },
+      { name: "Experiments", href: "/dashboard/analytics/experiments", icon: Beaker },
     ],
   },
   {

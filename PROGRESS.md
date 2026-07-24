@@ -1,6 +1,6 @@
 # OrbitIQ — Project Progress Tracker
 
-> Last Updated: Sprint 19 — Complete
+> Last Updated: Sprint 20 — Complete
 
 ---
 
@@ -28,6 +28,7 @@
 | 17 | Agent Tool Loop | ✅ Complete | - | - | 100% |
 | 18 | Conversational Follow-ups | ✅ Complete | - | - | 100% |
 | 19 | Time-Series Forecasting | ✅ Complete | - | - | 100% |
+| 20 | Hypothesis Testing + Experiments | ✅ Complete | - | - | 100% |
 | 9 | Column-Level Security + Data Masking | ✅ Complete | - | - | 100% |
 
 ---
