@@ -191,6 +191,12 @@ type ClusteringResult {
   totalPoints: Int!
 }
 
+type ColumnDefGQL {
+  name: String!
+  nullable: Boolean!
+  type: String!
+}
+
 type ColumnInfo {
   comment: String
   dataType: String!
@@ -567,6 +573,15 @@ type EmbedToken {
   token: String!
 }
 
+type EngineHealthGQL {
+  avgLatencyMs: Float!
+  engineId: String!
+  engineName: String!
+  queriesLast24h: Int!
+  status: String!
+  uptimePercent: Float!
+}
+
 type Experiment {
   createdAt: Float
   duration: Int!
@@ -601,6 +616,37 @@ type FeatureImportanceGQL {
   direction: String
   feature: String!
   importance: Float!
+}
+
+type FederatedQueryGQL {
+  cacheHit: Boolean!
+  engine: String!
+  executionTimeMs: Float!
+  id: ID!
+  query: String!
+  result: QueryResultGQL
+  status: String!
+}
+
+type FederationCacheStatsGQL {
+  cacheHits: Int!
+  cacheMisses: Int!
+  hitRate: Float!
+  totalCachedPlans: Int!
+  totalQueries: Int!
+}
+
+type FederationEngineGQL {
+  activeConnections: Int!
+  avgLatencyMs: Float!
+  capabilities: [String!]!
+  endpoints: [String!]!
+  id: ID!
+  maxConnections: Int!
+  name: String!
+  queriesProcessed: Int!
+  status: String!
+  type: String!
 }
 
 input ForecastConfigInput {
@@ -895,6 +941,7 @@ type Mutation {
   cancelForecastJob(id: ID!): ForecastJob
   checkPermission(input: CheckPermissionInput!): PermissionCheck!
   clearAllCache: Boolean!
+  clearQueryCache: Int!
   compileOQL(dialect: String = "postgresql", oql: String!): OQLCompileResult!
   createAIProvider(input: CreateAIProviderInput!): AIProvider!
   createAgentSession(userId: String!): AgentSession!
@@ -932,12 +979,14 @@ type Mutation {
   deleteSemanticModel(id: ID!): Boolean!
   deleteUser(id: ID!): Boolean!
   deleteWorkspace(id: ID!): Boolean!
+  executeFederatedQuery(engine: String, query: String!): FederatedQueryGQL!
   executeQuery(input: QueryExecutionInput!): QueryResult!
   exportData(data: String!, filename: String, format: String!): ExportResult!
   generateModel(connectionId: String!, profilingJobId: String!): GeneratedModel!
   getSupportedExportFormats: [String!]!
   indexConnectionToCatalog(connectionId: String!): String!
   invalidateCache(input: InvalidateCacheInput!): Boolean!
+  invalidateQueryCache(id: ID!): Boolean!
   parseIntent(modelId: String, query: String!): ParsedIntent!
   promoteModel(id: ID!, stage: String!): ModelRegistryEntry
   publishModel(id: ID!): GeneratedModel!
@@ -1134,10 +1183,15 @@ type Query {
   discoveryRuns(connectionId: String): [String!]!
   dsarRequests(status: String): [DSARRequest!]!
   effectivePolicies(modelId: String!, tableId: String!, userId: String!): [RLSPolicy!]!
+  engineHealth: [EngineHealthGQL!]!
   experiment(id: ID!): Experiment
   experiments: [Experiment!]!
   explainOQL(oql: String!): [String!]!
   featureImportance(modelId: String!): [FeatureImportanceGQL!]!
+  federatedQuery(id: ID!): FederatedQueryGQL
+  federationCacheStats: FederationCacheStatsGQL!
+  federationEngine(id: ID!): FederationEngineGQL
+  federationEngines: [FederationEngineGQL!]!
   forecastJob(id: ID!): ForecastJob
   forecastJobs: [ForecastJob!]!
   generatedModel(id: ID!): GeneratedModel!
@@ -1195,6 +1249,7 @@ type Query {
   profilingJob(id: ID!): ProfilingJob!
   profilingJobs(connectionId: String): [ProfilingJob!]!
   profilingStats(connectionId: String): String!
+  queryPlanCache: [QueryPlanCacheEntryGQL!]!
   recentIntents(limit: Int = 10): [ParsedIntent!]!
   rlsPolicies(modelId: String): [RLSPolicy!]!
   rlsPolicy(id: ID!): RLSPolicy!
@@ -1219,11 +1274,29 @@ input QueryExecutionInput {
   query: String!
 }
 
+type QueryPlanCacheEntryGQL {
+  engine: String!
+  expiresAt: DateTime!
+  hitCount: Int!
+  id: ID!
+  lastAccessed: DateTime!
+  plan: String!
+  queryHash: String!
+  resultPreview: String!
+}
+
 type QueryResult {
   columns: [ColumnInfo!]!
   executionTimeMs: Float!
   rowCount: Float!
   rows: JSON!
+}
+
+type QueryResultGQL {
+  columns: [ColumnDefGQL!]!
+  executionTimeMs: Float!
+  rowCount: Int!
+  rows: [JSON!]!
 }
 
 type RLSPolicy {

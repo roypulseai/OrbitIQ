@@ -67,6 +67,8 @@ import { HypothesisService } from "./services/hypothesis.service";
 import { ExperimentationService } from "./services/experimentation.service";
 import { MLResolver } from "./resolvers/ml.resolver";
 import { MLService } from "./services/ml.service";
+import { FederationResolver } from "./resolvers/federation.resolver";
+import { FederationService } from "./services/federation.service";
 
 @Module({
   imports: [
@@ -146,6 +148,8 @@ import { MLService } from "./services/ml.service";
     ExperimentationService,
     MLResolver,
     MLService,
+    FederationResolver,
+    FederationService,
   ],
 })
 export class AppModule {}

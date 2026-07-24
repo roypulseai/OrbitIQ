@@ -2483,3 +2483,76 @@ export class RegisterModelInput {
   @Field(() => GraphQLJSON) metrics!: Record<string, number>;
   @Field({ nullable: true }) description?: string;
 }
+
+// ─── Sprint 22: Federated Query Engine ───────────────────────────────────────
+
+@ObjectType()
+export class FederationEngineGQL {
+  @Field(() => ID) id!: string;
+  @Field() name!: string;
+  @Field() type!: string;
+  @Field() status!: string;
+  @Field(() => [String]) endpoints!: string[];
+  @Field(() => [String]) capabilities!: string[];
+  @Field(() => Int) maxConnections!: number;
+  @Field(() => Int) activeConnections!: number;
+  @Field(() => Float) avgLatencyMs!: number;
+  @Field(() => Int) queriesProcessed!: number;
+}
+
+@ObjectType()
+export class ColumnDefGQL {
+  @Field() name!: string;
+  @Field() type!: string;
+  @Field() nullable!: boolean;
+}
+
+@ObjectType()
+export class QueryResultGQL {
+  @Field(() => [ColumnDefGQL]) columns!: ColumnDefGQL[];
+  @Field(() => [GraphQLJSON]) rows!: Record<string, any>[];
+  @Field(() => Int) rowCount!: number;
+  @Field(() => Float) executionTimeMs!: number;
+}
+
+@ObjectType()
+export class FederatedQueryGQL {
+  @Field(() => ID) id!: string;
+  @Field() query!: string;
+  @Field() engine!: string;
+  @Field() status!: string;
+  @Field(() => QueryResultGQL, { nullable: true }) result?: QueryResultGQL;
+  @Field(() => Float) executionTimeMs!: number;
+  @Field() cacheHit!: boolean;
+}
+
+@ObjectType()
+export class QueryPlanCacheEntryGQL {
+  @Field(() => ID) id!: string;
+  @Field() queryHash!: string;
+  @Field() engine!: string;
+  @Field() plan!: string;
+  @Field() resultPreview!: string;
+  @Field(() => Int) hitCount!: number;
+  @Field() lastAccessed!: Date;
+  @Field() expiresAt!: Date;
+}
+
+@ObjectType()
+export class FederationCacheStatsGQL {
+  @Field(() => Int) totalQueries!: number;
+  @Field(() => Int) cacheHits!: number;
+  @Field(() => Int) cacheMisses!: number;
+  @Field(() => Float) hitRate!: number;
+  @Field(() => Int) totalCachedPlans!: number;
+}
+
+@ObjectType()
+export class EngineHealthGQL {
+  @Field() engineId!: string;
+  @Field() engineName!: string;
+  @Field() status!: string;
+  @Field(() => Float) avgLatencyMs!: number;
+  @Field(() => Float) uptimePercent!: number;
+  @Field(() => Int) queriesLast24h!: number;
+}
