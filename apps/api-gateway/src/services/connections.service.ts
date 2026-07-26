@@ -9,7 +9,7 @@ import {
   TableSample,
   ConnectionStatus,
 } from "../schema";
-import { connectorRegistry, Connector, PostgreSQLConnector } from "@orbitiq/connector-sdk";
+import { connectorRegistry, Connector, PostgreSQLConnector, MySQLConnector, DuckDBConnector } from "@orbitiq/connector-sdk";
 
 interface ConnectionRecord {
   id: string;
@@ -30,7 +30,15 @@ export class ConnectionsService {
   private connections: Map<string, ConnectionRecord> = new Map();
 
   constructor() {
-    connectorRegistry.register(new PostgreSQLConnector());
+    if (!connectorRegistry.has("postgresql")) {
+      connectorRegistry.register(new PostgreSQLConnector());
+    }
+    if (!connectorRegistry.has("mysql")) {
+      connectorRegistry.register(new MySQLConnector());
+    }
+    if (!connectorRegistry.has("duckdb")) {
+      connectorRegistry.register(new DuckDBConnector());
+    }
   }
 
   async findAll(workspaceId: string): Promise<ConnectionRecord[]> {

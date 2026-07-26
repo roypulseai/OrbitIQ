@@ -44,6 +44,7 @@ import {
   Network,
   Gauge,
   Rocket,
+  Upload,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 
@@ -67,6 +68,7 @@ const navigation = [
     group: "Data",
     items: [
       { name: "Connections", href: "/dashboard/connections", icon: Database },
+      { name: "Ingestion", href: "/dashboard/ingestion", icon: Upload },
       { name: "Relationships", href: "/dashboard/relationships", icon: Link2 },
       { name: "Data Prep", href: "/dashboard/data-prep", icon: Wrench },
     ],

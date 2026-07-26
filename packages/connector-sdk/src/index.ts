@@ -6,3 +6,4 @@ export * from "./connectors/postgresql";
 export * from "./connectors/snowflake";
 export * from "./connectors/bigquery";
 export * from "./connectors/mysql";
+export * from "./connectors/duckdb";

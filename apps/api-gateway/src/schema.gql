@@ -784,6 +784,48 @@ type GAReport {
   warnings: Int!
 }
 
+type GQLDuckDBTable {
+  createdAt: DateTime!
+  databasePath: String!
+  fileId: ID!
+  id: ID!
+  schema: String!
+  tableName: String!
+}
+
+type GQLSchemaColumn {
+  cardinality: Int!
+  detectedFormat: String
+  inferredType: String!
+  maxLength: Int
+  name: String!
+  nullPercentage: Float!
+  sampleValues: [String!]!
+}
+
+type GQLSchemaProfile {
+  columnCount: Int!
+  columns: [GQLSchemaColumn!]!
+  errorMessage: String
+  fileId: ID!
+  id: ID!
+  profiledAt: DateTime!
+  rowCount: Int!
+  status: String!
+  tableName: String!
+}
+
+type GQLUploadedFile {
+  id: ID!
+  mimeType: String!
+  originalName: String!
+  sizeBytes: Int!
+  storedPath: String!
+  uploadedAt: DateTime!
+  uploadedBy: String!
+  workspaceId: ID!
+}
+
 type GeneratedDimension {
   confidence: Float!
   dataType: String!
@@ -870,6 +912,11 @@ type InferredRelationship {
   status: String!
   targetColumn: String!
   targetTable: String!
+}
+
+input IngestToDuckDBInput {
+  fileId: ID!
+  tableName: String
 }
 
 type IntentStats {
@@ -1090,6 +1137,7 @@ type Mutation {
   deleteConnection(id: ID!): Boolean!
   deleteDashboard(id: ID!): Boolean!
   deleteDataPipeline(id: ID!): Boolean!
+  deleteIngestedTable(tableId: String!): Boolean!
   deleteKGEntity(id: ID!): Boolean!
   deleteRLSPolicy(id: ID!): Boolean!
   deleteRelationship(id: ID!): Boolean!
@@ -1102,10 +1150,12 @@ type Mutation {
   generateModel(connectionId: String!, profilingJobId: String!): GeneratedModel!
   getSupportedExportFormats: [String!]!
   indexConnectionToCatalog(connectionId: String!): String!
+  ingestToDuckDB(input: IngestToDuckDBInput!): GQLDuckDBTable!
   invalidateCache(input: InvalidateCacheInput!): Boolean!
   invalidateQueryCache(id: ID!): Boolean!
   parseIntent(modelId: String, query: String!): ParsedIntent!
   pauseCDC(id: ID!): CDCPipelineGQL
+  profileFile(input: ProfileFileInput!): GQLSchemaProfile!
   promoteModel(id: ID!, stage: String!): ModelRegistryEntry
   publishModel(id: ID!): GeneratedModel!
   publishSemanticModel(id: ID!): SemanticModel!
@@ -1162,6 +1212,7 @@ type Mutation {
   updateTransformStep(id: ID!, input: UpdateTransformStepInput!): TransformStep!
   updateUser(id: ID!, input: UpdateUserInput!): User!
   updateWorkspace(id: ID!, input: UpdateWorkspaceInput!): Workspace!
+  uploadFile(uploadedBy: String!, workspaceId: String!): GQLUploadedFile!
   validateOQL(oql: String!): OQLValidateResult!
 }
 
@@ -1251,6 +1302,10 @@ type PermissionCheck {
   granted: Boolean!
   permission: String!
   reason: String
+}
+
+input ProfileFileInput {
+  fileId: ID!
 }
 
 type ProfilingJob {
@@ -1346,6 +1401,7 @@ type Query {
   getModelColumns(tableId: String!): [ModelColumn!]!
   getModelMeasures(modelId: String!): [ModelMeasure!]!
   getModelTables(modelId: String!): [ModelTable!]!
+  getProfile(id: String!): GQLSchemaProfile!
   getPublicLinks(dashboardId: String!): [PublicLink!]!
   getRelationship(id: ID!): Relationship!
   getRelationships(modelId: String!): [Relationship!]!
@@ -1367,8 +1423,10 @@ type Query {
   kgStats: String!
   kgVerticals: [VerticalInfo!]!
   listColumns(connectionId: String!, schema: String!, table: String!): [ColumnInfo!]!
+  listIngestedTables: [GQLDuckDBTable!]!
   listSchemas(connectionId: String!): [SchemaInfo!]!
   listTables(connectionId: String!, schema: String): [TableInfo!]!
+  listUploads(workspaceId: String!): [GQLUploadedFile!]!
   loadTest(id: ID!): LoadTestGQL
   loadTests: [LoadTestGQL!]!
   me: User!

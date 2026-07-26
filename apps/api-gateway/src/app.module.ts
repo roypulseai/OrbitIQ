@@ -73,6 +73,10 @@ import { PerformanceResolver } from "./resolvers/performance.resolver";
 import { PerformanceService } from "./services/performance.service";
 import { GAChecklistResolver } from "./resolvers/ga-checklist.resolver";
 import { GAChecklistService } from "./services/ga-checklist.service";
+import { IngestionService } from "./services/ingestion.service";
+import { RealProfilingService } from "./services/real-profiling.service";
+import { IngestionResolver } from "./resolvers/ingestion.resolver";
+import { FileUploadController } from "./controllers/file-upload.controller";
 
 @Module({
   imports: [
@@ -158,6 +162,10 @@ import { GAChecklistService } from "./services/ga-checklist.service";
     PerformanceService,
     GAChecklistResolver,
     GAChecklistService,
+    IngestionService,
+    RealProfilingService,
+    IngestionResolver,
   ],
+  controllers: [FileUploadController],
 })
 export class AppModule {}
