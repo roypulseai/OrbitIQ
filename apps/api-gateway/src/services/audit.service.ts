@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { PrismaService } from "./prisma.service";
 import { AuditLog } from "../schema";
 
 interface AuditLogRecord {
@@ -21,39 +22,44 @@ interface AuditLogInput {
 
 @Injectable()
 export class AuditService {
-  private logs: AuditLogRecord[] = [];
+  constructor(private readonly prisma: PrismaService) {}
 
   async log(input: AuditLogInput): Promise<void> {
-    const log: AuditLogRecord = {
-      id: crypto.randomUUID(),
-      orgId: input.orgId || "system",
-      actorId: input.actorId || "system",
-      action: input.action,
-      target: input.target,
-      metadata: input.metadata || {},
-      timestamp: new Date(),
-    };
-    this.logs.push(log);
+    await this.prisma.auditLog.create({
+      data: {
+        orgId: input.orgId || "system",
+        actorId: input.actorId || "system",
+        action: input.action,
+        target: input.target,
+        metadata: JSON.stringify(input.metadata || {}),
+      },
+    });
   }
 
   async findAll(orgId: string, limit: number = 100): Promise<AuditLogRecord[]> {
-    return this.logs
-      .filter((l) => l.orgId === orgId)
-      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
-      .slice(0, limit);
+    const logs = await this.prisma.auditLog.findMany({
+      where: { orgId },
+      orderBy: { timestamp: "desc" },
+      take: limit,
+    });
+    return logs.map((l) => ({ ...l, metadata: JSON.parse(l.metadata || "{}") }));
   }
 
   async findByAction(action: string, limit: number = 100): Promise<AuditLogRecord[]> {
-    return this.logs
-      .filter((l) => l.action === action)
-      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
-      .slice(0, limit);
+    const logs = await this.prisma.auditLog.findMany({
+      where: { action },
+      orderBy: { timestamp: "desc" },
+      take: limit,
+    });
+    return logs.map((l) => ({ ...l, metadata: JSON.parse(l.metadata || "{}") }));
   }
 
   async findByTarget(target: string, limit: number = 100): Promise<AuditLogRecord[]> {
-    return this.logs
-      .filter((l) => l.target === target)
-      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
-      .slice(0, limit);
+    const logs = await this.prisma.auditLog.findMany({
+      where: { target },
+      orderBy: { timestamp: "desc" },
+      take: limit,
+    });
+    return logs.map((l) => ({ ...l, metadata: JSON.parse(l.metadata || "{}") }));
   }
 }

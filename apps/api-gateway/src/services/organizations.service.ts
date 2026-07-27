@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
+import { PrismaService } from "./prisma.service";
 import { CreateOrganizationInput } from "../schema";
 
 interface OrganizationRecord {
@@ -12,30 +13,25 @@ interface OrganizationRecord {
 
 @Injectable()
 export class OrganizationsService {
-  private organizations: Map<string, OrganizationRecord> = new Map();
+  constructor(private readonly prisma: PrismaService) {}
 
   async findAll(): Promise<OrganizationRecord[]> {
-    return Array.from(this.organizations.values());
+    return this.prisma.organization.findMany();
   }
 
   async findOne(id: string): Promise<OrganizationRecord> {
-    const org = this.organizations.get(id);
-    if (!org) {
-      throw new NotFoundException(`Organization ${id} not found`);
-    }
+    const org = await this.prisma.organization.findUnique({ where: { id } });
+    if (!org) throw new NotFoundException(`Organization ${id} not found`);
     return org;
   }
 
   async create(input: CreateOrganizationInput): Promise<OrganizationRecord> {
-    const org: OrganizationRecord = {
-      id: crypto.randomUUID(),
-      name: input.name,
-      region: input.region,
-      compliancePackId: input.compliancePackId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    this.organizations.set(org.id, org);
-    return org;
+    return this.prisma.organization.create({
+      data: {
+        name: input.name,
+        region: input.region,
+        compliancePackId: input.compliancePackId,
+      },
+    });
   }
 }

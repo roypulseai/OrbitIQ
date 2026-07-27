@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
+import { PrismaService } from "./prisma.service";
 import { CreateWorkspaceInput, UpdateWorkspaceInput } from "../schema";
 
 interface WorkspaceRecord {
@@ -12,49 +13,42 @@ interface WorkspaceRecord {
 
 @Injectable()
 export class WorkspacesService {
-  private workspaces: Map<string, WorkspaceRecord> = new Map();
+  constructor(private readonly prisma: PrismaService) {}
 
   async findAll(orgId: string): Promise<WorkspaceRecord[]> {
-    return Array.from(this.workspaces.values()).filter(
-      (w) => w.orgId === orgId
-    );
+    return this.prisma.workspace.findMany({ where: { orgId } });
   }
 
   async findOne(id: string): Promise<WorkspaceRecord> {
-    const workspace = this.workspaces.get(id);
-    if (!workspace) {
-      throw new NotFoundException(`Workspace ${id} not found`);
-    }
-    return workspace;
+    const ws = await this.prisma.workspace.findUnique({ where: { id } });
+    if (!ws) throw new NotFoundException(`Workspace ${id} not found`);
+    return ws;
   }
 
   async create(input: CreateWorkspaceInput): Promise<WorkspaceRecord> {
-    const workspace: WorkspaceRecord = {
-      id: crypto.randomUUID(),
-      orgId: input.orgId,
-      name: input.name,
-      description: input.description,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    this.workspaces.set(workspace.id, workspace);
-    return workspace;
+    return this.prisma.workspace.create({
+      data: {
+        orgId: input.orgId,
+        name: input.name,
+        description: input.description,
+      },
+    });
   }
 
   async update(id: string, input: UpdateWorkspaceInput): Promise<WorkspaceRecord> {
-    const workspace = await this.findOne(id);
-    const updated = {
-      ...workspace,
-      ...input,
-      updatedAt: new Date(),
-    };
-    this.workspaces.set(id, updated);
-    return updated;
+    await this.findOne(id);
+    return this.prisma.workspace.update({
+      where: { id },
+      data: {
+        ...(input.name && { name: input.name }),
+        ...(input.description !== undefined && { description: input.description }),
+      },
+    });
   }
 
   async delete(id: string): Promise<boolean> {
     await this.findOne(id);
-    this.workspaces.delete(id);
+    await this.prisma.workspace.delete({ where: { id } });
     return true;
   }
 }
