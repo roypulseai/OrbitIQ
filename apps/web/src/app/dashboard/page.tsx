@@ -105,7 +105,7 @@ export default function DashboardPage() {
       <div className="flex items-end justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white tracking-tight">
-            Dashboard
+            Console
           </h1>
           <p className="text-sm text-muted mt-1">
             Welcome back. Here&apos;s what&apos;s happening with your data.

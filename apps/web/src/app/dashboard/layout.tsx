@@ -51,7 +51,7 @@ const navigation = [
   {
     group: "Analytics",
     items: [
-      { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+      { name: "Console", href: "/dashboard", icon: LayoutDashboard },
       { name: "Explore", href: "/dashboard/explore", icon: Search },
       { name: "Models", href: "/dashboard/models", icon: Box },
       { name: "Dashboards", href: "/dashboard/dashboards", icon: LayoutDashboard },
