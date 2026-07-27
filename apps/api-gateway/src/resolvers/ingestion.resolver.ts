@@ -1,6 +1,7 @@
 import { Resolver, Query, Mutation, Args, ID } from "@nestjs/graphql";
 import { ObjectType, Field, InputType, Float, Int } from "@nestjs/graphql";
 import { IngestionService, UploadedFile, SchemaColumn, SchemaProfile, DuckDBTable, SchemaDrift } from "../services/ingestion.service";
+import { OQLService } from "../services/oql.service";
 
 @ObjectType()
 export class GQLSchemaColumn {
@@ -101,9 +102,29 @@ export class RefreshTableInput {
   @Field(() => ID) fileId: string;
 }
 
+@ObjectType()
+export class GQLExecuteResult {
+  @Field(() => [String]) columns: string[];
+  @Field(() => String) rows: string;
+  @Field(() => Int) rowCount: number;
+  @Field(() => Int) executionTimeMs: number;
+  @Field() sql: string;
+  @Field(() => [String]) warnings: string[];
+}
+
+@InputType()
+export class ExecuteOQLInput {
+  @Field() oql: string;
+  @Field(() => ID) tableId: string;
+  @Field({ nullable: true, defaultValue: "postgresql" }) dialect?: string;
+}
+
 @Resolver()
 export class IngestionResolver {
-  constructor(private readonly ingestionService: IngestionService) {}
+  constructor(
+    private readonly ingestionService: IngestionService,
+    private readonly oqlService: OQLService,
+  ) {}
 
   @Query(() => [GQLUploadedFile])
   async listUploads(@Args("workspaceId") workspaceId: string): Promise<GQLUploadedFile[]> {
@@ -167,6 +188,47 @@ export class IngestionResolver {
     return {
       table: result.table,
       drift: result.drift,
+    };
+  }
+
+  @Query(() => [GQLDuckDBTable])
+  async allIngestedTables(): Promise<GQLDuckDBTable[]> {
+    return this.ingestionService.listAllTables() as any;
+  }
+
+  @Mutation(() => GQLExecuteResult)
+  async executeOQLAgainstTable(@Args("input") input: ExecuteOQLInput): Promise<GQLExecuteResult> {
+    const tableRecord = await (this.ingestionService as any).prisma.ingestedTable.findUnique({ where: { id: input.tableId } });
+    if (!tableRecord) throw new Error(`Table ${input.tableId} not found`);
+
+    const compilation = this.oqlService.compile(input.oql, input.dialect || "postgresql");
+    const result = await this.ingestionService.executeSQL(compilation.sql, tableRecord.databasePath);
+    return {
+      columns: result.columns,
+      rows: JSON.stringify(result.rows),
+      rowCount: result.rowCount,
+      executionTimeMs: result.executionTimeMs,
+      sql: compilation.sql,
+      warnings: compilation.warnings,
+    };
+  }
+
+  @Mutation(() => GQLExecuteResult)
+  async executeRawSQL(@Args("sql") sql: string, @Args("tableId", { nullable: true }) tableId?: string): Promise<GQLExecuteResult> {
+    let dbPath: string | undefined;
+    if (tableId) {
+      const tableRecord = await (this.ingestionService as any).prisma.ingestedTable.findUnique({ where: { id: tableId } });
+      if (!tableRecord) throw new Error(`Table ${tableId} not found`);
+      dbPath = tableRecord.databasePath;
+    }
+    const result = await this.ingestionService.executeSQL(sql, dbPath);
+    return {
+      columns: result.columns,
+      rows: JSON.stringify(result.rows),
+      rowCount: result.rowCount,
+      executionTimeMs: result.executionTimeMs,
+      sql,
+      warnings: [],
     };
   }
 }

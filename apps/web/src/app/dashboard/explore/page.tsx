@@ -1,58 +1,123 @@
 "use client";
 
-import { useState } from "react";
-import { Search, Sparkles, ArrowRight, Loader2, Code } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Search, Sparkles, ArrowRight, Loader2, Code, Database } from "lucide-react";
 
-const SUGGESTIONS = [
-  "Revenue by region for last 12 months",
-  "Top 10 customers by lifetime value",
-  "Monthly conversion funnel",
-  "Product performance comparison",
+interface TableInfo { id: string; tableName: string; databasePath: string; }
+
+interface QueryResult {
+  columns: string[];
+  rows: Record<string, unknown>[];
+  rowCount: number;
+  executionTimeMs: number;
+  sql: string;
+  warnings: string[];
+}
+
+async function gqlFetch<T>(query: string, variables?: Record<string, unknown>): Promise<T> {
+  const res = await fetch("http://localhost:4001/graphql", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ query, variables }),
+  });
+  const json = await res.json();
+  if (json.errors) throw new Error(json.errors[0]?.message || "GraphQL error");
+  return json.data;
+}
+
+const OQL_EXAMPLES = [
+  { label: "SELECT * FROM table LIMIT 10", description: "Browse table" },
+  { label: "SELECT region, SUM(revenue) FROM sales GROUP BY region ORDER BY revenue DESC", description: "Aggregation" },
+  { label: "SELECT department, COUNT(*) as headcount FROM employees GROUP BY department", description: "Count by group" },
 ];
 
-const DEMO_RESULT = {
-  data: [
-    { region: "North America", revenue: 1250000 },
-    { region: "Europe", revenue: 980000 },
-    { region: "Asia Pacific", revenue: 750000 },
-    { region: "Latin America", revenue: 420000 },
-  ],
-  chartType: "bar" as const,
-  xField: "region",
-  yField: "revenue",
-  sql: "SELECT region, SUM(revenue) AS revenue FROM sales GROUP BY region ORDER BY revenue DESC",
-  executionTimeMs: 142,
-  intent: "Aggregate revenue by region",
-  metric: "SUM(revenue)",
-  dimension: "region",
-  source: "sales",
-};
-
 export default function ExplorePage() {
-  const [query, setQuery] = useState("");
-  const [result, setResult] = useState<typeof DEMO_RESULT | null>(null);
+  const [tables, setTables] = useState<TableInfo[]>([]);
+  const [selectedTable, setSelectedTable] = useState<string>("");
+  const [oql, setOql] = useState("");
+  const [result, setResult] = useState<QueryResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [schemaPreview, setSchemaPreview] = useState<{ columns: string[]; rows: Record<string, unknown>[] } | null>(null);
 
-  const handleQuery = async (q?: string) => {
-    const queryStr = q || query;
-    if (!queryStr.trim()) return;
+  const fetchTables = useCallback(async () => {
+    try {
+      const data = await gqlFetch<{ allIngestedTables: TableInfo[] }>(
+        `query { allIngestedTables { id tableName databasePath } }`
+      );
+      setTables(data.allIngestedTables);
+      if (data.allIngestedTables.length > 0 && !selectedTable) {
+        setSelectedTable(data.allIngestedTables[0].id);
+      }
+    } catch { /* tables not loaded yet */ }
+  }, [selectedTable]);
+
+  useEffect(() => { fetchTables(); }, []);
+
+  useEffect(() => {
+    if (!selectedTable) { setSchemaPreview(null); return; }
+    gqlFetch<{ queryTable: { columns: string[]; rows: string; rowCount: number } }>(
+      `query Preview($tableId: String!) { queryTable(tableId: $tableId, limit: 5, offset: 0) { columns rows rowCount } }`,
+      { tableId: selectedTable }
+    ).then(data => {
+      setSchemaPreview({ columns: data.queryTable.columns, rows: JSON.parse(data.queryTable.rows) });
+    }).catch(() => setSchemaPreview(null));
+  }, [selectedTable]);
+
+  const handleExecute = async (queryOverride?: string) => {
+    const q = (queryOverride || oql).trim();
+    if (!q || !selectedTable) return;
     setIsLoading(true);
+    setError(null);
     setResult(null);
-    await new Promise((r) => setTimeout(r, 1200));
-    setResult(DEMO_RESULT);
-    setIsLoading(false);
+    try {
+      const data = await gqlFetch<{ executeRawSQL: QueryResult }>(
+        `mutation Exec($sql: String!, $tableId: String) { executeRawSQL(sql: $sql, tableId: $tableId) { columns rows rowCount executionTimeMs sql warnings } }`,
+        { sql: q, tableId: selectedTable }
+      );
+      const r = data.executeRawSQL;
+      setResult({ ...r, rows: JSON.parse(r.rows as any) });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Query failed");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const maxRevenue = Math.max(...DEMO_RESULT.data.map((d) => d.revenue));
+  const tableName = tables.find(t => t.id === selectedTable)?.tableName || "";
 
   return (
     <div className="page-content animate-fade-in">
-      {/* AI Query Bar */}
-      <div className="max-w-3xl mx-auto mb-8">
+      <div className="max-w-4xl mx-auto mb-8">
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-white tracking-tight">Explore</h1>
-          <p className="text-sm text-muted mt-1">Ask a question about your data in natural language.</p>
+          <p className="text-sm text-muted mt-1">Query your ingested data with SQL or OQL.</p>
         </div>
+
+        {tables.length > 0 && (
+          <div className="flex items-center gap-3 mb-4">
+            <Database className="w-4 h-4 text-accent" />
+            <select
+              className="input-dark text-sm"
+              value={selectedTable}
+              onChange={(e) => setSelectedTable(e.target.value)}
+            >
+              {tables.map(t => (
+                <option key={t.id} value={t.id}>{t.tableName}</option>
+              ))}
+            </select>
+            {schemaPreview && (
+              <span className="text-xs text-surface-6">{schemaPreview.columns.length} columns, {schemaPreview.rows.length} preview rows</span>
+            )}
+          </div>
+        )}
+
+        {tables.length === 0 && (
+          <div className="surface-card p-6 text-center mb-4">
+            <Database className="w-8 h-8 text-surface-6 mx-auto mb-2" />
+            <p className="text-sm text-muted">No ingested tables yet. Upload a file in the <strong>Ingestion</strong> page first.</p>
+          </div>
+        )}
 
         <div className="relative">
           <div className="absolute left-4 top-1/2 -translate-y-1/2">
@@ -60,15 +125,16 @@ export default function ExplorePage() {
           </div>
           <input
             type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleQuery()}
-            placeholder="Ask anything about your data..."
-            className="w-full bg-surface-2 border border-border rounded-xl pl-12 pr-24 py-4 text-white text-base placeholder-surface-6 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent/30 transition-all shadow-card"
+            value={oql}
+            onChange={(e) => setOql(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleExecute()}
+            placeholder={selectedTable ? `SELECT * FROM ${tableName} LIMIT 10` : "Select a table first..."}
+            className="w-full bg-surface-2 border border-border rounded-xl pl-12 pr-24 py-4 text-white text-sm font-mono placeholder-surface-6 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent/30 transition-all shadow-card"
+            disabled={!selectedTable}
           />
           <button
-            onClick={() => handleQuery()}
-            disabled={isLoading || !query.trim()}
+            onClick={() => handleExecute()}
+            disabled={isLoading || !oql.trim() || !selectedTable}
             className="absolute right-2 top-1/2 -translate-y-1/2 btn-primary px-4 py-2 disabled:opacity-30"
           >
             {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
@@ -76,52 +142,68 @@ export default function ExplorePage() {
         </div>
 
         <div className="flex flex-wrap gap-2 mt-3 justify-center">
-          {SUGGESTIONS.map((s) => (
+          {OQL_EXAMPLES.map((ex) => (
             <button
-              key={s}
-              onClick={() => { setQuery(s); handleQuery(s); }}
+              key={ex.label}
+              onClick={() => { setOql(ex.label); handleExecute(ex.label); }}
               className="px-3 py-1.5 text-xs text-muted bg-surface-2 border border-border rounded-lg hover:border-accent/30 hover:text-accent transition-colors"
+              disabled={!selectedTable}
             >
-              {s}
+              {ex.description}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Loading */}
       {isLoading && (
         <div className="text-center py-16 animate-fade-in">
           <Loader2 className="w-8 h-8 text-accent animate-spin mx-auto mb-3" />
-          <p className="text-sm text-muted">Analyzing your question...</p>
+          <p className="text-sm text-muted">Executing query...</p>
         </div>
       )}
 
-      {/* Results */}
+      {error && (
+        <div className="max-w-4xl mx-auto surface-card p-4 mb-4 border border-danger/30">
+          <p className="text-sm text-danger">{error}</p>
+        </div>
+      )}
+
       {result && !isLoading && (
-        <div className="max-w-3xl mx-auto space-y-4 animate-slide-up">
-          {/* Chart */}
+        <div className="max-w-4xl mx-auto space-y-4 animate-slide-up">
           <div className="surface-card p-5">
-            <h3 className="text-sm font-semibold text-white mb-4">Revenue by Region</h3>
-            <div className="space-y-3">
-              {result.data.map((d) => (
-                <div key={d.region} className="flex items-center gap-4">
-                  <span className="text-xs text-muted w-28 shrink-0">{d.region}</span>
-                  <div className="flex-1 bg-surface-3 rounded-full h-6 overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-accent to-purple-500 rounded-full flex items-center justify-end pr-2 transition-all duration-700"
-                      style={{ width: `${(d.revenue / maxRevenue) * 100}%` }}
-                    >
-                      <span className="text-[10px] font-bold text-white">
-                        ${(d.revenue / 1000).toFixed(0)}K
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-white">Results</h3>
+              <span className="text-xs text-surface-6">{result.rowCount} rows in {result.executionTimeMs}ms</span>
             </div>
+            {result.rows.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-border">
+                      {result.columns.map(col => (
+                        <th key={col} className="text-left py-2 px-3 text-muted font-medium">{col}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {result.rows.slice(0, 50).map((row, i) => (
+                      <tr key={i} className="border-b border-border/50 hover:bg-surface-3/50">
+                        {result.columns.map(col => (
+                          <td key={col} className="py-2 px-3 text-white font-mono">{String(row[col] ?? "")}</td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {result.rowCount > 50 && (
+                  <p className="text-xs text-surface-6 mt-2 text-center">Showing 50 of {result.rowCount} rows</p>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-muted">No results returned.</p>
+            )}
           </div>
 
-          {/* SQL */}
           <div className="bg-surface-2 border border-border rounded-xl overflow-hidden">
             <div className="flex items-center justify-between px-4 py-2 border-b border-border">
               <span className="text-[11px] text-muted uppercase tracking-wider flex items-center gap-1.5">
@@ -132,35 +214,26 @@ export default function ExplorePage() {
             <pre className="p-4 text-sm font-mono text-green-400 overflow-x-auto">{result.sql}</pre>
           </div>
 
-          {/* Show your work */}
-          <div className="surface-card p-4">
-            <h4 className="text-xs font-semibold text-white mb-3">How I got this</h4>
-            <div className="grid grid-cols-2 gap-3 text-xs">
-              {[
-                { label: "Intent", value: result.intent },
-                { label: "Metric", value: result.metric },
-                { label: "Dimension", value: result.dimension },
-                { label: "Source", value: result.source },
-              ].map((item) => (
-                <div key={item.label} className="bg-surface-3 rounded-lg p-2.5">
-                  <span className="text-muted block mb-0.5">{item.label}</span>
-                  <span className="text-white font-medium">{item.value}</span>
-                </div>
+          {result.warnings.length > 0 && (
+            <div className="surface-card p-3 border border-yellow-500/30">
+              {result.warnings.map((w, i) => (
+                <p key={i} className="text-xs text-yellow-400">{w}</p>
               ))}
             </div>
-          </div>
+          )}
         </div>
       )}
 
-      {/* Empty State */}
-      {!result && !isLoading && (
+      {!result && !isLoading && !error && (
         <div className="text-center py-16">
           <div className="w-16 h-16 rounded-2xl bg-surface-2 border border-border flex items-center justify-center mx-auto mb-4">
             <Search className="w-7 h-7 text-surface-6" />
           </div>
-          <h3 className="text-sm font-medium text-white mb-1">Your visualization will appear here</h3>
+          <h3 className="text-sm font-medium text-white mb-1">Your results will appear here</h3>
           <p className="text-xs text-muted max-w-sm mx-auto">
-            Connect to a data source and ask a question to get started. The AI will generate a dashboard based on your request.
+            {tables.length > 0
+              ? "Select a table and write a SQL query to explore your data."
+              : "Upload a data file in the Ingestion page to get started."}
           </p>
         </div>
       )}

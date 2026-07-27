@@ -359,6 +359,33 @@ export class IngestionService {
     });
   }
 
+  async executeSQL(sql: string, databasePath?: string): Promise<{ columns: string[]; rows: Record<string, unknown>[]; rowCount: number; executionTimeMs: number }> {
+    const duckdb = require("duckdb");
+    const dbPath = databasePath || path.join(this.storageDir, "ingestion.duckdb");
+    const start = Date.now();
+    return new Promise((resolve, reject) => {
+      const db = new duckdb.Database(dbPath, (err: Error | null) => {
+        if (err) return reject(err);
+        db.all(sql, (err2: Error | null, rows: any[]) => {
+          db.close(() => {});
+          if (err2) return reject(err2);
+          const columns = rows.length > 0 ? Object.keys(rows[0]) : [];
+          resolve({
+            columns,
+            rows,
+            rowCount: rows.length,
+            executionTimeMs: Date.now() - start,
+          });
+        });
+      });
+    });
+  }
+
+  async listAllTables(): Promise<{ id: string; tableName: string; databasePath: string; rowCount?: number }[]> {
+    const tables = await this.prisma.ingestedTable.findMany({ orderBy: { createdAt: "desc" } });
+    return tables.map(t => ({ id: t.id, tableName: t.tableName, databasePath: t.databasePath }));
+  }
+
   async deleteTable(tableId: string): Promise<boolean> {
     const tableRecord = await this.prisma.ingestedTable.findUnique({ where: { id: tableId } });
     if (!tableRecord) throw new NotFoundException(`Table ${tableId} not found`);
