@@ -1,8 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import embed from "vega-embed";
-import { VisualizationSpec } from "vega-embed";
+import { useEffect, useRef, useState } from "react";
 
 export type ChartType =
   | "bar"
@@ -27,7 +25,7 @@ interface ChartProps {
   onBarClick?: (field: string, value: unknown) => void;
 }
 
-export function Chart({
+function ChartInner({
   data,
   chartType,
   xField,
@@ -55,9 +53,13 @@ export function Chart({
       height: height - 16,
     });
 
+    let cancelled = false;
+
     const embedChart = async () => {
       try {
-        const result = await embed(containerRef.current!, spec as VisualizationSpec, {
+        const { default: embed } = await import("vega-embed");
+        if (cancelled || !containerRef.current) return;
+        const result = await embed(containerRef.current, spec as any, {
           actions: false,
           renderer: "svg",
         });
@@ -77,6 +79,7 @@ export function Chart({
     embedChart();
 
     return () => {
+      cancelled = true;
       if (containerRef.current) {
         containerRef.current.innerHTML = "";
       }
@@ -101,6 +104,31 @@ export function Chart({
       style={{ width: width - 16, height: height - 16 }}
     />
   );
+}
+
+function ChartLoading({ width = 400, height = 300, className }: { width?: number; height?: number; className?: string }) {
+  return (
+    <div
+      className={`flex items-center justify-center bg-surface-3 rounded-lg animate-pulse ${className}`}
+      style={{ width: width - 16, height: height - 16 }}
+    >
+      <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+}
+
+export function Chart(props: ChartProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <ChartLoading width={props.width} height={props.height} className={props.className} />;
+  }
+
+  return <ChartInner {...props} />;
 }
 
 interface VegaLiteSpecConfig {

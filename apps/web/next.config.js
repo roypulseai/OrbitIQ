@@ -6,6 +6,12 @@ const nextConfig = {
       bodySizeLimit: "2mb",
     },
   },
+  modularizeImports: {
+    "lucide-react": {
+      transform: "lucide-react/dist/esm/icons/{{ kebabCase member }}",
+    },
+  },
+  poweredByHeader: false,
 };
 
 module.exports = nextConfig;

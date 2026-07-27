@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Search, Sparkles, ArrowRight, Loader2, Code, Database } from "lucide-react";
+import { gqlFetch } from "@/lib/gql";
 
 interface TableInfo { id: string; tableName: string; databasePath: string; }
 
@@ -12,17 +13,6 @@ interface QueryResult {
   executionTimeMs: number;
   sql: string;
   warnings: string[];
-}
-
-async function gqlFetch<T>(query: string, variables?: Record<string, unknown>): Promise<T> {
-  const res = await fetch("http://localhost:4001/graphql", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query, variables }),
-  });
-  const json = await res.json();
-  if (json.errors) throw new Error(json.errors[0]?.message || "GraphQL error");
-  return json.data;
 }
 
 const OQL_EXAMPLES = [
@@ -40,19 +30,16 @@ export default function ExplorePage() {
   const [error, setError] = useState<string | null>(null);
   const [schemaPreview, setSchemaPreview] = useState<{ columns: string[]; rows: Record<string, unknown>[] } | null>(null);
 
-  const fetchTables = useCallback(async () => {
-    try {
-      const data = await gqlFetch<{ allIngestedTables: TableInfo[] }>(
-        `query { allIngestedTables { id tableName databasePath } }`
-      );
+  useEffect(() => {
+    gqlFetch<{ allIngestedTables: TableInfo[] }>(
+      `query { allIngestedTables { id tableName databasePath } }`
+    ).then(data => {
       setTables(data.allIngestedTables);
-      if (data.allIngestedTables.length > 0 && !selectedTable) {
+      if (data.allIngestedTables.length > 0) {
         setSelectedTable(data.allIngestedTables[0].id);
       }
-    } catch { /* tables not loaded yet */ }
-  }, [selectedTable]);
-
-  useEffect(() => { fetchTables(); }, []);
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!selectedTable) { setSchemaPreview(null); return; }
@@ -64,7 +51,7 @@ export default function ExplorePage() {
     }).catch(() => setSchemaPreview(null));
   }, [selectedTable]);
 
-  const handleExecute = async (queryOverride?: string) => {
+  const handleExecute = useCallback(async (queryOverride?: string) => {
     const q = (queryOverride || oql).trim();
     if (!q || !selectedTable) return;
     setIsLoading(true);
@@ -82,7 +69,7 @@ export default function ExplorePage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [oql, selectedTable]);
 
   const tableName = tables.find(t => t.id === selectedTable)?.tableName || "";
 

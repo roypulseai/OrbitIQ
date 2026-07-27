@@ -7,21 +7,10 @@ import { DashboardToolbar } from "@/components/dashboard/DashboardToolbar";
 import { GlobalFilterBar } from "@/components/dashboard/GlobalFilterBar";
 import { DashboardCanvas, TileData } from "@/components/dashboard/DashboardCanvas";
 import { DrillDownPanel } from "@/components/dashboard/DrillDownPanel";
+import { TileEditor } from "@/components/dashboard/TileEditor";
+import { gqlFetch } from "@/lib/gql";
 
-const GQL = "http://localhost:4001/graphql";
-
-async function gqlFetch<T>(query: string, variables?: Record<string, unknown>): Promise<T> {
-  const res = await fetch(GQL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query, variables }),
-  });
-  const json = await res.json();
-  if (json.errors) throw new Error(json.errors[0]?.message || "GraphQL error");
-  return json.data;
-}
-
-interface DashboardTile {
+interface DashboardTileRaw {
   id: string;
   chartSpec: string;
   oqlQuery: string;
@@ -32,7 +21,7 @@ interface FetchedDashboard {
   id: string;
   name: string;
   description?: string;
-  tiles: DashboardTile[];
+  tiles: DashboardTileRaw[];
 }
 
 export default function DashboardDetailPage() {
@@ -42,6 +31,7 @@ export default function DashboardDetailPage() {
   const [tiles, setTiles] = useState<TileData[]>([]);
   const [loading, setLoading] = useState(true);
   const [executingTile, setExecutingTile] = useState<string | null>(null);
+  const [editingTileId, setEditingTileId] = useState<string | null>(null);
   const dashboardRef = useRef<HTMLDivElement>(null);
 
   const fetchAndExecuteTiles = useCallback(async () => {
@@ -59,9 +49,7 @@ export default function DashboardDetailPage() {
       const fetched = data.dashboard;
       setDashboard(fetched);
 
-      const tileDataList: TileData[] = [];
-
-      for (const tile of fetched.tiles) {
+      const tilePromises = fetched.tiles.map(async (tile) => {
         const spec = typeof tile.chartSpec === "string" ? JSON.parse(tile.chartSpec) : tile.chartSpec;
         const oql = typeof tile.oqlQuery === "string" ? JSON.parse(tile.oqlQuery) : tile.oqlQuery;
         const pos = typeof tile.position === "string" ? JSON.parse(tile.position) : tile.position;
@@ -88,7 +76,6 @@ export default function DashboardDetailPage() {
 
         const sql = oql.sql || oql.query;
         if (sql) {
-          setExecutingTile(tile.id);
           try {
             const result = await gqlFetch<{ executeTileQuery: any }>(
               `mutation ExecuteTileQuery($tileId: String!, $tableId: String) {
@@ -115,9 +102,10 @@ export default function DashboardDetailPage() {
           }
         }
 
-        tileDataList.push(tileData);
-      }
+        return tileData;
+      });
 
+      const tileDataList = await Promise.all(tilePromises);
       setTiles(tileDataList);
     } catch (err) {
       console.error("Failed to fetch dashboard:", err);
@@ -129,6 +117,73 @@ export default function DashboardDetailPage() {
   useEffect(() => {
     if (dashboardId) fetchAndExecuteTiles();
   }, [dashboardId, fetchAndExecuteTiles]);
+
+  const handleEditTile = useCallback((tileId: string) => {
+    setEditingTileId(tileId);
+  }, []);
+
+  const handleDuplicateTile = useCallback(async (tileId: string) => {
+    const tile = tiles.find(t => t.id === tileId);
+    if (!tile || !dashboard) return;
+    try {
+      await gqlFetch(
+        `mutation AddTile($dashboardId: String!, $input: DashboardTileInput!) {
+          addTileToDashboard(dashboardId: $dashboardId, input: $input) { id }
+        }`,
+        {
+          dashboardId: dashboard.id,
+          input: {
+            title: `${tile.title} (Copy)`,
+            chartType: tile.chartType,
+            oqlQuery: JSON.stringify({ sql: `SELECT * FROM data LIMIT 10` }),
+            chartSpec: JSON.stringify({ title: `${tile.title} (Copy)`, chartType: tile.chartType, xField: tile.xField, yField: tile.yField }),
+            position: JSON.stringify({ x: tile.position.x + tile.position.w, y: tile.position.y, w: tile.position.w, h: tile.position.h }),
+          },
+        }
+      );
+      fetchAndExecuteTiles();
+    } catch (err) {
+      console.error("Failed to duplicate tile:", err);
+    }
+  }, [tiles, dashboard, fetchAndExecuteTiles]);
+
+  const handleRemoveTile = useCallback(async (tileId: string) => {
+    if (!confirm("Remove this tile?")) return;
+    try {
+      await gqlFetch(
+        `mutation RemoveTile($dashboardId: String!, $tileId: String!) {
+          removeTileFromDashboard(dashboardId: $dashboardId, tileId: $tileId)
+        }`,
+        { dashboardId, tileId }
+      );
+      setTiles(prev => prev.filter(t => t.id !== tileId));
+    } catch (err) {
+      console.error("Failed to remove tile:", err);
+    }
+  }, [dashboardId]);
+
+  const handleSaveTile = useCallback(async (updates: { title: string; chartType: string; sql: string }) => {
+    if (!editingTileId) return;
+    try {
+      await gqlFetch(
+        `mutation UpdateTile($tileId: String!, $input: DashboardTileInput!) {
+          updateDashboardTile(tileId: $tileId, input: $input) { id }
+        }`,
+        {
+          tileId: editingTileId,
+          input: {
+            title: updates.title,
+            chartType: updates.chartType,
+            oqlQuery: JSON.stringify({ sql: updates.sql }),
+          },
+        }
+      );
+      setEditingTileId(null);
+      fetchAndExecuteTiles();
+    } catch (err) {
+      console.error("Failed to save tile:", err);
+    }
+  }, [editingTileId, fetchAndExecuteTiles]);
 
   const handleExportPDF = useCallback(async () => {
     try {
@@ -174,6 +229,10 @@ export default function DashboardDetailPage() {
     );
   }
 
+  const editingTile = editingTileId ? tiles.find(t => t.id === editingTileId) : null;
+  const editingTileRaw = editingTileId && dashboard ? dashboard.tiles.find(t => t.id === editingTileId) : null;
+  const editingTileSql = editingTileRaw ? (() => { try { const o = typeof editingTileRaw.oqlQuery === "string" ? JSON.parse(editingTileRaw.oqlQuery) : editingTileRaw.oqlQuery; return o.sql || o.query || ""; } catch { return ""; } })() : "";
+
   return (
     <DashboardProvider>
       <div className="flex flex-col h-full bg-surface-1">
@@ -186,7 +245,12 @@ export default function DashboardDetailPage() {
         <GlobalFilterBar />
         <div ref={dashboardRef} className="flex-1 overflow-y-auto">
           {tiles.length > 0 ? (
-            <DashboardCanvas tiles={tiles} />
+            <DashboardCanvas
+              tiles={tiles}
+              onEditTile={handleEditTile}
+              onDuplicateTile={handleDuplicateTile}
+              onRemoveTile={handleRemoveTile}
+            />
           ) : (
             <div className="flex items-center justify-center h-64 text-slate-500">
               No tiles — add tiles from the Explore page or OQL editor
@@ -195,6 +259,18 @@ export default function DashboardDetailPage() {
         </div>
         <DrillDownPanel />
       </div>
+
+      {editingTile && (
+        <TileEditor
+          tileId={editingTile.id}
+          tileTitle={editingTile.title}
+          tileChartType={editingTile.chartType}
+          tileSql={editingTileSql}
+          onSave={handleSaveTile}
+          onDelete={() => { handleRemoveTile(editingTile.id); setEditingTileId(null); }}
+          onClose={() => setEditingTileId(null)}
+        />
+      )}
     </DashboardProvider>
   );
 }

@@ -3,6 +3,7 @@ import { ObjectType, Field, InputType, Float, Int } from "@nestjs/graphql";
 import { IngestionService, UploadedFile, SchemaColumn, SchemaProfile, DuckDBTable, SchemaDrift } from "../services/ingestion.service";
 import { OQLService } from "../services/oql.service";
 import { RLSService } from "../services/rls.service";
+import { CLSService } from "../services/cls.service";
 import { CacheService } from "../services/cache.service";
 
 @ObjectType()
@@ -128,8 +129,31 @@ export class IngestionResolver {
     private readonly ingestionService: IngestionService,
     private readonly oqlService: OQLService,
     private readonly rlsService: RLSService,
+    private readonly clsService: CLSService,
     private readonly cacheService: CacheService,
   ) {}
+
+  private async applyCLSMasking(rows: Record<string, unknown>[], columns: string[], userId?: string, tableId?: string): Promise<Record<string, unknown>[]> {
+    if (!userId || !tableId || rows.length === 0) return rows;
+
+    const userRoles = ["admin"];
+    const rules = await this.clsService.listRulesForModel("model-1");
+    const applicableRules = rules.filter(
+      r => r.isEnabled && columns.includes(r.columnName) && r.appliesToRoles.some(role => userRoles.includes(role))
+    );
+
+    if (applicableRules.length === 0) return rows;
+
+    return rows.map(row => {
+      const maskedRow = { ...row };
+      for (const rule of applicableRules) {
+        if (maskedRow[rule.columnName] !== undefined && maskedRow[rule.columnName] !== null) {
+          maskedRow[rule.columnName] = this.clsService.applyMasking(maskedRow[rule.columnName], rule, userRoles);
+        }
+      }
+      return maskedRow;
+    });
+  }
 
   @Query(() => [GQLUploadedFile])
   async listUploads(@Args("workspaceId") workspaceId: string): Promise<GQLUploadedFile[]> {
@@ -231,10 +255,11 @@ export class IngestionResolver {
     }
 
     const result = await this.ingestionService.executeSQL(sql, tableRecord.databasePath);
+    const maskedRows = await this.applyCLSMasking(result.rows, result.columns, input.userId, tableRecord.tableName);
     const response = {
       columns: result.columns,
-      rows: JSON.stringify(result.rows),
-      rowCount: result.rowCount,
+      rows: JSON.stringify(maskedRows),
+      rowCount: maskedRows.length,
       executionTimeMs: result.executionTimeMs,
       sql,
       warnings: compilation.warnings,
@@ -275,10 +300,11 @@ export class IngestionResolver {
     }
 
     const result = await this.ingestionService.executeSQL(finalSql, dbPath);
+    const maskedRows = await this.applyCLSMasking(result.rows, result.columns, userId, resolvedTable);
     return {
       columns: result.columns,
-      rows: JSON.stringify(result.rows),
-      rowCount: result.rowCount,
+      rows: JSON.stringify(maskedRows),
+      rowCount: maskedRows.length,
       executionTimeMs: result.executionTimeMs,
       sql: finalSql,
       warnings: [],

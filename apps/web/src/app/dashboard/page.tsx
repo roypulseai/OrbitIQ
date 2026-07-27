@@ -1,10 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import {
-  KpiCard,
-  Card,
-} from "@orbitiq/design-system";
+import { KpiCard, Card } from "@orbitiq/design-system";
 import {
   Database,
   Search,
@@ -16,17 +13,44 @@ import {
   Clock,
   ArrowRight,
 } from "lucide-react";
-import {
-  AreaChart,
-  Area,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
+import dynamic from "next/dynamic";
+
+const AreaChartLazy = dynamic(
+  () => import("recharts").then((mod) => ({ default: mod.AreaChart })),
+  { ssr: false }
+);
+const AreaLazy = dynamic(
+  () => import("recharts").then((mod) => ({ default: mod.Area })),
+  { ssr: false }
+);
+const BarChartLazy = dynamic(
+  () => import("recharts").then((mod) => ({ default: mod.BarChart })),
+  { ssr: false }
+);
+const BarLazy = dynamic(
+  () => import("recharts").then((mod) => ({ default: mod.Bar })),
+  { ssr: false }
+);
+const XAxisLazy = dynamic(
+  () => import("recharts").then((mod) => ({ default: mod.XAxis })),
+  { ssr: false }
+);
+const YAxisLazy = dynamic(
+  () => import("recharts").then((mod) => ({ default: mod.YAxis })),
+  { ssr: false }
+);
+const CartesianGridLazy = dynamic(
+  () => import("recharts").then((mod) => ({ default: mod.CartesianGrid })),
+  { ssr: false }
+);
+const TooltipLazy = dynamic(
+  () => import("recharts").then((mod) => ({ default: mod.Tooltip })),
+  { ssr: false }
+);
+const ResponsiveContainerLazy = dynamic(
+  () => import("recharts").then((mod) => ({ default: mod.ResponsiveContainer })),
+  { ssr: false }
+);
 
 const revenueData = [
   { month: "Jan", revenue: 4200, queries: 240 },
@@ -144,28 +168,28 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className="h-[260px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={revenueData}>
+            <ResponsiveContainerLazy width="100%" height="100%">
+              <AreaChartLazy data={revenueData}>
                 <defs>
                   <linearGradient id="colorQueries" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
                     <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1f1f23" />
-                <XAxis
+                <CartesianGridLazy strokeDasharray="3 3" stroke="#1f1f23" />
+                <XAxisLazy
                   dataKey="month"
                   tick={{ fill: "#88888d", fontSize: 11 }}
                   axisLine={{ stroke: "#1f1f23" }}
                   tickLine={false}
                 />
-                <YAxis
+                <YAxisLazy
                   tick={{ fill: "#88888d", fontSize: 11 }}
                   axisLine={false}
                   tickLine={false}
                 />
-                <Tooltip content={<CustomTooltip />} />
-                <Area
+                <TooltipLazy content={<CustomTooltip />} />
+                <AreaLazy
                   type="monotone"
                   dataKey="queries"
                   name="Queries"
@@ -174,8 +198,8 @@ export default function DashboardPage() {
                   fillOpacity={1}
                   fill="url(#colorQueries)"
                 />
-              </AreaChart>
-            </ResponsiveContainer>
+              </AreaChartLazy>
+            </ResponsiveContainerLazy>
           </div>
         </Card>
 
@@ -228,8 +252,8 @@ export default function DashboardPage() {
             Queries by Source
           </h3>
           <div className="h-[200px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
+            <ResponsiveContainerLazy width="100%" height="100%">
+              <BarChartLazy
                 data={[
                   { source: "PostgreSQL", count: 4200 },
                   { source: "Snowflake", count: 3100 },
@@ -237,27 +261,27 @@ export default function DashboardPage() {
                   { source: "MySQL", count: 1900 },
                 ]}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="#1f1f23" />
-                <XAxis
+                <CartesianGridLazy strokeDasharray="3 3" stroke="#1f1f23" />
+                <XAxisLazy
                   dataKey="source"
                   tick={{ fill: "#88888d", fontSize: 10 }}
                   axisLine={{ stroke: "#1f1f23" }}
                   tickLine={false}
                 />
-                <YAxis
+                <YAxisLazy
                   tick={{ fill: "#88888d", fontSize: 10 }}
                   axisLine={false}
                   tickLine={false}
                 />
-                <Tooltip content={<CustomTooltip />} />
-                <Bar
+                <TooltipLazy content={<CustomTooltip />} />
+                <BarLazy
                   dataKey="count"
                   name="Queries"
                   fill="#6366f1"
                   radius={[4, 4, 0, 0]}
                 />
-              </BarChart>
-            </ResponsiveContainer>
+              </BarChartLazy>
+            </ResponsiveContainerLazy>
           </div>
         </Card>
 

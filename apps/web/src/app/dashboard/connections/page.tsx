@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@orbitiq/design-system";
 import { Database, Plus, Trash2, RefreshCw } from "lucide-react";
+import { gqlFetch } from "@/lib/gql";
 
 interface Connection {
   id: string;
@@ -57,17 +58,6 @@ const TYPE_FIELDS: Record<string, { key: string; label: string; placeholder: str
     { key: "keyFilename", label: "Service Account Key", placeholder: "JSON key file path", type: "password" },
   ],
 };
-
-async function gqlFetch<T>(query: string, variables?: Record<string, unknown>): Promise<T> {
-  const res = await fetch("http://localhost:4001/graphql", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query, variables }),
-  });
-  const json = await res.json();
-  if (json.errors) throw new Error(json.errors[0]?.message || "GraphQL error");
-  return json.data;
-}
 
 export default function ConnectionsPage() {
   const [connections, setConnections] = useState<Connection[]>([]);

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { cn } from "@orbitiq/design-system";
 import {
   LayoutDashboard,
@@ -19,7 +19,6 @@ import {
   Bell,
   Moon,
   Sun,
-  Plus,
   Users,
   Clock,
   Code,
@@ -140,6 +139,20 @@ export default function DashboardLayout({
   const [collapsed, setCollapsed] = useState(false);
   const { theme, setTheme } = useTheme();
 
+  const activeMap = useMemo(() => {
+    const map = new Map<string, boolean>();
+    for (const group of navigation) {
+      for (const item of group.items) {
+        const isActive =
+          item.href === "/dashboard"
+            ? pathname === "/dashboard"
+            : pathname.startsWith(item.href);
+        map.set(item.name, isActive);
+      }
+    }
+    return map;
+  }, [pathname]);
+
   return (
     <div className="flex h-screen overflow-hidden bg-surface-1">
       {/* Sidebar */}
@@ -163,19 +176,6 @@ export default function DashboardLayout({
           </Link>
         </div>
 
-        {/* Quick Add */}
-        <div className="px-3 pt-3 pb-1 shrink-0">
-          <button
-            className={cn(
-              "w-full flex items-center gap-2 rounded-lg bg-accent/10 text-accent hover:bg-accent/20 transition-colors text-sm font-medium",
-              collapsed ? "justify-center px-2 py-2" : "px-3 py-2"
-            )}
-          >
-            <Plus className="w-4 h-4 shrink-0" />
-            {!collapsed && <span>New Query</span>}
-          </button>
-        </div>
-
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto px-3 py-2 space-y-4">
           {navigation.map((group) => (
@@ -187,10 +187,7 @@ export default function DashboardLayout({
               )}
               <div className="space-y-0.5">
                 {group.items.map((item) => {
-                  const isActive =
-                    item.href === "/dashboard"
-                      ? pathname === "/dashboard"
-                      : pathname.startsWith(item.href);
+                  const isActive = activeMap.get(item.name) ?? false;
 
                   return (
                     <Link

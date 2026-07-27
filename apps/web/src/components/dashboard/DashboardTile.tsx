@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useDashboardContext } from "@/contexts/DashboardContext";
 import { Chart, ChartType } from "@/components/charts/Chart";
-import { GripVertical, MoreHorizontal, Expand, X } from "lucide-react";
+import { GripVertical, MoreHorizontal, Expand, X, Pencil, Copy, Trash2 } from "lucide-react";
 
 interface TileProps {
   tile: {
@@ -21,9 +21,12 @@ interface TileProps {
   isEditing: boolean;
   width?: number;
   height?: number;
+  onEdit?: (tileId: string) => void;
+  onDuplicate?: (tileId: string) => void;
+  onRemove?: (tileId: string) => void;
 }
 
-export function DashboardTile({ tile, isEditing }: TileProps) {
+export function DashboardTile({ tile, isEditing, onEdit, onDuplicate, onRemove }: TileProps) {
   const { setCrossFilter, clearCrossFilter, filters, setSelectedTileId } = useDashboardContext();
   const [showMenu, setShowMenu] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
@@ -101,13 +104,15 @@ export function DashboardTile({ tile, isEditing }: TileProps) {
           )}
         </div>
         <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-          <button
-            onClick={(e) => { e.stopPropagation(); setIsMaximized(true); }}
-            className="p-1 text-surface-6 hover:text-white transition-colors"
-            title="Expand"
-          >
-            <Expand className="w-3 h-3" />
-          </button>
+          {!isEditing && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setIsMaximized(true); }}
+              className="p-1 text-surface-6 hover:text-white transition-colors"
+              title="Expand"
+            >
+              <Expand className="w-3 h-3" />
+            </button>
+          )}
           {isEditing && (
             <div className="relative">
               <button
@@ -118,9 +123,24 @@ export function DashboardTile({ tile, isEditing }: TileProps) {
               </button>
               {showMenu && (
                 <div className="absolute right-0 top-full mt-1 w-36 bg-surface-3 border border-border rounded-lg shadow-elevated z-50 py-1">
-                  <button className="w-full text-left px-3 py-1.5 text-xs text-white hover:bg-surface-4 transition-colors">Edit tile</button>
-                  <button className="w-full text-left px-3 py-1.5 text-xs text-white hover:bg-surface-4 transition-colors">Duplicate</button>
-                  <button className="w-full text-left px-3 py-1.5 text-xs text-danger hover:bg-surface-4 transition-colors">Remove</button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setShowMenu(false); onEdit?.(tile.id); }}
+                    className="w-full flex items-center gap-2 text-left px-3 py-1.5 text-xs text-white hover:bg-surface-4 transition-colors"
+                  >
+                    <Pencil className="w-3 h-3" /> Edit tile
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setShowMenu(false); onDuplicate?.(tile.id); }}
+                    className="w-full flex items-center gap-2 text-left px-3 py-1.5 text-xs text-white hover:bg-surface-4 transition-colors"
+                  >
+                    <Copy className="w-3 h-3" /> Duplicate
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setShowMenu(false); onRemove?.(tile.id); }}
+                    className="w-full flex items-center gap-2 text-left px-3 py-1.5 text-xs text-danger hover:bg-surface-4 transition-colors"
+                  >
+                    <Trash2 className="w-3 h-3" /> Remove
+                  </button>
                 </div>
               )}
             </div>
@@ -139,7 +159,6 @@ export function DashboardTile({ tile, isEditing }: TileProps) {
     return (
       <>
         {tileContent}
-        {/* Maximized overlay */}
         <div
           className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-8 animate-fade-in"
           onClick={() => setIsMaximized(false)}

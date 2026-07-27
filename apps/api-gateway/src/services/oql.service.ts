@@ -14,19 +14,8 @@ interface OQLValidateResult {
 
 @Injectable()
 export class OQLService {
-  private readonly reservedWords = new Set([
-    "SELECT", "FROM", "WHERE", "GROUP", "BY", "ORDER", "ASC", "DESC",
-    "LIMIT", "OFFSET", "JOIN", "LEFT", "RIGHT", "FULL", "INNER", "ON",
-    "AND", "OR", "NOT", "IN", "LIKE", "BETWEEN", "IS", "NULL", "TRUE",
-    "FALSE", "AS", "HAVING", "FILTER", "METRIC", "DIMENSION", "TIME",
-    "LAST", "NEXT", "TODAY", "YESTERDAY", "THIS", "WEEK", "MONTH",
-    "QUARTER", "YEAR", "SUM", "AVG", "COUNT", "MIN", "MAX", "COUNTDISTINCT",
-    "DATE_TRUNC", "DATE_ADD", "DATE_SUB", "DATE_DIFF",
-  ]);
-
   compile(oql: string, dialect: string = "postgresql"): OQLCompileResult {
     try {
-      // Dynamic import to avoid circular dependencies
       const { compileOQL } = require("@orbitiq/oql");
       return compileOQL(oql, { dialect: dialect as any, parameterized: true });
     } catch (error) {
@@ -41,10 +30,9 @@ export class OQLService {
     const warnings: string[] = [];
 
     try {
-      // Try to compile the OQL
       const result = this.compile(oql);
+      warnings.push(...result.warnings);
 
-      // Check for common issues
       if (oql.trim().toUpperCase().startsWith("SELECT *")) {
         warnings.push("Consider selecting specific columns instead of using SELECT *");
       }
@@ -57,11 +45,7 @@ export class OQLService {
         errors.push("OQL only supports SELECT queries");
       }
 
-      return {
-        valid: errors.length === 0,
-        errors,
-        warnings,
-      };
+      return { valid: errors.length === 0, errors, warnings };
     } catch (error) {
       return {
         valid: false,
@@ -75,7 +59,7 @@ export class OQLService {
     const steps: string[] = [];
 
     try {
-      const { Lexer, Parser } = require("@orbitiq/oql");
+      const { Lexer, Parser, Compiler, MeasureDAG } = require("@orbitiq/oql");
 
       steps.push("1. Tokenizing OQL query...");
       const lexer = new Lexer(oql);
@@ -90,24 +74,28 @@ export class OQLService {
       steps.push(`   From: ${ast.from.table}`);
       steps.push(`   Joins: ${ast.joins.length}`);
 
-      if (ast.where) {
-        steps.push(`   Where: present`);
+      if (ast.where) steps.push("   Where: present");
+      if (ast.groupBy) steps.push(`   GroupBy: ${ast.groupBy.columns.length} columns`);
+      if (ast.orderBy) steps.push(`   OrderBy: ${ast.orderBy.columns.length} columns`);
+      if (ast.limit) steps.push(`   Limit: ${ast.limit.value}`);
+      if (ast.offset) steps.push(`   Offset: ${ast.offset.value}`);
+
+      // Check for special features
+      const features: string[] = [];
+      for (const col of ast.columns) {
+        const expr = col.expression;
+        if (expr.type === "CALCULATE") features.push("CALCULATE");
+        if (expr.type === "WINDOW") features.push(`Window(${expr.function})`);
+        if (expr.type === "TIME_INTEL") features.push(`TimeIntel(${expr.function})`);
+        if (expr.type === "IF") features.push("IF");
+        if (expr.type === "SWITCH") features.push("SWITCH");
+        if (expr.type === "CONTEXT_CLEAR") features.push(`ContextClear(${expr.function})`);
       }
-      if (ast.groupBy) {
-        steps.push(`   GroupBy: ${ast.groupBy.columns.length} columns`);
-      }
-      if (ast.orderBy) {
-        steps.push(`   OrderBy: ${ast.orderBy.columns.length} columns`);
-      }
-      if (ast.limit) {
-        steps.push(`   Limit: ${ast.limit.value}`);
-      }
-      if (ast.offset) {
-        steps.push(`   Offset: ${ast.offset.value}`);
+      if (features.length > 0) {
+        steps.push(`   Special features: ${[...new Set(features)].join(", ")}`);
       }
 
       steps.push("3. Compiling AST to SQL...");
-      const { Compiler } = require("@orbitiq/oql");
       const compiler = new Compiler({ dialect: "postgresql", parameterized: true });
       const result = compiler.compile(ast);
 
@@ -119,7 +107,6 @@ export class OQLService {
       }
 
       steps.push("4. Compilation complete!");
-
       return steps;
     } catch (error) {
       steps.push(`Error: ${error instanceof Error ? error.message : String(error)}`);
@@ -140,14 +127,74 @@ export class OQLService {
         description: "Aggregation with GROUP BY",
       },
       {
-        name: "Time Intelligence",
-        oql: "SELECT DATE_TRUNC('month', created_at) AS month, COUNT(*) AS signups FROM users WHERE TIME THIS_MONTH GROUP BY month ORDER BY month",
-        description: "Time-based filtering and grouping",
+        name: "CALCULATE with Filter",
+        oql: "SELECT CALCULATE(SUM(revenue), region = 'EMEA') AS emea_revenue FROM sales",
+        description: "DAX-equivalent CALCULATE with explicit filter context",
       },
       {
-        name: "Complex Filters",
-        oql: "SELECT * FROM orders WHERE status = 'completed' AND total > 100 AND created_at >= '2024-01-01' LIMIT 50",
-        description: "Multiple filter conditions",
+        name: "Window Function — Running Total",
+        oql: "SELECT order_date, SUM(amount) OVER (ORDER BY order_date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS running_total FROM orders",
+        description: "Running total using window function",
+      },
+      {
+        name: "Window Function — Rank",
+        oql: "SELECT RANK() OVER (PARTITION BY region ORDER BY revenue DESC) AS revenue_rank FROM sales",
+        description: "Rank within partitions",
+      },
+      {
+        name: "Moving Average",
+        oql: "SELECT order_date, MOVINGAVERAGE(amount) OVER (ORDER BY order_date ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_7day FROM orders",
+        description: "7-day moving average",
+      },
+      {
+        name: "YTD Filter",
+        oql: "SELECT order_date, SUM(amount) AS ytd_revenue FROM sales WHERE YTD(order_date) GROUP BY order_date",
+        description: "Year-to-date filter",
+      },
+      {
+        name: "SAMEPERIODLASTYEAR",
+        oql: "SELECT SAMEPERIODLASTYEAR(order_date) AS last_year_revenue FROM sales",
+        description: "Compare with same period last year",
+      },
+      {
+        name: "IF Function",
+        oql: "SELECT IF(revenue > 100000, 'Large', 'Small') AS segment FROM accounts",
+        description: "Conditional logic",
+      },
+      {
+        name: "SWITCH Function",
+        oql: "SELECT SWITCH(region, 'NA', 'North America', 'EU', 'Europe', 'Other') AS region_name FROM sales",
+        description: "Multi-way conditional",
+      },
+      {
+        name: "ALL Context Clearing",
+        oql: "SELECT CALCULATE(SUM(revenue), ALL(sales)) AS total_revenue FROM sales",
+        description: "Remove filters with ALL context function",
+      },
+      {
+        name: "Time Intelligence — YTD",
+        oql: "SELECT CALCULATE(SUM(revenue), YTD(order_date)) AS ytd_revenue FROM sales",
+        description: "Year-to-date using CALCULATE + YTD",
+      },
+      {
+        name: "Median & Percentile",
+        oql: "SELECT department, MEDIAN(salary) AS median_salary, PERCENTILE(salary, 0.9) AS p90_salary FROM employees GROUP BY department",
+        description: "Statistical functions",
+      },
+      {
+        name: "Text Functions",
+        oql: "SELECT UPPER(TRIM(name)) AS clean_name, LEFT(email, 3) AS email_prefix FROM users",
+        description: "Text manipulation functions",
+      },
+      {
+        name: "Time Intelligence — DateAdd",
+        oql: "SELECT DATEADD(order_date, -30, 'day') AS prior_date FROM orders",
+        description: "Date arithmetic",
+      },
+      {
+        name: "Complex CALCULATE",
+        oql: "SELECT CALCULATE(SUM(revenue), ALL(sales), region = 'EMEA') AS emea_no_filter FROM sales",
+        description: "CALCULATE with context clearing + filter",
       },
       {
         name: "JOIN Query",
@@ -165,21 +212,68 @@ export class OQLService {
         description: "Filtering aggregated results",
       },
       {
-        name: "Date Functions",
-        oql: "SELECT DATE_TRUNC('quarter', order_date) AS quarter, SUM(amount) AS revenue FROM orders WHERE order_date >= DATE_TRUNC('year', CURRENT_DATE) GROUP BY quarter",
-        description: "Date truncation and filtering",
+        name: "Percent of Total",
+        oql: "SELECT region, SUM(revenue) AS revenue, PERCENTOFTOTAL(SUM(revenue)) OVER (PARTITION BY region ORDER BY revenue) AS pct_total FROM sales",
+        description: "Percentage of total using window function",
       },
     ];
   }
 
   getKeywords(): string[] {
-    return Array.from(this.reservedWords).sort();
+    return [
+      // SQL basics
+      "SELECT", "FROM", "WHERE", "GROUP", "BY", "ORDER", "ASC", "DESC",
+      "LIMIT", "OFFSET", "JOIN", "LEFT", "RIGHT", "FULL", "INNER", "ON",
+      "AND", "OR", "NOT", "IN", "LIKE", "BETWEEN", "IS", "NULL", "AS", "HAVING",
+      // Semantic model
+      "METRIC", "DIMENSION", "FILTER", "TIME",
+      "LAST", "NEXT", "TODAY", "YESTERDAY", "THIS", "WEEK", "MONTH", "QUARTER", "YEAR",
+      // Aggregate functions
+      "SUM", "AVG", "COUNT", "MIN", "MAX", "COUNTDISTINCT",
+      "MEDIAN", "PERCENTILE", "STDEV", "VARIANCE",
+      // Date functions
+      "DATE_TRUNC", "DATE_ADD", "DATE_SUB", "DATE_DIFF",
+      // CALCULATE
+      "CALCULATE",
+      // Context clearing
+      "ALL", "ALLEXCEPT", "ALLSELECTED", "REMOVEFILTERS", "KEEPFILTERS",
+      // Time intelligence
+      "SAMEPERIODLASTYEAR", "DATEADD", "DATESBETWEEN", "YTD", "QTD", "MTD",
+      "PARALLELPERIOD", "ROLLINGN",
+      // Window/ranking
+      "RANK", "DENSERANK", "RUNNINGSUM", "MOVINGAVERAGE", "PERCENTOFTOTAL",
+      "OVER", "PARTITION", "ROWS", "RANGE",
+      // Relationship
+      "RELATED", "RELATEDTABLE",
+      // Logical
+      "IF", "SWITCH", "IFERROR",
+      // Text
+      "CONCAT", "FORMAT", "LEFT", "RIGHT", "MID", "TRIM", "LEN", "UPPER", "LOWER",
+    ].sort();
   }
 
   getFunctions(): string[] {
     return [
+      // Aggregate
       "SUM", "AVG", "COUNT", "MIN", "MAX", "COUNTDISTINCT",
+      "MEDIAN", "PERCENTILE", "STDEV", "VARIANCE",
+      // Date
       "DATE_TRUNC", "DATE_ADD", "DATE_SUB", "DATE_DIFF",
+      // CALCULATE
+      "CALCULATE",
+      // Context clearing
+      "ALL", "ALLEXCEPT", "ALLSELECTED", "REMOVEFILTERS", "KEEPFILTERS",
+      // Time intelligence
+      "SAMEPERIODLASTYEAR", "DATEADD", "DATESBETWEEN", "YTD", "QTD", "MTD",
+      "PARALLELPERIOD", "ROLLINGN",
+      // Window/ranking
+      "RANK", "DENSERANK", "RUNNINGSUM", "MOVINGAVERAGE", "PERCENTOFTOTAL",
+      // Relationship
+      "RELATED", "RELATEDTABLE",
+      // Logical
+      "IF", "SWITCH", "IFERROR",
+      // Text
+      "CONCAT", "FORMAT", "LEFT", "RIGHT", "MID", "TRIM", "LEN", "UPPER", "LOWER",
     ];
   }
 }

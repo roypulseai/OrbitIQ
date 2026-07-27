@@ -1,10 +1,9 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useState, useCallback, useRef, useEffect } from "react";
-import { Responsive } from "react-grid-layout";
 import { useDashboardContext } from "@/contexts/DashboardContext";
 import { DashboardTile } from "./DashboardTile";
-import "react-grid-layout/css/styles.css";
 
 export interface TileData {
   id: string;
@@ -25,9 +24,27 @@ const RESPONSIVE_COLS = { lg: 12, md: 10, sm: 6, xs: 4 };
 interface DashboardCanvasProps {
   tiles: TileData[];
   onLayoutChange?: (layout: ReactGridLayout.Layout[]) => void;
+  onEditTile?: (tileId: string) => void;
+  onDuplicateTile?: (tileId: string) => void;
+  onRemoveTile?: (tileId: string) => void;
 }
 
-export function DashboardCanvas({ tiles, onLayoutChange }: DashboardCanvasProps) {
+const ResponsiveGridLayout = dynamic(
+  () => import("react-grid-layout").then((mod) => mod.Responsive),
+  { ssr: false }
+);
+
+function CanvasLoading() {
+  return (
+    <div className="p-4 grid grid-cols-2 gap-4">
+      {[1, 2, 3, 4].map((i) => (
+        <div key={i} className="h-64 bg-surface-2 border border-border rounded-xl animate-pulse" />
+      ))}
+    </div>
+  );
+}
+
+export function DashboardCanvas({ tiles, onLayoutChange, onEditTile, onDuplicateTile, onRemoveTile }: DashboardCanvasProps) {
   const { isEditing } = useDashboardContext();
   const [layout, setLayout] = useState<ReactGridLayout.Layout[]>(
     tiles.map((t) => t.position)
@@ -56,36 +73,41 @@ export function DashboardCanvas({ tiles, onLayoutChange }: DashboardCanvasProps)
 
   const layoutMap = new Map(layout.map((l) => [l.i, l]));
 
+  if (containerWidth <= 0) {
+    return <div ref={containerRef} className="p-4"><CanvasLoading /></div>;
+  }
+
   return (
     <div ref={containerRef} className="p-4">
-      {containerWidth > 0 && (
-        <Responsive
-          className="layout"
-          width={containerWidth}
-          breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 0 }}
-          cols={RESPONSIVE_COLS}
-          rowHeight={40}
-          draggableHandle=".tile-drag-handle"
-          margin={[12, 12]}
-          useCSSTransforms
-          layouts={{ lg: layout, md: layout, sm: layout, xs: layout }}
-          {...({ isDraggable: isEditing, isResizable: isEditing, onLayoutChange: handleLayoutChange } as any)}
-        >
-          {tiles.map((tile) => {
-            const l = layoutMap.get(tile.id);
-            return (
-              <div key={tile.id} className="grid-tile">
-                <DashboardTile
+      <ResponsiveGridLayout
+        className="layout"
+        width={containerWidth}
+        breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 0 }}
+        cols={RESPONSIVE_COLS}
+        rowHeight={40}
+        draggableHandle=".tile-drag-handle"
+        margin={[12, 12]}
+        useCSSTransforms
+        layouts={{ lg: layout, md: layout, sm: layout, xs: layout }}
+        {...({ isDraggable: isEditing, isResizable: isEditing, onLayoutChange: handleLayoutChange } as any)}
+      >
+        {tiles.map((tile) => {
+          const l = layoutMap.get(tile.id);
+          return (
+            <div key={tile.id} className="grid-tile">
+              <DashboardTile
                   tile={tile}
                   isEditing={isEditing}
                   width={l ? l.w * 100 : undefined}
                   height={l ? l.h * 40 : undefined}
+                  onEdit={onEditTile}
+                  onDuplicate={onDuplicateTile}
+                  onRemove={onRemoveTile}
                 />
-              </div>
-            );
-          })}
-        </Responsive>
-      )}
+            </div>
+          );
+        })}
+      </ResponsiveGridLayout>
 
       <style jsx global>{`
         .grid-tile {

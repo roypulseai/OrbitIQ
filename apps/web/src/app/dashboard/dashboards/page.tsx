@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { LayoutDashboard, Plus, Trash2 } from "lucide-react";
+import { gqlFetch } from "@/lib/gql";
 
 interface Dashboard {
   id: string;
@@ -10,19 +11,6 @@ interface Dashboard {
   description?: string;
   tileCount: number;
   createdAt: string;
-}
-
-const GQL = "http://localhost:4001/graphql";
-
-async function gqlFetch<T>(query: string, variables?: Record<string, unknown>): Promise<T> {
-  const res = await fetch(GQL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query, variables }),
-  });
-  const json = await res.json();
-  if (json.errors) throw new Error(json.errors[0]?.message || "GraphQL error");
-  return json.data;
 }
 
 const WORKSPACE_ID = "default-workspace";

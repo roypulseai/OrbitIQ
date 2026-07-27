@@ -171,13 +171,19 @@ export class CLSService {
       if (regex.test(col)) return { piiType: type, confidence: conf };
     }
 
+    if (col.includes("email")) return { piiType: "email", confidence: 0.95 };
+
+    if (col.includes("ssn") || col.includes("social_security")) return { piiType: "ssn", confidence: 0.99 };
+
+    if (col.includes("credit_card") || col.includes("credit_card_number") || col.includes("card_number")) return { piiType: "credit_card", confidence: 0.97 };
+
     const namePatterns = ["first_name", "last_name", "full_name", "customer_name", "employee_name"];
     if (namePatterns.some((p) => col.includes(p))) return { piiType: "name", confidence: 0.85 };
 
+    if (col.includes("ip") && col.includes("address")) return { piiType: "ip_address", confidence: 0.88 };
+
     const addrPatterns = ["address", "street", "city", "zip", "postal"];
     if (addrPatterns.some((p) => col.includes(p))) return { piiType: "address", confidence: 0.8 };
-
-    if (col.includes("ip") && col.includes("address")) return { piiType: "ip_address", confidence: 0.88 };
 
     const dobPatterns = ["date_of_birth", "dob", "birthday", "birth_date"];
     if (dobPatterns.some((p) => col.includes(p))) return { piiType: "dob", confidence: 0.9 };
