@@ -2,7 +2,10 @@ import { Module } from "@nestjs/common";
 import { GraphQLModule } from "@nestjs/graphql";
 import { ApolloDriver, ApolloDriverConfig } from "@nestjs/apollo";
 import { ConfigModule } from "@nestjs/config";
+import { APP_GUARD } from "@nestjs/core";
 import { join } from "path";
+import { AuthModule } from "./auth/auth.module";
+import { JwtAuthGuard } from "./auth/jwt-auth.guard";
 import { SchemaResolver } from "./resolvers/schema.resolver";
 import { SemanticModelsResolver } from "./resolvers/semantic-models.resolver";
 import { OQLResolver } from "./resolvers/oql.resolver";
@@ -86,6 +89,7 @@ import { PrismaService } from "./services/prisma.service";
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    AuthModule,
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), "src/schema.gql"),
@@ -95,6 +99,10 @@ import { PrismaService } from "./services/prisma.service";
     }),
   ],
   providers: [
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
     SchemaResolver,
     SemanticModelsResolver,
     OQLResolver,

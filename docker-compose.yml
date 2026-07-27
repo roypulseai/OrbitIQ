@@ -43,7 +43,9 @@ services:
       KC_DB_URL: jdbc:postgresql://postgres:5432/orbitiq
       KC_DB_USERNAME: orbitiq
       KC_DB_PASSWORD: password
-    command: start-dev
+    command: start-dev --import-realm
+    volumes:
+      - ./infra/keycloak:/opt/keycloak/data/import
     depends_on:
       postgres:
         condition: service_healthy

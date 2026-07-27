@@ -1,6 +1,9 @@
 import { Resolver, Query, Mutation, Args, ID } from "@nestjs/graphql";
 import { ObjectType, Field, InputType } from "@nestjs/graphql";
 import { UsersService } from "./users.service";
+import { CurrentUser } from "../auth/current-user.decorator";
+import { AuthenticatedUser } from "../auth/jwt.strategy";
+import { Public } from "../auth/public.decorator";
 
 @ObjectType()
 export class User {
@@ -71,8 +74,8 @@ export class UsersResolver {
   }
 
   @Query(() => User, { name: "me" })
-  async getCurrentUser(): Promise<User> {
-    return this.usersService.getCurrentUser();
+  async getCurrentUser(@CurrentUser() user: AuthenticatedUser): Promise<User> {
+    return this.usersService.findOrCreateFromToken(user);
   }
 
   @Mutation(() => User)
