@@ -2,6 +2,8 @@ import { Resolver, Query, Mutation, Args, ID } from "@nestjs/graphql";
 import { ObjectType, Field, InputType, Float, Int } from "@nestjs/graphql";
 import { IngestionService, UploadedFile, SchemaColumn, SchemaProfile, DuckDBTable, SchemaDrift } from "../services/ingestion.service";
 import { OQLService } from "../services/oql.service";
+import { RLSService } from "../services/rls.service";
+import { CacheService } from "../services/cache.service";
 
 @ObjectType()
 export class GQLSchemaColumn {
@@ -117,6 +119,7 @@ export class ExecuteOQLInput {
   @Field() oql: string;
   @Field(() => ID) tableId: string;
   @Field({ nullable: true, defaultValue: "postgresql" }) dialect?: string;
+  @Field({ nullable: true }) userId?: string;
 }
 
 @Resolver()
@@ -124,6 +127,8 @@ export class IngestionResolver {
   constructor(
     private readonly ingestionService: IngestionService,
     private readonly oqlService: OQLService,
+    private readonly rlsService: RLSService,
+    private readonly cacheService: CacheService,
   ) {}
 
   @Query(() => [GQLUploadedFile])
@@ -202,32 +207,80 @@ export class IngestionResolver {
     if (!tableRecord) throw new Error(`Table ${input.tableId} not found`);
 
     const compilation = this.oqlService.compile(input.oql, input.dialect || "postgresql");
-    const result = await this.ingestionService.executeSQL(compilation.sql, tableRecord.databasePath);
-    return {
-      columns: result.columns,
-      rows: JSON.stringify(result.rows),
-      rowCount: result.rowCount,
-      executionTimeMs: result.executionTimeMs,
-      sql: compilation.sql,
-      warnings: compilation.warnings,
-    };
-  }
+    let sql = compilation.sql;
 
-  @Mutation(() => GQLExecuteResult)
-  async executeRawSQL(@Args("sql") sql: string, @Args("tableId", { nullable: true }) tableId?: string): Promise<GQLExecuteResult> {
-    let dbPath: string | undefined;
-    if (tableId) {
-      const tableRecord = await (this.ingestionService as any).prisma.ingestedTable.findUnique({ where: { id: tableId } });
-      if (!tableRecord) throw new Error(`Table ${tableId} not found`);
-      dbPath = tableRecord.databasePath;
+    if (input.userId) {
+      const userAttr = this.rlsService.getUserAttributes(input.userId);
+      if (userAttr) {
+        const policies = this.rlsService.getEffectivePolicies(input.userId, tableRecord.tableName, "default");
+        if (policies.length > 0) {
+          const rlsFilter = this.rlsService.buildRLSFilter(policies, userAttr.attributes);
+          if (!sql.toUpperCase().includes("WHERE")) {
+            sql += ` WHERE ${rlsFilter}`;
+          } else {
+            sql += ` AND ${rlsFilter}`;
+          }
+        }
+      }
     }
-    const result = await this.ingestionService.executeSQL(sql, dbPath);
-    return {
+
+    const cacheKey = this.cacheService.generateCacheKey(sql, [], input.tableId);
+    const cached = await this.cacheService.getCache(cacheKey);
+    if (cached) {
+      return { ...cached, sql, warnings: compilation.warnings };
+    }
+
+    const result = await this.ingestionService.executeSQL(sql, tableRecord.databasePath);
+    const response = {
       columns: result.columns,
       rows: JSON.stringify(result.rows),
       rowCount: result.rowCount,
       executionTimeMs: result.executionTimeMs,
       sql,
+      warnings: compilation.warnings,
+    };
+    await this.cacheService.setCache(cacheKey, response, 300);
+    return response;
+  }
+
+  @Mutation(() => GQLExecuteResult)
+  async executeRawSQL(
+    @Args("sql") sql: string,
+    @Args("tableId", { nullable: true }) tableId?: string,
+    @Args("userId", { nullable: true }) userId?: string
+  ): Promise<GQLExecuteResult> {
+    let dbPath: string | undefined;
+    let resolvedTable = tableId;
+    if (tableId) {
+      const tableRecord = await (this.ingestionService as any).prisma.ingestedTable.findUnique({ where: { id: tableId } });
+      if (!tableRecord) throw new Error(`Table ${tableId} not found`);
+      dbPath = tableRecord.databasePath;
+      resolvedTable = tableRecord.tableName;
+    }
+
+    let finalSql = sql;
+    if (userId && resolvedTable) {
+      const userAttr = this.rlsService.getUserAttributes(userId);
+      if (userAttr) {
+        const policies = this.rlsService.getEffectivePolicies(userId, resolvedTable, "default");
+        if (policies.length > 0) {
+          const rlsFilter = this.rlsService.buildRLSFilter(policies, userAttr.attributes);
+          if (!finalSql.toUpperCase().includes("WHERE")) {
+            finalSql += ` WHERE ${rlsFilter}`;
+          } else {
+            finalSql += ` AND ${rlsFilter}`;
+          }
+        }
+      }
+    }
+
+    const result = await this.ingestionService.executeSQL(finalSql, dbPath);
+    return {
+      columns: result.columns,
+      rows: JSON.stringify(result.rows),
+      rowCount: result.rowCount,
+      executionTimeMs: result.executionTimeMs,
+      sql: finalSql,
       warnings: [],
     };
   }

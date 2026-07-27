@@ -1,17 +1,28 @@
 import { Injectable, BadRequestException } from "@nestjs/common";
 import { QueryResult } from "../schema";
 import { PrismaService } from "./prisma.service";
+import { CacheService } from "./cache.service";
 import { connectorRegistry } from "@orbitiq/connector-sdk";
 
 @Injectable()
 export class QueryEngineService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly cache: CacheService,
+  ) {}
 
   async execute(
     connectionId: string,
     query: string,
-    params?: unknown[]
+    params?: unknown[],
+    cacheTtl?: number
   ): Promise<QueryResult> {
+    if (cacheTtl && cacheTtl > 0) {
+      const cacheKey = this.cache.generateCacheKey(query, params || [], connectionId);
+      const cached = await this.cache.getCache(cacheKey);
+      if (cached) return cached;
+    }
+
     const connection = await this.prisma.connection.findUnique({ where: { id: connectionId } });
     if (!connection) {
       throw new BadRequestException(`Connection ${connectionId} not found`);
@@ -29,8 +40,7 @@ export class QueryEngineService {
       : connection.config;
 
     const result = await connector.executeQuery(config, query, params);
-
-    return {
+    const queryResult: QueryResult = {
       columns: result.columns.map((c) => ({
         name: c.name,
         dataType: c.dataType,
@@ -42,6 +52,13 @@ export class QueryEngineService {
       rowCount: result.rowCount,
       executionTimeMs: result.executionTimeMs,
     };
+
+    if (cacheTtl && cacheTtl > 0) {
+      const cacheKey = this.cache.generateCacheKey(query, params || [], connectionId);
+      await this.cache.setCache(cacheKey, queryResult, cacheTtl);
+    }
+
+    return queryResult;
   }
 
   async executeDirect(

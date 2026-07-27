@@ -77,6 +77,7 @@ import { GAChecklistService } from "./services/ga-checklist.service";
 import { IngestionService } from "./services/ingestion.service";
 import { RealProfilingService } from "./services/real-profiling.service";
 import { IngestionResolver } from "./resolvers/ingestion.resolver";
+import { DashboardsResolver } from "./resolvers/dashboards.resolver";
 import { FileUploadController } from "./controllers/file-upload.controller";
 import { PrismaService } from "./services/prisma.service";
 
@@ -168,6 +169,7 @@ import { PrismaService } from "./services/prisma.service";
     IngestionService,
     RealProfilingService,
     IngestionResolver,
+    DashboardsResolver,
     PrismaService,
   ],
   controllers: [FileUploadController],
