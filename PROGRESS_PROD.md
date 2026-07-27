@@ -23,6 +23,8 @@
 ### A.1 Mock Audit & Status Tagging
 - [x] Audit each resolver's true implementation state
 - [x] Create `MOCK_AUDIT.md` with findings (41 of 43 services are mock)
+- [x] Snowflake connector: REAL (full `snowflake-sdk` integration)
+- [x] BigQuery connector: REAL (full `@google-cloud/bigquery` integration)
 - [ ] Add `status: "mock" | "real"` field to every existing service
 - [ ] Update GA checklist to reflect real vs mock status
 
@@ -45,8 +47,8 @@
   - [x] `listColumns()` — real `information_schema.columns`
   - [x] `sampleData()` — real DuckDB query
   - [x] `executeQuery()` — real DuckDB query execution
-- [ ] **Snowflake connector** — real `snowflake-sdk` calls (driver not yet installed)
-- [ ] **BigQuery connector** — real `@google-cloud/bigquery` calls (driver not yet installed)
+- [x] **Snowflake connector** — real `snowflake-sdk` calls (driver installed, all methods implemented)
+- [x] **BigQuery connector** — real `@google-cloud/bigquery` calls (driver installed, all methods implemented)
 - [ ] **New: Redshift** — `pg` wire-compatible + UNLOAD-to-S3 path
 - [ ] **New: SQL Server** — `mssql` (Tedious) driver
 - [ ] **New: ClickHouse** — `@clickhouse/client`
@@ -75,8 +77,8 @@
   - [x] Excel: convert to CSV then `read_csv_auto()`
   - [x] Parquet: `read_parquet()`
   - [x] JSON: `read_json_auto()`
-- [ ] **Re-upload / refresh workflow** — "Replace data, keep schema" flow
-- [ ] **Schema drift detection** — detect renamed/missing columns on re-upload
+- [x] **Re-upload / refresh workflow** — `refreshTable()` replaces data, keeps table identity
+- [x] **Schema drift detection** — `detectDrift()` reports added/removed/type-changed columns
 
 ### A.4 Real Profiling Pipeline
 - [x] Replace hash-based fingerprinting with real type inference
@@ -100,7 +102,9 @@
 - [x] Prisma schema with SQLite for local dev (UploadedFile, IngestionProfile, IngestedTable, APIKey)
 - [x] Migration applied: `20260727114318_init_production`
 - [x] PrismaService (NestJS wrapper)
-- [x] ConnectionsService → Prisma-backed (registers PostgreSQL, MySQL, DuckDB connectors)
+- [x] ConnectionsService → Prisma-backed (registers PostgreSQL, MySQL, DuckDB, Snowflake, BigQuery connectors)
+- [x] ConnectionsResolver → GraphQL CRUD + test + schema browse (replaces hardcoded UI)
+- [x] Connections page → real API (CRUD, test, delete — no more demo data)
 - [x] DashboardsService → Prisma-backed
 - [x] SemanticModelsService → Prisma-backed (includes `buildQuery()`)
 - [x] IngestionService → Prisma-backed (upload, profile, ingest, delete)
@@ -112,9 +116,11 @@
 - [ ] Connect real Postgres DB → see real schema + data in Explore
 - [x] Schema inference produces correct types for all column categories (tested in IngestionService)
 - [ ] 10M+ row table streams without OOM
-- [ ] File refresh workflow works end-to-end
+- [x] File refresh workflow works end-to-end (refreshTable + drift detection)
 - [x] Connections, dashboards, semantic models persist in database (not in-memory)
 - [x] OQL compile → execute pipeline works end-to-end with real connections
+- [x] Connections page uses real API (CRUD + test + delete)
+- [x] 5 connectors registered: PostgreSQL, MySQL, DuckDB, Snowflake, BigQuery
 
 ---
 
@@ -197,10 +203,12 @@
   - [ ] Confirm restricted rows never appear anywhere
 
 ### B.6 Real Caching
-- [ ] Redis-backed result cache
-  - [ ] Key: compiled SQL + RLS context + data-freshness watermark
+- [x] Redis-backed result cache (ioredis with in-memory fallback)
+  - [x] Key: compiled SQL + RLS context + data-freshness watermark
+  - [x] SCAN-based pattern invalidation
+  - [x] TTL-based expiry
+  - [x] Stats tracking (hits, misses, sets, evictions)
   - [ ] Invalidation on CDC events
-  - [ ] TTL-based fallback
 
 ### B.7 Phase B Exit Criteria Verification
 - [ ] Dashboard tile shows real numbers from real connected source

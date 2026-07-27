@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
 import { PrismaService } from "./prisma.service";
-import { connectorRegistry, PostgreSQLConnector, MySQLConnector, DuckDBConnector } from "@orbitiq/connector-sdk";
+import { connectorRegistry, PostgreSQLConnector, MySQLConnector, DuckDBConnector, SnowflakeConnector, BigQueryConnector } from "@orbitiq/connector-sdk";
 
 @Injectable()
 export class ConnectionsService {
@@ -13,6 +13,12 @@ export class ConnectionsService {
     }
     if (!connectorRegistry.has("duckdb")) {
       connectorRegistry.register(new DuckDBConnector());
+    }
+    if (!connectorRegistry.has("snowflake")) {
+      connectorRegistry.register(new SnowflakeConnector());
+    }
+    if (!connectorRegistry.has("bigquery")) {
+      connectorRegistry.register(new BigQueryConnector());
     }
   }
 

@@ -9,6 +9,7 @@ import { OQLResolver } from "./resolvers/oql.resolver";
 import { ExportResolver } from "./resolvers/export.resolver";
 import { RelationshipsResolver } from "./resolvers/relationships.resolver";
 import { CacheResolver } from "./resolvers/cache.resolver";
+import { ConnectionsResolver } from "./resolvers/connections.resolver";
 import { SharingResolver } from "./resolvers/sharing.resolver";
 import { EmbeddingResolver } from "./resolvers/embedding.resolver";
 import { RLSResolver } from "./resolvers/rls.resolver";
@@ -99,6 +100,7 @@ import { PrismaService } from "./services/prisma.service";
     ExportResolver,
     RelationshipsResolver,
     CacheResolver,
+    ConnectionsResolver,
     SharingResolver,
     EmbeddingResolver,
     RLSResolver,

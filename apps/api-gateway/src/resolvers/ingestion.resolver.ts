@@ -1,6 +1,6 @@
 import { Resolver, Query, Mutation, Args, ID } from "@nestjs/graphql";
 import { ObjectType, Field, InputType, Float, Int } from "@nestjs/graphql";
-import { IngestionService, UploadedFile, SchemaColumn, SchemaProfile, DuckDBTable } from "../services/ingestion.service";
+import { IngestionService, UploadedFile, SchemaColumn, SchemaProfile, DuckDBTable, SchemaDrift } from "../services/ingestion.service";
 
 @ObjectType()
 export class GQLSchemaColumn {
@@ -73,6 +73,34 @@ export class QueryTableInput {
   @Field(() => Int, { defaultValue: 0 }) offset: number;
 }
 
+@ObjectType()
+export class GQLSchemaDriftTypeChanged {
+  @Field() column: string;
+  @Field() oldType: string;
+  @Field() newType: string;
+}
+
+@ObjectType()
+export class GQLSchemaDrift {
+  @Field() hasDrift: boolean;
+  @Field(() => [String]) added: string[];
+  @Field(() => [String]) removed: string[];
+  @Field(() => [GQLSchemaDriftTypeChanged]) typeChanged: GQLSchemaDriftTypeChanged[];
+  @Field() summary: string;
+}
+
+@ObjectType()
+export class GQLRefreshResult {
+  @Field(() => GQLDuckDBTable) table: GQLDuckDBTable;
+  @Field(() => GQLSchemaDrift) drift: GQLSchemaDrift;
+}
+
+@InputType()
+export class RefreshTableInput {
+  @Field(() => ID) tableId: string;
+  @Field(() => ID) fileId: string;
+}
+
 @Resolver()
 export class IngestionResolver {
   constructor(private readonly ingestionService: IngestionService) {}
@@ -131,5 +159,14 @@ export class IngestionResolver {
   @Mutation(() => Boolean)
   async deleteIngestedTable(@Args("tableId") tableId: string): Promise<boolean> {
     return this.ingestionService.deleteTable(tableId);
+  }
+
+  @Mutation(() => GQLRefreshResult)
+  async refreshTable(@Args("input") input: RefreshTableInput): Promise<GQLRefreshResult> {
+    const result = await this.ingestionService.refreshTable(input.tableId, input.fileId);
+    return {
+      table: result.table,
+      drift: result.drift,
+    };
   }
 }

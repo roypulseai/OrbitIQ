@@ -52,6 +52,14 @@ export interface DuckDBTable {
   createdAt: Date;
 }
 
+export interface SchemaDrift {
+  hasDrift: boolean;
+  added: string[];
+  removed: string[];
+  typeChanged: { column: string; oldType: string; newType: string }[];
+  summary: string;
+}
+
 @Injectable()
 export class IngestionService {
   private storageDir: string;
@@ -622,5 +630,121 @@ export class IngestionService {
       if (len > max) max = len;
     }
     return max;
+  }
+
+  async refreshTable(tableId: string, fileId: string): Promise<{ table: DuckDBTable; drift: SchemaDrift }> {
+    const existingTable = await this.prisma.ingestedTable.findUnique({ where: { id: tableId } });
+    if (!existingTable) throw new NotFoundException(`Table ${tableId} not found`);
+
+    const file = await this.getUpload(fileId);
+    const ext = path.extname(file.originalName).toLowerCase();
+
+    const oldProfile = await this.prisma.ingestionProfile.findFirst({
+      where: { tableName: existingTable.tableName },
+      orderBy: { profiledAt: "desc" },
+    });
+    const oldColumns: SchemaColumn[] = oldProfile
+      ? (typeof oldProfile.columns === "string" ? JSON.parse(oldProfile.columns) : oldProfile.columns)
+      : [];
+
+    const newProfileResult = await this.parseAndProfile(file.storedPath, ext);
+    const drift = this.detectDrift(oldColumns, newProfileResult.columns);
+
+    const duckdb = require("duckdb");
+    const dbPath = existingTable.databasePath;
+    const tableName = existingTable.tableName;
+
+    const table = await new Promise<DuckDBTable>((resolve, reject) => {
+      const db = new duckdb.Database(dbPath, (err: Error | null) => {
+        if (err) return reject(err);
+        let loadSql: string;
+        if (ext === ".csv" || ext === ".tsv") {
+          const delim = ext === ".tsv" ? "\\t" : ",";
+          loadSql = `CREATE OR REPLACE TABLE "${tableName}" AS SELECT * FROM read_csv_auto('${file.storedPath.replace(/'/g, "''")}', header=true, delim='${delim}', sample_size=10000)`;
+        } else if (ext === ".xlsx" || ext === ".xls") {
+          this.convertExcelToCsv(file.storedPath).then(csvPath => {
+            db.run(`CREATE OR REPLACE TABLE "${tableName}" AS SELECT * FROM read_csv_auto('${csvPath.replace(/'/g, "''")}', header=true, sample_size=10000)`, (err2: Error | null) => {
+              fs.unlinkSync(csvPath);
+              if (err2) { db.close(() => {}); return reject(err2); }
+              this.finishRefresh(db, dbPath, tableName, existingTable, newProfileResult, fileId).then(resolve).catch(reject);
+            });
+          }).catch(reject);
+          return;
+        } else if (ext === ".parquet") {
+          loadSql = `CREATE OR REPLACE TABLE "${tableName}" AS SELECT * FROM read_parquet('${file.storedPath.replace(/'/g, "''")}')`;
+        } else if (ext === ".json") {
+          loadSql = `CREATE OR REPLACE TABLE "${tableName}" AS SELECT * FROM read_json_auto('${file.storedPath.replace(/'/g, "''")}')`;
+        } else {
+          db.close(() => {});
+          return reject(new BadRequestException(`Unsupported file type: ${ext}`));
+        }
+        db.run(loadSql!, (err2: Error | null) => {
+          if (err2) { db.close(() => {}); return reject(err2); }
+          this.finishRefresh(db, dbPath, tableName, existingTable, newProfileResult, fileId).then(resolve).catch(reject);
+        });
+      });
+    });
+
+    return { table, drift };
+  }
+
+  private async finishRefresh(
+    db: any, dbPath: string, tableName: string,
+    existingTable: any, newProfileResult: { columns: SchemaColumn[]; rowCount: number },
+    fileId: string
+  ): Promise<DuckDBTable> {
+    return new Promise((resolve, reject) => {
+      db.all(`SELECT COUNT(*) as cnt FROM "${tableName}"`, (err: Error | null, rows: any[]) => {
+        db.close(() => {});
+        if (err) return reject(err);
+        this.prisma.ingestionProfile.create({
+          data: {
+            fileId,
+            tableName,
+            columns: JSON.stringify(newProfileResult.columns),
+            rowCount: newProfileResult.rowCount,
+            columnCount: newProfileResult.columns.length,
+            status: "completed",
+          },
+        }).then(() => {
+          resolve({
+            id: existingTable.id,
+            fileId: existingTable.fileId,
+            tableName: existingTable.tableName,
+            schema: existingTable.schemaName,
+            databasePath: existingTable.databasePath,
+            createdAt: existingTable.createdAt,
+          });
+        }).catch(reject);
+      });
+    });
+  }
+
+  detectDrift(oldColumns: SchemaColumn[], newColumns: SchemaColumn[]): SchemaDrift {
+    const oldMap = new Map(oldColumns.map(c => [c.name, c]));
+    const newMap = new Map(newColumns.map(c => [c.name, c]));
+
+    const added = newColumns.filter(c => !oldMap.has(c.name));
+    const removed = oldColumns.filter(c => !newMap.has(c.name));
+    const typeChanged: { column: string; oldType: string; newType: string }[] = [];
+
+    for (const [name, newCol] of newMap) {
+      const oldCol = oldMap.get(name);
+      if (oldCol && oldCol.inferredType !== newCol.inferredType) {
+        typeChanged.push({ column: name, oldType: oldCol.inferredType, newType: newCol.inferredType });
+      }
+    }
+
+    return {
+      hasDrift: added.length > 0 || removed.length > 0 || typeChanged.length > 0,
+      added: added.map(c => c.name),
+      removed: removed.map(c => c.name),
+      typeChanged,
+      summary: [
+        added.length > 0 ? `${added.length} added` : "",
+        removed.length > 0 ? `${removed.length} removed` : "",
+        typeChanged.length > 0 ? `${typeChanged.length} type changed` : "",
+      ].filter(Boolean).join(", ") || "No changes detected",
+    };
   }
 }
