@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { cn } from "@orbitiq/design-system";
 import {
   LayoutDashboard,
@@ -137,7 +137,10 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
+
+  useEffect(() => { setMounted(true); }, []);
 
   const activeMap = useMemo(() => {
     const map = new Map<string, boolean>();
@@ -261,7 +264,7 @@ export default function DashboardLayout({
               className="p-2 rounded-lg text-muted hover:bg-surface-3 hover:text-white transition-colors"
               title="Toggle theme"
             >
-              {theme === "dark" ? (
+              {mounted && theme === "dark" ? (
                 <Sun className="w-4 h-4" />
               ) : (
                 <Moon className="w-4 h-4" />
