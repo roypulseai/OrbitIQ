@@ -1,6 +1,6 @@
 # OrbitIQ — Production Buildout Progress
 
-> **Status: 🟡 IN PROGRESS — Phase A (Real Data In)**
+> **Status: 🟡 IN PROGRESS — Phase B (Real Query Path)**
 > **Last Updated: 2026-07-27**
 > **Plan:** See `OrbitIQ_Production_Buildout_Plan.md` for full context.
 
@@ -10,8 +10,8 @@
 
 | Phase | Name | Duration | Status | Exit Criterion |
 |-------|------|----------|--------|----------------|
-| **A** | Real Data In | 4-6 weeks | 🟡 In Progress | User can upload Excel or connect real Postgres DB and see real sampled data + inferred schema |
-| **B** | Real Query Path | 4-6 weeks | ⬜ Not Started | Dashboard tile shows real numbers from real sources, RLS enforced, complex measures work |
+| **A** | Real Data In | 4-6 weeks | ✅ ~90% Done | User can upload Excel or connect real Postgres DB and see real sampled data + inferred schema |
+| **B** | Real Query Path | 4-6 weeks | 🟡 In Progress | Dashboard tile shows real numbers from real sources, RLS enforced, complex measures work |
 | **C** | Real Analytics Engine | 4-6 weeks | ⬜ Not Started | Forecast on real data returns backtested, verifiably correct numbers |
 | **D** | Real Agentic AI | 4-6 weeks | ⬜ Not Started | NL question against real dataset produces correct chart matching hand-built query |
 | **E** | Scale, Compliance, GA | 4-6 weeks | ⬜ Not Started | Real load tests, real security audit, GA checklist against real subsystems |
@@ -105,11 +105,16 @@
 - [x] ConnectionsService → Prisma-backed (registers PostgreSQL, MySQL, DuckDB, Snowflake, BigQuery connectors)
 - [x] ConnectionsResolver → GraphQL CRUD + test + schema browse (replaces hardcoded UI)
 - [x] Connections page → real API (CRUD, test, delete — no more demo data)
-- [x] DashboardsService → Prisma-backed
+- [x] DashboardsService → Prisma-backed + DashboardsResolver (CRUD + tiles + executeTileQuery)
 - [x] SemanticModelsService → Prisma-backed (includes `buildQuery()`)
-- [x] IngestionService → Prisma-backed (upload, profile, ingest, delete)
-- [x] QueryEngineService → Prisma-backed connections (replaces in-memory Map)
+- [x] IngestionService → Prisma-backed (upload, profile, ingest, delete, executeSQL, refreshTable, detectDrift)
+- [x] QueryEngineService → Prisma-backed connections + CacheService wired
 - [x] `executeOQL` mutation added (OQL compile → QueryEngine execute pipeline)
+- [x] `executeRawSQL` mutation (direct SQL with optional RLS enforcement)
+- [x] `executeOQLAgainstTable` mutation (OQL compile → DuckDB execute with RLS)
+- [x] `allIngestedTables` query (list all ingested DuckDB tables)
+- [x] `refreshTable` mutation (re-upload data keeping table identity)
+- [x] Schema drift detection wired into resolver
 
 ### A.6 Phase A Exit Criteria Verification
 - [ ] Upload real Excel file → see real sampled data in Explore
@@ -188,8 +193,10 @@
   - [ ] Verify results match original query
 
 ### B.5 Real Governance Enforcement
-- [ ] **RLS** — compile policies into actual SQL predicates
-  - [ ] Inject `AND region = current_user_region()` clauses
+- [x] **RLS** — compile policies into actual SQL predicates
+  - [x] Inject AND region = current_user_region() clauses via executeRawSQL and executeOQLAgainstTable
+  - [x] userId parameter on query mutations triggers RLS filter injection
+  - [x] buildRLSFilter + getEffectivePolicies from RLSService integrated into query path
   - [ ] Test: restricted user cannot see restricted rows via any path
 - [ ] **CLS** — masking in query engine projection step
   - [ ] Apply masking functions in SQL projection, not frontend
@@ -208,9 +215,19 @@
   - [x] SCAN-based pattern invalidation
   - [x] TTL-based expiry
   - [x] Stats tracking (hits, misses, sets, evictions)
+  - [x] CacheService wired into QueryEngineService.execute() — query results cached by connectionId + SQL + params
+  - [x] CacheService wired into IngestionResolver — tile queries and DuckDB queries cached
   - [ ] Invalidation on CDC events
 
-### B.7 Phase B Exit Criteria Verification
+### B.7 Real Dashboard Tiles (NEW)
+- [x] DashboardsResolver — full GraphQL CRUD (dashboards + tiles) + executeTileQuery mutation
+- [x] Dashboard list page — real API (list, create, delete — no more demo data)
+- [x] Dashboard detail page — fetches tiles from API, executes tile OQL/SQL against DuckDB, shows real data
+- [x] executeTileQuery mutation — runs tile SQL with caching, returns real rows + columns
+- [ ] Dashboard tile editor — add/edit tiles from UI
+- [ ] Multi-source tile support (tile queries across connected databases)
+
+### B.8 Phase B Exit Criteria Verification
 - [ ] Dashboard tile shows real numbers from real connected source
 - [ ] RLS policy correctly filters rows for restricted user
 - [ ] YoY% measure computes correctly against golden test suite
