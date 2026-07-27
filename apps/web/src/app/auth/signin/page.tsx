@@ -1,9 +1,20 @@
 "use client";
 
 import { signIn } from "next-auth/react";
+import { useState } from "react";
 import { ArrowRight, Database, Shield, Zap } from "lucide-react";
 
 export default function SignIn() {
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleEmailSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) return;
+    setLoading(true);
+    await signIn("credentials", { email: email.trim(), callbackUrl: "/dashboard" });
+  };
+
   return (
     <main className="min-h-screen bg-surface-0 flex">
       {/* Left side - Branding */}
@@ -95,17 +106,24 @@ export default function SignIn() {
               </div>
             </div>
 
-            <div className="space-y-3">
+            <form onSubmit={handleEmailSignIn} className="space-y-3">
               <input
                 type="email"
                 placeholder="Work email address"
                 className="input-dark"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
               />
-              <button className="w-full btn-secondary py-3 text-sm justify-center">
-                Continue with Email
-                <ArrowRight className="w-4 h-4" />
+              <button
+                type="submit"
+                disabled={loading || !email.trim()}
+                className="w-full btn-secondary py-3 text-sm justify-center disabled:opacity-50"
+              >
+                {loading ? "Signing in..." : "Continue with Email"}
+                {!loading && <ArrowRight className="w-4 h-4" />}
               </button>
-            </div>
+            </form>
           </div>
 
           <p className="mt-8 text-center text-xs text-surface-6">
