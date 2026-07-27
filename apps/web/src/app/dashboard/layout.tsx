@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState, useMemo, useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { cn } from "@orbitiq/design-system";
+import { signOut } from "next-auth/react";
 import {
   LayoutDashboard,
   Database,
@@ -44,6 +45,8 @@ import {
   Gauge,
   Rocket,
   Upload,
+  LogOut,
+  ChevronDown,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 
@@ -130,15 +133,42 @@ const navigation = [
   },
 ];
 
+function useClickOutside(ref: React.RefObject<HTMLElement | null>, handler: () => void) {
+  useEffect(() => {
+    const listener = (e: MouseEvent) => {
+      if (!ref.current || ref.current.contains(e.target as Node)) return;
+      handler();
+    };
+    document.addEventListener("mousedown", listener);
+    return () => document.removeEventListener("mousedown", listener);
+  }, [ref, handler]);
+}
+
+const mockNotifications = [
+  { id: "1", title: "Dashboard shared with you", message: "Admin shared \"Sales Overview\" with your team", time: "2 min ago", read: false },
+  { id: "2", title: "Ingestion complete", message: "orders.csv processed — 1.2M rows ingested", time: "15 min ago", read: false },
+  { id: "3", title: "RLS policy updated", message: "Region filter applied to revenue table", time: "1 hour ago", read: true },
+  { id: "4", title: "Scheduled refresh", message: "Executive Summary dashboard refreshed", time: "3 hours ago", read: true },
+];
+
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
+
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+  const notifRef = useRef<HTMLDivElement>(null);
+
+  useClickOutside(userMenuRef, () => setUserMenuOpen(false));
+  useClickOutside(notifRef, () => setNotifOpen(false));
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -155,6 +185,13 @@ export default function DashboardLayout({
     }
     return map;
   }, [pathname]);
+
+  const unreadCount = mockNotifications.filter((n) => !n.read).length;
+
+  const handleThemeToggle = useCallback(() => {
+    const next = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+  }, [theme, setTheme]);
 
   return (
     <div className="flex h-screen overflow-hidden bg-surface-1">
@@ -229,7 +266,9 @@ export default function DashboardLayout({
             className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-muted hover:bg-surface-3 hover:text-white transition-colors text-sm"
           >
             {collapsed ? (
-              <ChevronRight className="w-4 h-4" />
+              <>
+                <ChevronRight className="w-4 h-4" />
+              </>
             ) : (
               <>
                 <ChevronLeft className="w-4 h-4" />
@@ -259,10 +298,11 @@ export default function DashboardLayout({
           </div>
 
           <div className="flex items-center gap-1 ml-4">
+            {/* Theme Toggle */}
             <button
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              onClick={handleThemeToggle}
               className="p-2 rounded-lg text-muted hover:bg-surface-3 hover:text-white transition-colors"
-              title="Toggle theme"
+              title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
             >
               {mounted && theme === "dark" ? (
                 <Sun className="w-4 h-4" />
@@ -271,26 +311,98 @@ export default function DashboardLayout({
               )}
             </button>
 
-            <button className="p-2 rounded-lg text-muted hover:bg-surface-3 hover:text-white transition-colors relative">
-              <Bell className="w-4 h-4" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-accent rounded-full" />
-            </button>
+            {/* Notifications */}
+            <div ref={notifRef} className="relative">
+              <button
+                onClick={() => setNotifOpen(!notifOpen)}
+                className="p-2 rounded-lg text-muted hover:bg-surface-3 hover:text-white transition-colors relative"
+              >
+                <Bell className="w-4 h-4" />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-accent rounded-full" />
+                )}
+              </button>
+
+              {notifOpen && (
+                <div className="absolute right-0 top-full mt-2 w-80 bg-surface-2 border border-border rounded-xl shadow-2xl z-50 overflow-hidden">
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+                    <span className="text-sm font-semibold text-white">Notifications</span>
+                    <span className="text-xs text-accent cursor-pointer hover:underline">Mark all read</span>
+                  </div>
+                  <div className="max-h-80 overflow-y-auto">
+                    {mockNotifications.map((n) => (
+                      <div
+                        key={n.id}
+                        className={cn(
+                          "px-4 py-3 border-b border-border/50 hover:bg-surface-3/50 transition-colors cursor-pointer",
+                          !n.read && "bg-accent/5"
+                        )}
+                      >
+                        <div className="flex items-start gap-3">
+                          {!n.read && <span className="mt-1.5 w-2 h-2 rounded-full bg-accent shrink-0" />}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-white truncate">{n.title}</p>
+                            <p className="text-xs text-muted mt-0.5 truncate">{n.message}</p>
+                            <p className="text-[11px] text-surface-6 mt-1">{n.time}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="px-4 py-2.5 border-t border-border text-center">
+                    <span className="text-xs text-accent cursor-pointer hover:underline">View all notifications</span>
+                  </div>
+                </div>
+              )}
+            </div>
 
             <div className="w-px h-6 bg-border mx-1" />
 
-            <button className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-surface-3 transition-colors">
-              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-accent to-purple-500 flex items-center justify-center text-xs font-semibold text-white">
-                A
-              </div>
-              <div className="text-left hidden lg:block">
-                <div className="text-sm font-medium text-white leading-none">
-                  Admin
+            {/* User Menu */}
+            <div ref={userMenuRef} className="relative">
+              <button
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-surface-3 transition-colors"
+              >
+                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-accent to-purple-500 flex items-center justify-center text-xs font-semibold text-white">
+                  A
                 </div>
-                <div className="text-[11px] text-muted mt-0.5">
-                  admin@orbitiq.dev
+                <div className="text-left hidden lg:block">
+                  <div className="text-sm font-medium text-white leading-none">
+                    Admin
+                  </div>
+                  <div className="text-[11px] text-muted mt-0.5">
+                    admin@orbitiq.dev
+                  </div>
                 </div>
-              </div>
-            </button>
+                <ChevronDown className="w-3 h-3 text-muted hidden lg:block" />
+              </button>
+
+              {userMenuOpen && (
+                <div className="absolute right-0 top-full mt-2 w-56 bg-surface-2 border border-border rounded-xl shadow-2xl z-50 overflow-hidden">
+                  <div className="px-4 py-3 border-b border-border">
+                    <p className="text-sm font-medium text-white">Admin</p>
+                    <p className="text-xs text-muted mt-0.5">admin@orbitiq.dev</p>
+                  </div>
+                  <div className="py-1">
+                    <button
+                      onClick={() => { setUserMenuOpen(false); router.push("/dashboard/settings"); }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-muted hover:bg-surface-3 hover:text-white transition-colors"
+                    >
+                      <Settings className="w-4 h-4" />
+                      Settings
+                    </button>
+                    <button
+                      onClick={() => { setUserMenuOpen(false); signOut({ callbackUrl: "/auth/signin" }); }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-muted hover:bg-surface-3 hover:text-white transition-colors"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Sign out
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
