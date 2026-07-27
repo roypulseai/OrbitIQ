@@ -77,6 +77,7 @@ import { IngestionService } from "./services/ingestion.service";
 import { RealProfilingService } from "./services/real-profiling.service";
 import { IngestionResolver } from "./resolvers/ingestion.resolver";
 import { FileUploadController } from "./controllers/file-upload.controller";
+import { PrismaService } from "./services/prisma.service";
 
 @Module({
   imports: [
@@ -165,6 +166,7 @@ import { FileUploadController } from "./controllers/file-upload.controller";
     IngestionService,
     RealProfilingService,
     IngestionResolver,
+    PrismaService,
   ],
   controllers: [FileUploadController],
 })

@@ -1,115 +1,56 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
-
-interface DashboardRecord {
-  id: string;
-  workspaceId: string;
-  name: string;
-  description?: string;
-  layout: DashboardLayout;
-  gitRef?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-interface DashboardLayout {
-  columns: number;
-  rowHeight: number;
-  tiles: TileConfig[];
-}
-
-interface TileConfig {
-  id: string;
-  type: "chart" | "kpi" | "table" | "text";
-  position: { x: number; y: number; w: number; h: number };
-  config: Record<string, unknown>;
-}
-
-interface TileRecord {
-  id: string;
-  dashboardId: string;
-  chartSpec: Record<string, unknown>;
-  oqlQuery: Record<string, unknown>;
-  position: { x: number; y: number; w: number; h: number };
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { PrismaService } from "./prisma.service";
 
 @Injectable()
 export class DashboardsService {
-  private dashboards: Map<string, DashboardRecord> = new Map();
-  private tiles: Map<string, TileRecord> = new Map();
+  constructor(private readonly prisma: PrismaService) {}
 
-  async findAllByWorkspace(workspaceId: string): Promise<DashboardRecord[]> {
-    return Array.from(this.dashboards.values()).filter(
-      (d) => d.workspaceId === workspaceId
-    );
+  async findAllByWorkspace(workspaceId: string) {
+    return this.prisma.dashboard.findMany({
+      where: { workspaceId },
+      include: { tiles: true },
+      orderBy: { createdAt: "desc" },
+    });
   }
 
-  async findOne(id: string): Promise<DashboardRecord> {
-    const dashboard = this.dashboards.get(id);
-    if (!dashboard) {
-      throw new NotFoundException(`Dashboard ${id} not found`);
-    }
+  async findOne(id: string) {
+    const dashboard = await this.prisma.dashboard.findUnique({
+      where: { id },
+      include: { tiles: true },
+    });
+    if (!dashboard) throw new NotFoundException(`Dashboard ${id} not found`);
     return dashboard;
   }
 
-  async create(input: {
-    workspaceId: string;
-    name: string;
-    description?: string;
-  }): Promise<DashboardRecord> {
-    const dashboard: DashboardRecord = {
-      id: crypto.randomUUID(),
-      workspaceId: input.workspaceId,
-      name: input.name,
-      description: input.description,
-      layout: {
-        columns: 12,
-        rowHeight: 80,
-        tiles: [],
+  async create(input: { workspaceId: string; name: string; description?: string }) {
+    return this.prisma.dashboard.create({
+      data: {
+        workspaceId: input.workspaceId,
+        name: input.name,
+        description: input.description,
+        layout: JSON.stringify({ columns: 12, rowHeight: 80, tiles: [] }),
       },
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    this.dashboards.set(dashboard.id, dashboard);
-    return dashboard;
+    });
   }
 
-  async update(
-    id: string,
-    input: {
-      name?: string;
-      description?: string;
-      layout?: DashboardLayout;
-    }
-  ): Promise<DashboardRecord> {
-    const dashboard = await this.findOne(id);
-    const updated = {
-      ...dashboard,
-      ...input,
-      updatedAt: new Date(),
-    };
-    this.dashboards.set(id, updated);
-    return updated;
+  async update(id: string, input: { name?: string; description?: string; layout?: Record<string, unknown> }) {
+    await this.findOne(id);
+    const data: Record<string, unknown> = {};
+    if (input.name) data.name = input.name;
+    if (input.description !== undefined) data.description = input.description;
+    if (input.layout) data.layout = JSON.stringify(input.layout);
+    return this.prisma.dashboard.update({ where: { id }, data });
   }
 
   async delete(id: string): Promise<boolean> {
     await this.findOne(id);
-    this.dashboards.delete(id);
-    // Cascade delete tiles
-    for (const [tileId, tile] of this.tiles) {
-      if (tile.dashboardId === id) {
-        this.tiles.delete(tileId);
-      }
-    }
+    await this.prisma.tile.deleteMany({ where: { dashboardId: id } });
+    await this.prisma.dashboard.delete({ where: { id } });
     return true;
   }
 
-  // Tile CRUD
-  async getTiles(dashboardId: string): Promise<TileRecord[]> {
-    return Array.from(this.tiles.values()).filter(
-      (t) => t.dashboardId === dashboardId
-    );
+  async getTiles(dashboardId: string) {
+    return this.prisma.tile.findMany({ where: { dashboardId } });
   }
 
   async addTile(input: {
@@ -117,70 +58,33 @@ export class DashboardsService {
     chartSpec: Record<string, unknown>;
     oqlQuery: Record<string, unknown>;
     position: { x: number; y: number; w: number; h: number };
-  }): Promise<TileRecord> {
+  }) {
     await this.findOne(input.dashboardId);
-    const tile: TileRecord = {
-      id: crypto.randomUUID(),
-      ...input,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    this.tiles.set(tile.id, tile);
-
-    // Update dashboard layout
-    const dashboard = await this.findOne(input.dashboardId);
-    dashboard.layout.tiles.push({
-      id: tile.id,
-      type: (tile.chartSpec.type as "chart") || "chart",
-      position: tile.position,
-      config: tile.chartSpec,
+    return this.prisma.tile.create({
+      data: {
+        dashboardId: input.dashboardId,
+        chartSpec: JSON.stringify(input.chartSpec),
+        oqlQuery: JSON.stringify(input.oqlQuery),
+        position: JSON.stringify(input.position),
+      },
     });
-    this.dashboards.set(input.dashboardId, {
-      ...dashboard,
-      updatedAt: new Date(),
-    });
-
-    return tile;
   }
 
-  async updateTile(
-    id: string,
-    input: {
-      chartSpec?: Record<string, unknown>;
-      oqlQuery?: Record<string, unknown>;
-      position?: { x: number; y: number; w: number; h: number };
-    }
-  ): Promise<TileRecord> {
-    const tile = this.tiles.get(id);
-    if (!tile) {
-      throw new NotFoundException(`Tile ${id} not found`);
-    }
-    const updated = {
-      ...tile,
-      ...input,
-      updatedAt: new Date(),
-    };
-    this.tiles.set(id, updated);
-    return updated;
+  async updateTile(id: string, input: {
+    chartSpec?: Record<string, unknown>;
+    oqlQuery?: Record<string, unknown>;
+    position?: { x: number; y: number; w: number; h: number };
+  }) {
+    await this.prisma.tile.findUniqueOrThrow({ where: { id } });
+    const data: Record<string, unknown> = {};
+    if (input.chartSpec) data.chartSpec = JSON.stringify(input.chartSpec);
+    if (input.oqlQuery) data.oqlQuery = JSON.stringify(input.oqlQuery);
+    if (input.position) data.position = JSON.stringify(input.position);
+    return this.prisma.tile.update({ where: { id }, data });
   }
 
   async removeTile(id: string): Promise<boolean> {
-    const tile = this.tiles.get(id);
-    if (!tile) {
-      throw new NotFoundException(`Tile ${id} not found`);
-    }
-
-    // Update dashboard layout
-    const dashboard = await this.findOne(tile.dashboardId);
-    dashboard.layout.tiles = dashboard.layout.tiles.filter(
-      (t) => t.id !== id
-    );
-    this.dashboards.set(tile.dashboardId, {
-      ...dashboard,
-      updatedAt: new Date(),
-    });
-
-    this.tiles.delete(id);
+    await this.prisma.tile.delete({ where: { id } });
     return true;
   }
 }

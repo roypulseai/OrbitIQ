@@ -1,4 +1,5 @@
 import { Injectable, BadRequestException, NotFoundException } from "@nestjs/common";
+import { PrismaService } from "./prisma.service";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -53,12 +54,9 @@ export interface DuckDBTable {
 
 @Injectable()
 export class IngestionService {
-  private files: Map<string, UploadedFile> = new Map();
-  private profiles: Map<string, SchemaProfile> = new Map();
-  private tables: Map<string, DuckDBTable> = new Map();
   private storageDir: string;
 
-  constructor() {
+  constructor(private readonly prisma: PrismaService) {
     this.storageDir = path.join(process.cwd(), ".orbitiq-uploads");
     if (!fs.existsSync(this.storageDir)) {
       fs.mkdirSync(this.storageDir, { recursive: true });
@@ -81,28 +79,58 @@ export class IngestionService {
     const storedPath = path.join(this.storageDir, storedName);
     fs.writeFileSync(storedPath, file.buffer);
 
-    const record: UploadedFile = {
-      id,
-      workspaceId,
-      originalName: file.originalname,
-      storedPath,
-      mimeType: file.mimetype,
-      sizeBytes: file.size,
-      uploadedBy,
-      uploadedAt: new Date(),
+    const record = await this.prisma.uploadedFile.create({
+      data: {
+        workspaceId,
+        originalName: file.originalname,
+        storedPath,
+        mimeType: file.mimetype,
+        sizeBytes: file.size,
+        uploadedBy,
+      },
+    });
+    return {
+      id: record.id,
+      workspaceId: record.workspaceId,
+      originalName: record.originalName,
+      storedPath: record.storedPath,
+      mimeType: record.mimeType,
+      sizeBytes: record.sizeBytes,
+      uploadedBy: record.uploadedBy,
+      uploadedAt: record.uploadedAt,
     };
-    this.files.set(id, record);
-    return record;
   }
 
   async getUpload(id: string): Promise<UploadedFile> {
-    const file = this.files.get(id);
+    const file = await this.prisma.uploadedFile.findUnique({ where: { id } });
     if (!file) throw new NotFoundException(`Upload ${id} not found`);
-    return file;
+    return {
+      id: file.id,
+      workspaceId: file.workspaceId,
+      originalName: file.originalName,
+      storedPath: file.storedPath,
+      mimeType: file.mimeType,
+      sizeBytes: file.sizeBytes,
+      uploadedBy: file.uploadedBy,
+      uploadedAt: file.uploadedAt,
+    };
   }
 
   async listUploads(workspaceId: string): Promise<UploadedFile[]> {
-    return Array.from(this.files.values()).filter(f => f.workspaceId === workspaceId);
+    const files = await this.prisma.uploadedFile.findMany({
+      where: { workspaceId },
+      orderBy: { uploadedAt: "desc" },
+    });
+    return files.map(f => ({
+      id: f.id,
+      workspaceId: f.workspaceId,
+      originalName: f.originalName,
+      storedPath: f.storedPath,
+      mimeType: f.mimeType,
+      sizeBytes: f.sizeBytes,
+      uploadedBy: f.uploadedBy,
+      uploadedAt: f.uploadedAt,
+    }));
   }
 
   async profileFile(fileId: string): Promise<SchemaProfile> {
@@ -111,35 +139,70 @@ export class IngestionService {
     const tableName = path.basename(file.originalName, ext).replace(/[^a-zA-Z0-9_]/g, "_").toLowerCase();
 
     const profileId = crypto.randomUUID();
-    const profile: SchemaProfile = {
-      id: profileId,
-      fileId,
-      tableName,
-      columns: [],
-      rowCount: 0,
-      columnCount: 0,
-      profiledAt: new Date(),
-      status: "pending",
-    };
-    this.profiles.set(profileId, profile);
-
+    let profile: SchemaProfile;
     try {
       const result = await this.parseAndProfile(file.storedPath, ext);
-      profile.columns = result.columns;
-      profile.rowCount = result.rowCount;
-      profile.columnCount = result.columns.length;
-      profile.status = "completed";
+      const saved = await this.prisma.ingestionProfile.create({
+        data: {
+          fileId,
+          tableName,
+          columns: JSON.stringify(result.columns),
+          rowCount: result.rowCount,
+          columnCount: result.columns.length,
+          status: "completed",
+        },
+      });
+      profile = {
+        id: saved.id,
+        fileId: saved.fileId,
+        tableName: saved.tableName,
+        columns: result.columns,
+        rowCount: saved.rowCount,
+        columnCount: saved.columnCount,
+        profiledAt: saved.profiledAt,
+        status: saved.status as "completed",
+      };
     } catch (error) {
-      profile.status = "error";
-      profile.errorMessage = error instanceof Error ? error.message : "Profiling failed";
+      const saved = await this.prisma.ingestionProfile.create({
+        data: {
+          fileId,
+          tableName,
+          columns: "[]",
+          rowCount: 0,
+          columnCount: 0,
+          status: "error",
+          errorMessage: error instanceof Error ? error.message : "Profiling failed",
+        },
+      });
+      profile = {
+        id: saved.id,
+        fileId: saved.fileId,
+        tableName: saved.tableName,
+        columns: [],
+        rowCount: 0,
+        columnCount: 0,
+        profiledAt: saved.profiledAt,
+        status: "error",
+        errorMessage: saved.errorMessage || undefined,
+      };
     }
     return profile;
   }
 
   async getProfile(id: string): Promise<SchemaProfile> {
-    const profile = this.profiles.get(id);
-    if (!profile) throw new NotFoundException(`Profile ${id} not found`);
-    return profile;
+    const saved = await this.prisma.ingestionProfile.findUnique({ where: { id } });
+    if (!saved) throw new NotFoundException(`Profile ${id} not found`);
+    return {
+      id: saved.id,
+      fileId: saved.fileId,
+      tableName: saved.tableName,
+      columns: typeof saved.columns === "string" ? JSON.parse(saved.columns) : saved.columns,
+      rowCount: saved.rowCount,
+      columnCount: saved.columnCount,
+      profiledAt: saved.profiledAt,
+      status: saved.status as "completed" | "error",
+      errorMessage: saved.errorMessage || undefined,
+    };
   }
 
   async ingestToDuckDB(fileId: string, tableName?: string): Promise<DuckDBTable> {
@@ -167,16 +230,11 @@ export class IngestionService {
             db.all(`SELECT COUNT(*) as cnt FROM "${resolvedTableName}"`, (err3: Error | null, rows: any[]) => {
               db.close(() => {});
               if (err3) return reject(err3);
-              const table: DuckDBTable = {
-                id: crypto.randomUUID(),
-                fileId,
-                tableName: resolvedTableName,
-                schema: "main",
-                databasePath: dbPath,
-                createdAt: new Date(),
-              };
-              this.tables.set(table.id, table);
-              resolve(table);
+              this.prisma.ingestedTable.create({
+                data: { fileId, tableName: resolvedTableName, schemaName: "main", databasePath: dbPath },
+              }).then(saved => {
+                resolve({ id: saved.id, fileId: saved.fileId, tableName: saved.tableName, schema: saved.schemaName, databasePath: saved.databasePath, createdAt: saved.createdAt });
+              }).catch(reject);
             });
           });
         } else if (ext === ".xlsx" || ext === ".xls") {
@@ -193,16 +251,24 @@ export class IngestionService {
               db.all(`SELECT COUNT(*) as cnt FROM "${resolvedTableName}"`, (err3: Error | null, rows: any[]) => {
                 db.close(() => {});
                 if (err3) return reject(err3);
-                const table: DuckDBTable = {
-                  id: crypto.randomUUID(),
-                  fileId,
-                  tableName: resolvedTableName,
-                  schema: "main",
-                  databasePath: dbPath,
-                  createdAt: new Date(),
-                };
-                this.tables.set(table.id, table);
-                resolve(table);
+                this.prisma.ingestedTable.create({
+                  data: {
+                    fileId,
+                    tableName: resolvedTableName,
+                    schemaName: "main",
+                    databasePath: dbPath,
+                  },
+                }).then(saved => {
+                  const table: DuckDBTable = {
+                    id: saved.id,
+                    fileId: saved.fileId,
+                    tableName: saved.tableName,
+                    schema: saved.schemaName,
+                    databasePath: saved.databasePath,
+                    createdAt: saved.createdAt,
+                  };
+                  resolve(table);
+                }).catch(reject);
               });
             });
           }).catch(reject);
@@ -218,16 +284,11 @@ export class IngestionService {
             db.all(`SELECT COUNT(*) as cnt FROM "${resolvedTableName}"`, (err3: Error | null, rows: any[]) => {
               db.close(() => {});
               if (err3) return reject(err3);
-              const table: DuckDBTable = {
-                id: crypto.randomUUID(),
-                fileId,
-                tableName: resolvedTableName,
-                schema: "main",
-                databasePath: dbPath,
-                createdAt: new Date(),
-              };
-              this.tables.set(table.id, table);
-              resolve(table);
+              this.prisma.ingestedTable.create({
+                data: { fileId, tableName: resolvedTableName, schemaName: "main", databasePath: dbPath },
+              }).then(saved => {
+                resolve({ id: saved.id, fileId: saved.fileId, tableName: saved.tableName, schema: saved.schemaName, databasePath: saved.databasePath, createdAt: saved.createdAt });
+              }).catch(reject);
             });
           });
         } else if (ext === ".json") {
@@ -242,16 +303,11 @@ export class IngestionService {
             db.all(`SELECT COUNT(*) as cnt FROM "${resolvedTableName}"`, (err3: Error | null, rows: any[]) => {
               db.close(() => {});
               if (err3) return reject(err3);
-              const table: DuckDBTable = {
-                id: crypto.randomUUID(),
-                fileId,
-                tableName: resolvedTableName,
-                schema: "main",
-                databasePath: dbPath,
-                createdAt: new Date(),
-              };
-              this.tables.set(table.id, table);
-              resolve(table);
+              this.prisma.ingestedTable.create({
+                data: { fileId, tableName: resolvedTableName, schemaName: "main", databasePath: dbPath },
+              }).then(saved => {
+                resolve({ id: saved.id, fileId: saved.fileId, tableName: saved.tableName, schema: saved.schemaName, databasePath: saved.databasePath, createdAt: saved.createdAt });
+              }).catch(reject);
             });
           });
         } else {
@@ -263,23 +319,24 @@ export class IngestionService {
   }
 
   async listTables(workspaceId: string): Promise<DuckDBTable[]> {
-    return Array.from(this.tables.values());
+    const tables = await this.prisma.ingestedTable.findMany({ orderBy: { createdAt: "desc" } });
+    return tables.map(t => ({ id: t.id, fileId: t.fileId, tableName: t.tableName, schema: t.schemaName, databasePath: t.databasePath, createdAt: t.createdAt }));
   }
 
   async queryTable(tableId: string, limit: number = 100, offset: number = 0): Promise<{ columns: string[]; rows: Record<string, unknown>[]; rowCount: number }> {
-    const table = this.tables.get(tableId);
-    if (!table) throw new NotFoundException(`Table ${tableId} not found`);
+    const tableRecord = await this.prisma.ingestedTable.findUnique({ where: { id: tableId } });
+    if (!tableRecord) throw new NotFoundException(`Table ${tableId} not found`);
 
     const duckdb = require("duckdb");
     return new Promise((resolve, reject) => {
-      const db = new duckdb.Database(table.databasePath, (err: Error | null) => {
+      const db = new duckdb.Database(tableRecord.databasePath, (err: Error | null) => {
         if (err) return reject(err);
-        db.all(`SELECT * FROM "${table.tableName}" LIMIT $1 OFFSET $2`, [limit, offset], (err2: Error | null, rows: any[]) => {
+        db.all(`SELECT * FROM "${tableRecord.tableName}" LIMIT $1 OFFSET $2`, [limit, offset], (err2: Error | null, rows: any[]) => {
           if (err2) {
             db.close(() => {});
             return reject(err2);
           }
-          db.all(`SELECT COUNT(*) as cnt FROM "${table.tableName}"`, (err3: Error | null, countRows: any[]) => {
+          db.all(`SELECT COUNT(*) as cnt FROM "${tableRecord.tableName}"`, (err3: Error | null, countRows: any[]) => {
             db.close(() => {});
             if (err3) return reject(err3);
             const columns = rows.length > 0 ? Object.keys(rows[0]) : [];
@@ -295,17 +352,16 @@ export class IngestionService {
   }
 
   async deleteTable(tableId: string): Promise<boolean> {
-    const table = this.tables.get(tableId);
-    if (!table) throw new NotFoundException(`Table ${tableId} not found`);
+    const tableRecord = await this.prisma.ingestedTable.findUnique({ where: { id: tableId } });
+    if (!tableRecord) throw new NotFoundException(`Table ${tableId} not found`);
     const duckdb = require("duckdb");
     return new Promise((resolve, reject) => {
-      const db = new duckdb.Database(table.databasePath, (err: Error | null) => {
+      const db = new duckdb.Database(tableRecord.databasePath, (err: Error | null) => {
         if (err) return reject(err);
-        db.run(`DROP TABLE IF EXISTS "${table.tableName}"`, (err2: Error | null) => {
+        db.run(`DROP TABLE IF EXISTS "${tableRecord.tableName}"`, (err2: Error | null) => {
           db.close(() => {});
           if (err2) return reject(err2);
-          this.tables.delete(tableId);
-          resolve(true);
+          this.prisma.ingestedTable.delete({ where: { id: tableId } }).then(() => resolve(true)).catch(reject);
         });
       });
     });

@@ -1,7 +1,7 @@
 # OrbitIQ — Production Buildout Progress
 
 > **Status: 🟡 IN PROGRESS — Phase A (Real Data In)**
-> **Last Updated: 2026-07-26**
+> **Last Updated: 2026-07-27**
 > **Plan:** See `OrbitIQ_Production_Buildout_Plan.md` for full context.
 
 ---
@@ -86,14 +86,26 @@
 - [x] Real top-N values with frequency
 - [x] Real percentiles for numeric columns (p25, p50, p75, p95)
 - [x] Real histogram for numeric columns
-- [ ] Profiling results stored in Postgres (currently in-memory)
+- [x] Profiling results stored in SQLite via Prisma (replacing in-memory Map)
 
 ### A.5 DuckDB Infrastructure
 - [x] DuckDB npm bindings installed (`duckdb` ^1.4.4)
 - [x] DuckDB connector created in connector-sdk
 - [x] IngestionService materializes files into DuckDB
+- [x] DuckDB tables persisted in SQLite via Prisma (`IngestedTable` model)
 - [ ] DuckDB extensions for Postgres/MySQL/S3 attachment
 - [ ] Test cross-source joins via DuckDB
+
+### A.5b Prisma Persistence Layer (NEW)
+- [x] Prisma schema with SQLite for local dev (UploadedFile, IngestionProfile, IngestedTable, APIKey)
+- [x] Migration applied: `20260727114318_init_production`
+- [x] PrismaService (NestJS wrapper)
+- [x] ConnectionsService → Prisma-backed (registers PostgreSQL, MySQL, DuckDB connectors)
+- [x] DashboardsService → Prisma-backed
+- [x] SemanticModelsService → Prisma-backed (includes `buildQuery()`)
+- [x] IngestionService → Prisma-backed (upload, profile, ingest, delete)
+- [x] QueryEngineService → Prisma-backed connections (replaces in-memory Map)
+- [x] `executeOQL` mutation added (OQL compile → QueryEngine execute pipeline)
 
 ### A.6 Phase A Exit Criteria Verification
 - [ ] Upload real Excel file → see real sampled data in Explore
@@ -101,6 +113,8 @@
 - [x] Schema inference produces correct types for all column categories (tested in IngestionService)
 - [ ] 10M+ row table streams without OOM
 - [ ] File refresh workflow works end-to-end
+- [x] Connections, dashboards, semantic models persist in database (not in-memory)
+- [x] OQL compile → execute pipeline works end-to-end with real connections
 
 ---
 

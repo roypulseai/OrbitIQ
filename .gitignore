@@ -42,6 +42,8 @@ Thumbs.db
 
 # Prisma
 packages/*/prisma/migrations/
+packages/*/prisma/*.db
+packages/*/prisma/*.db-journal
 
 # TypeScript
 *.tsbuildinfo

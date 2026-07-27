@@ -1,23 +1,18 @@
 import { Injectable, BadRequestException } from "@nestjs/common";
-import { QueryResult, ColumnInfo } from "../schema";
+import { QueryResult } from "../schema";
+import { PrismaService } from "./prisma.service";
 import { connectorRegistry } from "@orbitiq/connector-sdk";
-
-interface ConnectionRecord {
-  id: string;
-  config: Record<string, unknown>;
-  connectorType: string;
-}
 
 @Injectable()
 export class QueryEngineService {
-  private connections: Map<string, ConnectionRecord> = new Map();
+  constructor(private readonly prisma: PrismaService) {}
 
   async execute(
     connectionId: string,
     query: string,
     params?: unknown[]
   ): Promise<QueryResult> {
-    const connection = this.connections.get(connectionId);
+    const connection = await this.prisma.connection.findUnique({ where: { id: connectionId } });
     if (!connection) {
       throw new BadRequestException(`Connection ${connectionId} not found`);
     }
@@ -25,15 +20,42 @@ export class QueryEngineService {
     const connector = connectorRegistry.get(connection.connectorType);
     if (!connector) {
       throw new BadRequestException(
-        `Connector "${connection.connectorType}" not found`
+        `Connector "${connection.connectorType}" not registered`
       );
     }
 
-    const result = await connector.executeQuery(
-      connection.config,
-      query,
-      params
-    );
+    const config = typeof connection.config === "string"
+      ? JSON.parse(connection.config)
+      : connection.config;
+
+    const result = await connector.executeQuery(config, query, params);
+
+    return {
+      columns: result.columns.map((c) => ({
+        name: c.name,
+        dataType: c.dataType,
+        nullable: c.nullable,
+        isPrimaryKey: c.isPrimaryKey,
+        isForeignKey: c.isForeignKey,
+      })),
+      rows: result.rows,
+      rowCount: result.rowCount,
+      executionTimeMs: result.executionTimeMs,
+    };
+  }
+
+  async executeDirect(
+    connectorType: string,
+    config: Record<string, unknown>,
+    query: string,
+    params?: unknown[]
+  ): Promise<QueryResult> {
+    const connector = connectorRegistry.get(connectorType);
+    if (!connector) {
+      throw new BadRequestException(`Connector "${connectorType}" not registered`);
+    }
+
+    const result = await connector.executeQuery(config, query, params);
 
     return {
       columns: result.columns.map((c) => ({

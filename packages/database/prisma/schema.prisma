@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -42,7 +42,7 @@ model User {
   email       String    @unique
   name        String
   ssoSubject  String?
-  attributes  Json      @default("{}")
+  attributes  String    @default("{}")
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   userRoles   UserRole[]
@@ -54,7 +54,7 @@ model Role {
   orgId       String
   org         Organization @relation(fields: [orgId], references: [id])
   name        String
-  permissions Json      @default("{}")
+  permissions String    @default("{}")
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   userRoles   UserRole[]
@@ -76,7 +76,7 @@ model Connection {
   workspaceId   String
   workspace     Workspace @relation(fields: [workspaceId], references: [id])
   connectorType String
-  config        Json      // Encrypted at application level
+  config        String    @default("{}")
   regionPin     String?
   createdBy     String
   status        String    @default("inactive")
@@ -95,7 +95,7 @@ model DiscoveryRun {
   status        String    @default("pending")
   startedAt     DateTime  @default(now())
   finishedAt    DateTime?
-  findings      Json?
+  findings      String?
   knowledgeGraphMatches KnowledgeGraphMatch[]
 }
 
@@ -146,8 +146,8 @@ model Column {
   physicalName String
   logicalName String
   dataType    String
-  isPii       Boolean   @default(false)
-  maskRule    Json?
+  isPii       Int       @default(0)
+  maskRule    String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }
@@ -194,7 +194,8 @@ model Dashboard {
   workspaceId String
   workspace   Workspace @relation(fields: [workspaceId], references: [id])
   name        String
-  layout      Json      @default("{}")
+  description String?
+  layout      String    @default("{}")
   gitRef      String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -205,9 +206,9 @@ model Tile {
   id          String    @id @default(uuid())
   dashboardId String
   dashboard   Dashboard @relation(fields: [dashboardId], references: [id])
-  chartSpec   Json
-  oqlQuery    Json
-  position    Json
+  chartSpec   String    @default("{}")
+  oqlQuery    String    @default("{}")
+  position    String    @default("{}")
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }
@@ -219,7 +220,7 @@ model AIProviderConfig {
   providerType  String
   endpointUrl   String
   encryptedKeyRef String
-  taskRouting   Json      @default("{}")
+  taskRouting   String    @default("{}")
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
@@ -232,7 +233,7 @@ model AuditLog {
   actor     User     @relation(fields: [actorId], references: [id])
   action    String
   target    String
-  metadata  Json     @default("{}")
+  metadata  String   @default("{}")
   timestamp DateTime @default(now())
 }
 
@@ -241,9 +242,58 @@ model AnalyticsJob {
   workspaceId     String
   workspace       Workspace @relation(fields: [workspaceId], references: [id])
   type            String
-  params          Json      @default("{}")
+  params          String    @default("{}")
   status          String    @default("pending")
   modelRegistryRef String?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+}
+
+model UploadedFile {
+  id            String    @id @default(uuid())
+  workspaceId   String
+  originalName  String
+  storedPath    String
+  mimeType      String
+  sizeBytes     Int
+  uploadedBy    String
+  uploadedAt    DateTime  @default(now())
+  profiles      IngestionProfile[]
+  tables        IngestedTable[]
+}
+
+model IngestionProfile {
+  id          String    @id @default(uuid())
+  fileId      String
+  file        UploadedFile @relation(fields: [fileId], references: [id])
+  tableName   String
+  columns     String    @default("[]")
+  rowCount    Int
+  columnCount Int
+  status      String    @default("pending")
+  errorMessage String?
+  profiledAt  DateTime  @default(now())
+}
+
+model IngestedTable {
+  id            String    @id @default(uuid())
+  fileId        String
+  file          UploadedFile @relation(fields: [fileId], references: [id])
+  tableName     String
+  schemaName    String    @default("main")
+  databasePath  String
+  createdAt     DateTime  @default(now())
+}
+
+model APIKey {
+  id          String    @id @default(uuid())
+  workspaceId String
+  name        String
+  keyHash     String
+  keyPrefix   String
+  permissions String    @default("{}")
+  lastUsedAt  DateTime?
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+  revokedAt   DateTime?
 }

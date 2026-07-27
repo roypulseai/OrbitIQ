@@ -1145,6 +1145,7 @@ type Mutation {
   deleteUser(id: ID!): Boolean!
   deleteWorkspace(id: ID!): Boolean!
   executeFederatedQuery(engine: String, query: String!): FederatedQueryGQL!
+  executeOQL(connectionId: String!, dialect: String = "postgresql", oql: String!): OQLQueryResult!
   executeQuery(input: QueryExecutionInput!): QueryResult!
   exportData(data: String!, filename: String, format: String!): ExportResult!
   generateModel(connectionId: String!, profilingJobId: String!): GeneratedModel!
@@ -1226,6 +1227,24 @@ type OQLExample {
   description: String!
   name: String!
   oql: String!
+}
+
+type OQLQueryResult {
+  columns: [OQLQueryResultColumn!]!
+  executionTimeMs: Float
+  params: [String!]!
+  rowCount: Float!
+  rows: [String!]!
+  sql: String!
+  warnings: [String!]!
+}
+
+type OQLQueryResultColumn {
+  dataType: String
+  isForeignKey: Boolean
+  isPrimaryKey: Boolean
+  name: String!
+  nullable: Boolean
 }
 
 type OQLValidateResult {

@@ -3,104 +3,66 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("🌱 Seeding database...");
+  console.log("Seeding database...");
 
-  // Create default organization
-  const org = await prisma.organization.create({
-    data: {
+  const org = await prisma.organization.upsert({
+    where: { id: "org-default" },
+    update: {},
+    create: {
+      id: "org-default",
       name: "OrbitIQ Demo",
-      region: "eu-west-1",
-      compliancePackId: "gdpr",
+      region: "us-east-1",
     },
   });
+  console.log(`  Organization: ${org.name}`);
 
-  console.log(`✅ Created organization: ${org.name} (${org.id})`);
-
-  // Create default roles
-  const adminRole = await prisma.role.create({
-    data: {
-      orgId: org.id,
-      name: "admin",
-      permissions: {
-        workspaces: ["create", "read", "update", "delete"],
-        connections: ["create", "read", "update", "delete"],
-        dashboards: ["create", "read", "update", "delete"],
-        users: ["create", "read", "update", "delete"],
-        settings: ["read", "update"],
-      },
-    },
-  });
-
-  const editorRole = await prisma.role.create({
-    data: {
-      orgId: org.id,
-      name: "editor",
-      permissions: {
-        workspaces: ["read"],
-        connections: ["read"],
-        dashboards: ["create", "read", "update"],
-        users: ["read"],
-      },
-    },
-  });
-
-  const viewerRole = await prisma.role.create({
-    data: {
-      orgId: org.id,
-      name: "viewer",
-      permissions: {
-        workspaces: ["read"],
-        connections: ["read"],
-        dashboards: ["read"],
-        users: ["read"],
-      },
-    },
-  });
-
-  console.log(`✅ Created roles: ${adminRole.name}, ${editorRole.name}, ${viewerRole.name}`);
-
-  // Create default workspace
-  const workspace = await prisma.workspace.create({
-    data: {
+  const workspace = await prisma.workspace.upsert({
+    where: { id: "ws-default" },
+    update: {},
+    create: {
+      id: "ws-default",
       orgId: org.id,
       name: "Default Workspace",
-      description: "Main workspace for demo data",
+      description: "Main workspace for development",
     },
   });
+  console.log(`  Workspace: ${workspace.name}`);
 
-  console.log(`✅ Created workspace: ${workspace.name} (${workspace.id})`);
-
-  // Create demo user
-  const user = await prisma.user.create({
-    data: {
+  const user = await prisma.user.upsert({
+    where: { email: "admin@orbitiq.dev" },
+    update: {},
+    create: {
       orgId: org.id,
       email: "admin@orbitiq.dev",
-      name: "Admin User",
-      ssoSubject: "admin-orbitiq",
-      attributes: {
-        role: "GlobalAdmin",
-        region: "global",
-        department: "engineering",
-      },
+      name: "Admin",
+      attributes: JSON.stringify({ department: "engineering", region: "us-east-1" }),
+    },
+  });
+  console.log(`  User: ${user.email}`);
+
+  const role = await prisma.role.upsert({
+    where: { id: "role-admin" },
+    update: {},
+    create: {
+      id: "role-admin",
+      orgId: org.id,
+      name: "Admin",
+      permissions: JSON.stringify({ all: true }),
     },
   });
 
-  // Assign admin role
-  await prisma.userRole.create({
-    data: {
-      userId: user.id,
-      roleId: adminRole.id,
-    },
+  await prisma.userRole.upsert({
+    where: { userId_roleId: { userId: user.id, roleId: role.id } },
+    update: {},
+    create: { userId: user.id, roleId: role.id },
   });
 
-  console.log(`✅ Created user: ${user.email} (${user.id})`);
-
-  console.log("🎉 Seeding complete!");
+  console.log("  Seeding complete!");
 }
 
 main()
   .catch((e) => {
-    console.error("❌ Seeding failed:", e);
+    console.error(e);
     process.exit(1);
   })
   .finally(async () => {

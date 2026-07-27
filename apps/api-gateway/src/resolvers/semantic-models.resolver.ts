@@ -55,21 +55,21 @@ export class SemanticModelsResolver {
   async getModelTables(
     @Args("modelId") modelId: string
   ): Promise<ModelTable[]> {
-    return this.semanticModelsService.getTables(modelId);
+    return this.semanticModelsService.getTables(modelId) as any;
   }
 
   @Query(() => [ModelColumn])
   async getModelColumns(
     @Args("tableId") tableId: string
   ): Promise<ModelColumn[]> {
-    return this.semanticModelsService.getColumns(tableId);
+    return this.semanticModelsService.getColumns(tableId) as any;
   }
 
   @Query(() => [ModelMeasure])
   async getModelMeasures(
     @Args("modelId") modelId: string
   ): Promise<ModelMeasure[]> {
-    return this.semanticModelsService.getMeasures(modelId);
+    return this.semanticModelsService.getMeasures(modelId) as any;
   }
 
   // Semantic Model Mutations
@@ -150,7 +150,7 @@ export class SemanticModelsResolver {
       target: input.modelId,
       metadata: { tableName: table.logicalName },
     });
-    return table;
+    return table as any;
   }
 
   @Mutation(() => Boolean)
@@ -177,7 +177,7 @@ export class SemanticModelsResolver {
       target: input.tableId,
       metadata: { columnName: column.logicalName },
     });
-    return column;
+    return column as any;
   }
 
   @Mutation(() => ModelColumn)
@@ -191,7 +191,7 @@ export class SemanticModelsResolver {
       target: id,
       metadata: { changes: input },
     });
-    return column;
+    return column as any;
   }
 
   @Mutation(() => Boolean)
@@ -218,7 +218,7 @@ export class SemanticModelsResolver {
       target: input.modelId,
       metadata: { measureName: measure.name },
     });
-    return measure;
+    return measure as any;
   }
 
   @Mutation(() => ModelMeasure)
@@ -232,7 +232,7 @@ export class SemanticModelsResolver {
       target: id,
       metadata: { changes: input },
     });
-    return measure;
+    return measure as any;
   }
 
   @Mutation(() => Boolean)
@@ -275,21 +275,21 @@ export class SemanticModelsResolver {
   async getDashboards(
     @Args("workspaceId") workspaceId: string
   ): Promise<Dashboard[]> {
-    return this.dashboardsService.findAllByWorkspace(workspaceId);
+    return this.dashboardsService.findAllByWorkspace(workspaceId) as any;
   }
 
   @Query(() => Dashboard, { name: "dashboard" })
   async getDashboard(
     @Args("id", { type: () => ID }) id: string
   ): Promise<Dashboard> {
-    return this.dashboardsService.findOne(id);
+    return this.dashboardsService.findOne(id) as any;
   }
 
   @Query(() => [Tile])
   async getDashboardTiles(
     @Args("dashboardId") dashboardId: string
   ): Promise<Tile[]> {
-    return this.dashboardsService.getTiles(dashboardId);
+    return this.dashboardsService.getTiles(dashboardId) as any;
   }
 
   // Dashboard Mutations
@@ -344,7 +344,7 @@ export class SemanticModelsResolver {
       target: input.dashboardId,
       metadata: { tileId: tile.id },
     });
-    return tile;
+    return tile as any;
   }
 
   @Mutation(() => Tile)
@@ -358,7 +358,7 @@ export class SemanticModelsResolver {
       target: id,
       metadata: { changes: input },
     });
-    return tile;
+    return tile as any;
   }
 
   @Mutation(() => Boolean)

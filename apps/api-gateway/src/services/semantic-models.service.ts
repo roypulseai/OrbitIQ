@@ -1,296 +1,143 @@
 import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
-
-interface SemanticModelRecord {
-  id: string;
-  workspaceId: string;
-  name: string;
-  description?: string;
-  gitRef?: string;
-  status: "draft" | "published";
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-interface ModelTable {
-  id: string;
-  modelId: string;
-  connectionId: string;
-  physicalName: string;
-  logicalName: string;
-  schema: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-interface ModelColumn {
-  id: string;
-  tableId: string;
-  physicalName: string;
-  logicalName: string;
-  dataType: string;
-  isDimension: boolean;
-  isMeasure: boolean;
-  isPii: boolean;
-  maskRule?: Record<string, unknown>;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-interface ModelMeasure {
-  id: string;
-  modelId: string;
-  name: string;
-  expression: string;
-  format?: string;
-  description?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { PrismaService } from "./prisma.service";
 
 @Injectable()
 export class SemanticModelsService {
-  private models: Map<string, SemanticModelRecord> = new Map();
-  private tables: Map<string, ModelTable> = new Map();
-  private columns: Map<string, ModelColumn> = new Map();
-  private measures: Map<string, ModelMeasure> = new Map();
+  constructor(private readonly prisma: PrismaService) {}
 
-  // Model CRUD
-  async findAllByWorkspace(workspaceId: string): Promise<SemanticModelRecord[]> {
-    return Array.from(this.models.values()).filter(
-      (m) => m.workspaceId === workspaceId
-    );
+  async findAllByWorkspace(workspaceId: string) {
+    return this.prisma.semanticModel.findMany({
+      where: { workspaceId },
+      include: { tables: { include: { columns: true } }, measures: true, relationships: true },
+      orderBy: { createdAt: "desc" },
+    });
   }
 
-  async findOne(id: string): Promise<SemanticModelRecord> {
-    const model = this.models.get(id);
-    if (!model) {
-      throw new NotFoundException(`Semantic Model ${id} not found`);
-    }
+  async findOne(id: string) {
+    const model = await this.prisma.semanticModel.findUnique({
+      where: { id },
+      include: { tables: { include: { columns: true } }, measures: true, relationships: true },
+    });
+    if (!model) throw new NotFoundException(`Semantic Model ${id} not found`);
     return model;
   }
 
-  async create(input: {
-    workspaceId: string;
-    name: string;
-    description?: string;
-  }): Promise<SemanticModelRecord> {
-    const model: SemanticModelRecord = {
-      id: crypto.randomUUID(),
-      workspaceId: input.workspaceId,
-      name: input.name,
-      description: input.description,
-      status: "draft",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    this.models.set(model.id, model);
-    return model;
+  async create(input: { workspaceId: string; name: string; description?: string }) {
+    return this.prisma.semanticModel.create({
+      data: { workspaceId: input.workspaceId, name: input.name, status: "draft" },
+    });
   }
 
-  async update(
-    id: string,
-    input: { name?: string; description?: string }
-  ): Promise<SemanticModelRecord> {
-    const model = await this.findOne(id);
-    const updated = {
-      ...model,
-      ...input,
-      updatedAt: new Date(),
-    };
-    this.models.set(id, updated);
-    return updated;
+  async update(id: string, input: { name?: string; description?: string }) {
+    await this.findOne(id);
+    return this.prisma.semanticModel.update({ where: { id }, data: { name: input.name } });
   }
 
-  async publish(id: string): Promise<SemanticModelRecord> {
-    const model = await this.findOne(id);
-    const updated = {
-      ...model,
-      status: "published" as const,
-      updatedAt: new Date(),
-    };
-    this.models.set(id, updated);
-    return updated;
+  async publish(id: string) {
+    await this.findOne(id);
+    return this.prisma.semanticModel.update({ where: { id }, data: { status: "published" } });
   }
 
-  async unpublish(id: string): Promise<SemanticModelRecord> {
-    const model = await this.findOne(id);
-    const updated = {
-      ...model,
-      status: "draft" as const,
-      updatedAt: new Date(),
-    };
-    this.models.set(id, updated);
-    return updated;
+  async unpublish(id: string) {
+    await this.findOne(id);
+    return this.prisma.semanticModel.update({ where: { id }, data: { status: "draft" } });
   }
 
   async delete(id: string): Promise<boolean> {
     await this.findOne(id);
-    this.models.delete(id);
-    // Cascade delete tables, columns, measures
-    for (const [tableId, table] of this.tables) {
-      if (table.modelId === id) {
-        for (const [colId, col] of this.columns) {
-          if (col.tableId === tableId) {
-            this.columns.delete(colId);
-          }
-        }
-        this.tables.delete(tableId);
-      }
+    await this.prisma.measure.deleteMany({ where: { modelId: id } });
+    await this.prisma.relationship.deleteMany({ where: { modelId: id } });
+    const tables = await this.prisma.table.findMany({ where: { modelId: id } });
+    for (const table of tables) {
+      await this.prisma.column.deleteMany({ where: { tableId: table.id } });
     }
-    for (const [measureId, measure] of this.measures) {
-      if (measure.modelId === id) {
-        this.measures.delete(measureId);
-      }
-    }
+    await this.prisma.table.deleteMany({ where: { modelId: id } });
+    await this.prisma.semanticModel.delete({ where: { id } });
     return true;
   }
 
-  // Table CRUD
-  async getTables(modelId: string): Promise<ModelTable[]> {
-    return Array.from(this.tables.values()).filter(
-      (t) => t.modelId === modelId
-    );
+  async getTables(modelId: string) {
+    return this.prisma.table.findMany({ where: { modelId }, include: { columns: true } });
   }
 
-  async addTable(input: {
-    modelId: string;
-    connectionId: string;
-    physicalName: string;
-    logicalName: string;
-    schema: string;
-  }): Promise<ModelTable> {
+  async addTable(input: { modelId: string; connectionId: string; physicalName: string; logicalName: string; schema?: string }) {
     await this.findOne(input.modelId);
-    const table: ModelTable = {
-      id: crypto.randomUUID(),
-      ...input,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    this.tables.set(table.id, table);
-    return table;
+    return this.prisma.table.create({
+      data: {
+        modelId: input.modelId,
+        connectionId: input.connectionId,
+        physicalName: input.physicalName,
+        logicalName: input.logicalName,
+      },
+    });
   }
 
   async removeTable(id: string): Promise<boolean> {
-    this.tables.delete(id);
-    // Cascade delete columns
-    for (const [colId, col] of this.columns) {
-      if (col.tableId === id) {
-        this.columns.delete(colId);
-      }
-    }
+    await this.prisma.column.deleteMany({ where: { tableId: id } });
+    await this.prisma.table.delete({ where: { id } });
     return true;
   }
 
-  // Column CRUD
-  async getColumns(tableId: string): Promise<ModelColumn[]> {
-    return Array.from(this.columns.values()).filter(
-      (c) => c.tableId === tableId
-    );
+  async getColumns(tableId: string) {
+    return this.prisma.column.findMany({ where: { tableId } });
   }
 
-  async addColumn(input: {
-    tableId: string;
-    physicalName: string;
-    logicalName: string;
-    dataType: string;
-    isDimension?: boolean;
-    isMeasure?: boolean;
-    isPii?: boolean;
-  }): Promise<ModelColumn> {
-    const column: ModelColumn = {
-      id: crypto.randomUUID(),
-      ...input,
-      isDimension: input.isDimension ?? true,
-      isMeasure: input.isMeasure ?? false,
-      isPii: input.isPii ?? false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    this.columns.set(column.id, column);
-    return column;
+  async addColumn(input: { tableId: string; physicalName: string; logicalName: string; dataType: string; isPii?: boolean }) {
+    return this.prisma.column.create({
+      data: {
+        tableId: input.tableId,
+        physicalName: input.physicalName,
+        logicalName: input.logicalName,
+        dataType: input.dataType,
+        isPii: input.isPii ? 1 : 0,
+      },
+    });
   }
 
-  async updateColumn(
-    id: string,
-    input: {
-      logicalName?: string;
-      isDimension?: boolean;
-      isMeasure?: boolean;
-      isPii?: boolean;
-      maskRule?: Record<string, unknown>;
-    }
-  ): Promise<ModelColumn> {
-    const column = this.columns.get(id);
-    if (!column) {
-      throw new NotFoundException(`Column ${id} not found`);
-    }
-    const updated = {
-      ...column,
-      ...input,
-      updatedAt: new Date(),
-    };
-    this.columns.set(id, updated);
-    return updated;
+  async updateColumn(id: string, input: { logicalName?: string; isPii?: boolean; maskRule?: Record<string, unknown> }) {
+    await this.prisma.column.findUniqueOrThrow({ where: { id } });
+    const data: Record<string, unknown> = {};
+    if (input.logicalName) data.logicalName = input.logicalName;
+    if (input.isPii !== undefined) data.isPii = input.isPii ? 1 : 0;
+    if (input.maskRule) data.maskRule = JSON.stringify(input.maskRule);
+    return this.prisma.column.update({ where: { id }, data });
   }
 
   async removeColumn(id: string): Promise<boolean> {
-    this.columns.delete(id);
+    await this.prisma.column.delete({ where: { id } });
     return true;
   }
 
-  // Measure CRUD
-  async getMeasures(modelId: string): Promise<ModelMeasure[]> {
-    return Array.from(this.measures.values()).filter(
-      (m) => m.modelId === modelId
-    );
+  async getMeasures(modelId: string) {
+    return this.prisma.measure.findMany({ where: { modelId } });
   }
 
-  async addMeasure(input: {
-    modelId: string;
-    name: string;
-    expression: string;
-    format?: string;
-    description?: string;
-  }): Promise<ModelMeasure> {
+  async addMeasure(input: { modelId: string; name: string; expression: string; format?: string; description?: string }) {
     await this.findOne(input.modelId);
-    const measure: ModelMeasure = {
-      id: crypto.randomUUID(),
-      ...input,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    this.measures.set(measure.id, measure);
-    return measure;
+    return this.prisma.measure.create({
+      data: {
+        modelId: input.modelId,
+        name: input.name,
+        oqlExpression: input.expression,
+        format: input.format,
+      },
+    });
   }
 
-  async updateMeasure(
-    id: string,
-    input: {
-      name?: string;
-      expression?: string;
-      format?: string;
-      description?: string;
-    }
-  ): Promise<ModelMeasure> {
-    const measure = this.measures.get(id);
-    if (!measure) {
-      throw new NotFoundException(`Measure ${id} not found`);
-    }
-    const updated = {
-      ...measure,
-      ...input,
-      updatedAt: new Date(),
-    };
-    this.measures.set(id, updated);
-    return updated;
+  async updateMeasure(id: string, input: { name?: string; expression?: string; format?: string }) {
+    await this.prisma.measure.findUniqueOrThrow({ where: { id } });
+    const data: Record<string, unknown> = {};
+    if (input.name) data.name = input.name;
+    if (input.expression) data.oqlExpression = input.expression;
+    if (input.format) data.format = input.format;
+    return this.prisma.measure.update({ where: { id }, data });
   }
 
   async removeMeasure(id: string): Promise<boolean> {
-    this.measures.delete(id);
+    await this.prisma.measure.delete({ where: { id } });
     return true;
   }
 
-  // Build SQL from semantic model
   async buildQuery(
     modelId: string,
     selectedColumns: string[],
@@ -301,88 +148,54 @@ export class SemanticModelsService {
     limit?: number
   ): Promise<string> {
     const model = await this.findOne(modelId);
-    const modelTables = await this.getTables(modelId);
-    const modelColumns: ModelColumn[] = [];
-    const modelMeasures = await this.getMeasures(modelId);
+    const modelTables = model.tables;
+    const allColumns = modelTables.flatMap(t => t.columns);
+    const modelMeasures = model.measures;
 
-    for (const table of modelTables) {
-      const columns = await this.getColumns(table.id);
-      modelColumns.push(...columns);
-    }
-
-    // Build SELECT clause
     const selectParts: string[] = [];
-
     for (const colName of selectedColumns) {
-      const col = modelColumns.find(
-        (c) => c.logicalName === colName || c.physicalName === colName
-      );
+      const col = allColumns.find(c => c.logicalName === colName || c.physicalName === colName);
       if (col) {
-        const table = modelTables.find((t) => t.id === col.tableId);
-        if (table) {
-          selectParts.push(`"${table.physicalName}"."${col.physicalName}"`);
-        }
+        const table = modelTables.find(t => t.id === col.tableId);
+        if (table) selectParts.push(`"${table.physicalName}"."${col.physicalName}"`);
       }
     }
-
     for (const measureName of measures) {
-      const measure = modelMeasures.find((m) => m.name === measureName);
-      if (measure) {
-        selectParts.push(`(${measure.expression}) AS "${measureName}"`);
-      }
+      const measure = modelMeasures.find(m => m.name === measureName);
+      if (measure) selectParts.push(`(${measure.oqlExpression}) AS "${measureName}"`);
     }
 
-    // Build FROM clause
     const primaryTable = modelTables[0];
-    if (!primaryTable) {
-      throw new BadRequestException("No tables in semantic model");
-    }
+    if (!primaryTable) throw new BadRequestException("No tables in semantic model");
 
     let sql = `SELECT ${selectParts.join(", ")}\nFROM "${primaryTable.physicalName}"`;
 
-    // Build WHERE clause
     if (filters.length > 0) {
-      const filterConditions = filters.map((f) => {
-        const col = modelColumns.find(
-          (c) => c.logicalName === f.column || c.physicalName === f.column
-        );
+      const filterConditions = filters.map(f => {
+        const col = allColumns.find(c => c.logicalName === f.column || c.physicalName === f.column);
         if (col) {
-          const table = modelTables.find((t) => t.id === col.tableId);
-          if (table) {
-            return `"${table.physicalName}"."${col.physicalName}" ${f.operator || "="} ${f.value}`;
-          }
+          const table = modelTables.find(t => t.id === col.tableId);
+          if (table) return `"${table.physicalName}"."${col.physicalName}" ${f.operator || "="} ${f.value}`;
         }
         return "1=1";
       });
       sql += `\nWHERE ${filterConditions.join(" AND ")}`;
     }
 
-    // Build GROUP BY clause
     if (groupBy.length > 0) {
-      const groupByParts = groupBy.map((colName) => {
-        const col = modelColumns.find(
-          (c) => c.logicalName === colName || c.physicalName === colName
-        );
+      const groupByParts = groupBy.map(colName => {
+        const col = allColumns.find(c => c.logicalName === colName || c.physicalName === colName);
         if (col) {
-          const table = modelTables.find((t) => t.id === col.tableId);
-          if (table) {
-            return `"${table.physicalName}"."${col.physicalName}"`;
-          }
+          const table = modelTables.find(t => t.id === col.tableId);
+          if (table) return `"${table.physicalName}"."${col.physicalName}"`;
         }
         return colName;
       });
       sql += `\nGROUP BY ${groupByParts.join(", ")}`;
     }
 
-    // Build ORDER BY clause
-    if (orderBy) {
-      sql += `\nORDER BY ${orderBy}`;
-    }
-
-    // Build LIMIT clause
-    if (limit) {
-      sql += `\nLIMIT ${limit}`;
-    }
+    if (orderBy) sql += `\nORDER BY ${orderBy}`;
+    if (limit) sql += `\nLIMIT ${limit}`;
 
     return sql;
   }
