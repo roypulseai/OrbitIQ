@@ -208,7 +208,7 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-semibold text-white">Top Models</h3>
             <Link
-              href="/dashboard/models"
+              href="/console/models"
               className="text-xs text-accent hover:text-accent-hover transition-colors flex items-center gap-1"
             >
               View all <ArrowRight className="w-3 h-3" />
@@ -326,10 +326,10 @@ export default function DashboardPage() {
         <h3 className="text-sm font-semibold text-white mb-4">Quick Actions</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {[
-            { label: "New Connection", href: "/dashboard/connections", icon: Database, desc: "Connect to a data source" },
-            { label: "Explore Data", href: "/dashboard/explore", icon: Search, desc: "Ask a question in natural language" },
-            { label: "Create Model", href: "/dashboard/models", icon: Box, desc: "Define metrics and dimensions" },
-            { label: "OQL Playground", href: "/dashboard/oql", icon: Zap, desc: "Write and compile queries" },
+            { label: "New Connection", href: "/console/connections", icon: Database, desc: "Connect to a data source" },
+            { label: "Explore Data", href: "/console/explore", icon: Search, desc: "Ask a question in natural language" },
+            { label: "Create Model", href: "/console/models", icon: Box, desc: "Define metrics and dimensions" },
+            { label: "OQL Playground", href: "/console/oql", icon: Zap, desc: "Write and compile queries" },
           ].map((action) => (
             <Link
               key={action.label}

@@ -54,81 +54,81 @@ const navigation = [
   {
     group: "Analytics",
     items: [
-      { name: "Console", href: "/dashboard", icon: LayoutDashboard },
-      { name: "Explore", href: "/dashboard/explore", icon: Search },
-      { name: "Models", href: "/dashboard/models", icon: Box },
-      { name: "Dashboards", href: "/dashboard/dashboards", icon: LayoutDashboard },
-      { name: "Forecasting", href: "/dashboard/analytics/forecasting", icon: TrendingUp },
-      { name: "Hypothesis Testing", href: "/dashboard/analytics/hypothesis-testing", icon: FlaskConical },
-      { name: "Experiments", href: "/dashboard/analytics/experiments", icon: Beaker },
-      { name: "ML Experiments", href: "/dashboard/analytics/ml", icon: Brain },
-      { name: "Federated Query", href: "/dashboard/analytics/federation", icon: Network },
-      { name: "Performance", href: "/dashboard/analytics/performance", icon: Gauge },
+      { name: "Console", href: "/console", icon: LayoutDashboard },
+      { name: "Explore", href: "/console/explore", icon: Search },
+      { name: "Models", href: "/console/models", icon: Box },
+      { name: "Dashboards", href: "/console/consoles", icon: LayoutDashboard },
+      { name: "Forecasting", href: "/console/analytics/forecasting", icon: TrendingUp },
+      { name: "Hypothesis Testing", href: "/console/analytics/hypothesis-testing", icon: FlaskConical },
+      { name: "Experiments", href: "/console/analytics/experiments", icon: Beaker },
+      { name: "ML Experiments", href: "/console/analytics/ml", icon: Brain },
+      { name: "Federated Query", href: "/console/analytics/federation", icon: Network },
+      { name: "Performance", href: "/console/analytics/performance", icon: Gauge },
     ],
   },
   {
     group: "Data",
     items: [
-      { name: "Connections", href: "/dashboard/connections", icon: Database },
-      { name: "Ingestion", href: "/dashboard/ingestion", icon: Upload },
-      { name: "Relationships", href: "/dashboard/relationships", icon: Link2 },
-      { name: "Data Prep", href: "/dashboard/data-prep", icon: Wrench },
+      { name: "Connections", href: "/console/connections", icon: Database },
+      { name: "Ingestion", href: "/console/ingestion", icon: Upload },
+      { name: "Relationships", href: "/console/relationships", icon: Link2 },
+      { name: "Data Prep", href: "/console/data-prep", icon: Wrench },
     ],
   },
   {
     group: "Developer",
     items: [
-      { name: "OQL Playground", href: "/dashboard/oql", icon: FileCode },
+      { name: "OQL Playground", href: "/console/oql", icon: FileCode },
     ],
   },
   {
     group: "Discovery",
     items: [
-      { name: "Data Discovery", href: "/dashboard/discovery", icon: Sparkles },
-      { name: "Knowledge Graph", href: "/dashboard/discovery/knowledge-graph", icon: Brain },
-      { name: "Column Matching", href: "/dashboard/discovery/knowledge-graph/matches", icon: Waypoints },
-      { name: "Relationship Canvas", href: "/dashboard/discovery/relationship-canvas", icon: GitBranch },
-      { name: "Model Generation", href: "/dashboard/discovery/model-generation", icon: Box },
-      { name: "Cross-Language", href: "/dashboard/discovery/cross-language", icon: Languages },
-      { name: "Data Catalog", href: "/dashboard/discovery/catalog", icon: BookOpen },
+      { name: "Data Discovery", href: "/console/discovery", icon: Sparkles },
+      { name: "Knowledge Graph", href: "/console/discovery/knowledge-graph", icon: Brain },
+      { name: "Column Matching", href: "/console/discovery/knowledge-graph/matches", icon: Waypoints },
+      { name: "Relationship Canvas", href: "/console/discovery/relationship-canvas", icon: GitBranch },
+      { name: "Model Generation", href: "/console/discovery/model-generation", icon: Box },
+      { name: "Cross-Language", href: "/console/discovery/cross-language", icon: Languages },
+      { name: "Data Catalog", href: "/console/discovery/catalog", icon: BookOpen },
     ],
   },
   {
     group: "Workspace",
     items: [
-      { name: "Sharing", href: "/dashboard/sharing", icon: Users },
-      { name: "Schedules", href: "/dashboard/schedules", icon: Clock },
-      { name: "Caching", href: "/dashboard/caching", icon: Database },
-      { name: "Embedding", href: "/dashboard/embedding", icon: Code },
+      { name: "Sharing", href: "/console/sharing", icon: Users },
+      { name: "Schedules", href: "/console/schedules", icon: Clock },
+      { name: "Caching", href: "/console/caching", icon: Database },
+      { name: "Embedding", href: "/console/embedding", icon: Code },
     ],
   },
   {
     group: "AI",
     items: [
-      { name: "Model Gateway", href: "/dashboard/ai/model-gateway", icon: Bot },
-      { name: "Intent Parser", href: "/dashboard/ai/intent-parser", icon: MessageSquare },
-      { name: "AI Agent", href: "/dashboard/ai/agent", icon: Cpu },
-      { name: "Conversations", href: "/dashboard/ai/conversations", icon: MessageCircle },
+      { name: "Model Gateway", href: "/console/ai/model-gateway", icon: Bot },
+      { name: "Intent Parser", href: "/console/ai/intent-parser", icon: MessageSquare },
+      { name: "AI Agent", href: "/console/ai/agent", icon: Cpu },
+      { name: "Conversations", href: "/console/ai/conversations", icon: MessageCircle },
     ],
   },
   {
     group: "Admin",
     items: [
-      { name: "Settings", href: "/dashboard/settings", icon: Settings },
-      { name: "API Keys", href: "/dashboard/settings/api-keys", icon: Key },
-      { name: "GA Launch", href: "/dashboard/settings/ga-launch", icon: Rocket },
+      { name: "Settings", href: "/console/settings", icon: Settings },
+      { name: "API Keys", href: "/console/settings/api-keys", icon: Key },
+      { name: "GA Launch", href: "/console/settings/ga-launch", icon: Rocket },
     ],
   },
   {
     group: "Security & Governance",
     items: [
-      { name: "Row-Level Security", href: "/dashboard/security", icon: Shield },
-      { name: "Column Security", href: "/dashboard/security/column-security", icon: Lock },
-      { name: "PII Detection", href: "/dashboard/security/pii-scanning", icon: ScanSearch },
-      { name: "User Attributes", href: "/dashboard/security/user-attributes", icon: Users },
-      { name: "Compliance", href: "/dashboard/security/compliance", icon: Shield },
-      { name: "Audit Trail", href: "/dashboard/security/compliance/audit-trail", icon: FileText },
-      { name: "Audit Log", href: "/dashboard/security/audit", icon: ScrollText },
+      { name: "Row-Level Security", href: "/console/security", icon: Shield },
+      { name: "Column Security", href: "/console/security/column-security", icon: Lock },
+      { name: "PII Detection", href: "/console/security/pii-scanning", icon: ScanSearch },
+      { name: "User Attributes", href: "/console/security/user-attributes", icon: Users },
+      { name: "Compliance", href: "/console/security/compliance", icon: Shield },
+      { name: "Audit Trail", href: "/console/security/compliance/audit-trail", icon: FileText },
+      { name: "Audit Log", href: "/console/security/audit", icon: ScrollText },
     ],
   },
 ];
@@ -177,8 +177,8 @@ export default function DashboardLayout({
     for (const group of navigation) {
       for (const item of group.items) {
         const isActive =
-          item.href === "/dashboard"
-            ? pathname === "/dashboard"
+          item.href === "/console"
+            ? pathname === "/console"
             : pathname.startsWith(item.href);
         map.set(item.name, isActive);
       }
@@ -204,7 +204,7 @@ export default function DashboardLayout({
       >
         {/* Logo */}
         <div className="h-14 flex items-center px-4 border-b border-border shrink-0">
-          <Link href="/dashboard" className="flex items-center gap-2.5 overflow-hidden">
+          <Link href="/console" className="flex items-center gap-2.5 overflow-hidden">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent to-purple-500 flex items-center justify-center shrink-0">
               <span className="text-white font-bold text-sm">O</span>
             </div>
@@ -386,7 +386,7 @@ export default function DashboardLayout({
                   </div>
                   <div className="py-1">
                     <button
-                      onClick={() => { setUserMenuOpen(false); router.push("/dashboard/settings"); }}
+                      onClick={() => { setUserMenuOpen(false); router.push("/console/settings"); }}
                       className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-muted hover:bg-surface-3 hover:text-white transition-colors"
                     >
                       <Settings className="w-4 h-4" />

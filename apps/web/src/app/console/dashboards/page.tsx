@@ -135,7 +135,7 @@ export default function DashboardsPage() {
           {dashboards.map((dashboard) => (
             <Link
               key={dashboard.id}
-              href={`/dashboard/dashboards/${dashboard.id}`}
+              href={`/console/dashboards/${dashboard.id}`}
               className="bg-surface-2 rounded-xl border border-border p-6 hover:border-indigo-500/50 hover:shadow-lg transition-all group"
             >
               <div className="flex items-start justify-between">

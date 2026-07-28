@@ -31,7 +31,7 @@ export default function EmbeddingPage() {
   const [copied, setCopied] = useState(false);
 
   const embedCode = `<iframe
-  src="https://app.orbitiq.dev/embed/dashboard/${selectedDashboard.toLowerCase().replace(/\s+/g, "-")}"
+  src="https://app.orbitiq.dev/embed/console/${selectedDashboard.toLowerCase().replace(/\s+/g, "-")}"
   width="100%"
   height="600"
   frameborder="0"
@@ -97,7 +97,7 @@ export default function EmbeddingPage() {
                   <div className="w-3 h-3 rounded-full bg-surface-5" />
                   <div className="w-3 h-3 rounded-full bg-surface-5" />
                 </div>
-                <span className="text-[10px] text-muted font-mono">app.orbitiq.dev/embed/dashboard/sales-overview</span>
+                <span className="text-[10px] text-muted font-mono">app.orbitiq.dev/embed/console/sales-overview</span>
                 <ExternalLink className="w-3 h-3 text-muted" />
               </div>
               {/* Simulated dashboard content */}

@@ -28,7 +28,7 @@ export default function Home() {
             >
               Sign in
             </Link>
-            <Link href="/dashboard" className="btn-primary text-sm">
+            <Link href="/console" className="btn-primary text-sm">
               Get Started
               <ArrowRight className="w-4 h-4" />
             </Link>
@@ -62,7 +62,7 @@ export default function Home() {
 
           <div className="mt-10 flex items-center justify-center gap-4">
             <Link
-              href="/dashboard"
+              href="/console"
               className="btn-primary px-6 py-3 text-base"
             >
               Start Exploring
@@ -100,7 +100,7 @@ export default function Home() {
                 <div className="w-3 h-3 rounded-full bg-warning/60" />
                 <div className="w-3 h-3 rounded-full bg-success/60" />
                 <div className="ml-4 text-xs text-surface-6 font-mono">
-                  orbitiq.dev/dashboard
+                  orbitiq.dev/console
                 </div>
               </div>
               {/* Mock KPI cards */}
@@ -215,7 +215,7 @@ export default function Home() {
             Connect your first data source in under 5 minutes.
           </p>
           <div className="mt-8">
-            <Link href="/dashboard" className="btn-primary px-6 py-3 text-base">
+            <Link href="/console" className="btn-primary px-6 py-3 text-base">
               Start Free Trial
               <ArrowRight className="w-5 h-5" />
             </Link>

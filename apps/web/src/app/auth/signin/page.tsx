@@ -12,7 +12,7 @@ export default function SignIn() {
     e.preventDefault();
     if (!email.trim()) return;
     setLoading(true);
-    await signIn("credentials", { email: email.trim(), callbackUrl: "/dashboard" });
+    await signIn("credentials", { email: email.trim(), callbackUrl: "/console" });
   };
 
   return (
@@ -88,7 +88,7 @@ export default function SignIn() {
 
           <div className="mt-8 space-y-3">
             <button
-              onClick={() => signIn("keycloak", { callbackUrl: "/dashboard" })}
+              onClick={() => signIn("keycloak", { callbackUrl: "/console" })}
               className="w-full btn-primary py-3 text-sm justify-center"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
