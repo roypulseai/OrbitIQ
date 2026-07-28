@@ -1,6 +1,6 @@
 import { AppShell } from "@/components/layout/AppShell";
 
-export default function ConsoleLayout({
+export default function DashboardsLayout({
   children,
 }: {
   children: React.ReactNode;
